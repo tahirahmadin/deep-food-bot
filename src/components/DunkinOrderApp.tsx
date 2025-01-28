@@ -441,8 +441,6 @@ export const DunkinOrderApp: React.FC = () => {
           // queryType={state.currentQueryType}
         />
 
-        <button onClick={() => getMenuItemsByFile(5)}>Download now now</button>
-
         <Filters
           isVegOnly={isVegOnly}
           setIsVegOnly={setIsVegOnly}
