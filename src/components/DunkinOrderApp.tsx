@@ -354,7 +354,7 @@ export const DunkinOrderApp: React.FC = () => {
           // Construct the menuPrompt only after restaurant1Menu and restaurant2Menu are assigned
           const menuPrompt = `You are a menu recommendation system. Analyze the following menu items from 2 restaurants: ${JSON.stringify(
             restaurant1Menu
-          )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items": [{ id: number, name: string, price: string }] }, where "text" is a summary of the user's query and the relevant menu items, and "items" is an array of menu items (id, name, price) that match the user's query. Include a maximum of 6 items and minimum 2 items - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations.`;
+          )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items": [{ id: number, name: string, price: string }] }, where "text" is a creative information related to user query and the relevant menu items, and "items" is an array of menu items (id, name, price) that match the user's query. Include a maximum of 6 items and minimum 2 items - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations.`;
 
           console.log(menuPrompt);
           // Call the DeepSeek API with the correct request format
