@@ -39,7 +39,9 @@ export const DunkinOrderApp: React.FC = () => {
 
   // Replace with your DeepSeek API endpoint and API key
   const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"; // Example endpoint
+  const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"; // Example endpoint
   const API_KEY = import.meta.env.VITE_PUBLIC_DEEPSEEK_KEY; // Replace with your actual API key
+  const OPENAI_KEY = import.meta.env.VITE_PUBLIC_OPENAI_API_KEY; // Replace with your actual API key
 
   const imageService = new ImageService();
 
@@ -312,9 +314,9 @@ export const DunkinOrderApp: React.FC = () => {
         // Call the DeepSeek API with the correct request format
         console.log(systemPrompt);
         const response = await axios.post(
-          DEEPSEEK_API_URL,
+          OPENAI_API_URL,
           {
-            model: "deepseek-chat", // Specify the model you're using
+            model: "gpt-4o", // Specify the model you're using
             messages: [
               {
                 role: "user",
@@ -326,7 +328,7 @@ export const DunkinOrderApp: React.FC = () => {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${API_KEY}`,
+              Authorization: `Bearer ${OPENAI_KEY}`,
             },
           }
         );
@@ -354,14 +356,14 @@ export const DunkinOrderApp: React.FC = () => {
           // Construct the menuPrompt only after restaurant1Menu and restaurant2Menu are assigned
           const menuPrompt = `You are a menu recommendation system. Analyze the following menu items from 2 restaurants: ${JSON.stringify(
             restaurant1Menu
-          )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items": [{ id: number, name: string, price: string }] }, where "text" is a creative information related to user query and the relevant menu items, and "items" is an array of menu items (id, name, price) that match the user's query. Include a maximum of 6 items and minimum 2 items - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations.`;
+          )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items": [{ id: number, name: string, price: string }] }, where "text" is a creative information related to user query and the relevant menu items, and "items" is an array of menu items (id, name, price) that match the user's query. Include a maximum of 6 items and minimum 2 items - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format.`;
 
           console.log(menuPrompt);
           // Call the DeepSeek API with the correct request format
           const response2 = await axios.post(
-            DEEPSEEK_API_URL,
+            OPENAI_API_URL,
             {
-              model: "deepseek-chat", // Specify the model you're using
+              model: "gpt-4o", // Specify the model you're using
               messages: [
                 {
                   role: "user",
@@ -373,7 +375,7 @@ export const DunkinOrderApp: React.FC = () => {
             {
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${API_KEY}`,
+                Authorization: `Bearer ${OPENAI_KEY}`,
               },
             }
           );
