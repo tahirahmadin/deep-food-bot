@@ -10,6 +10,7 @@ class StripeService {
 
   async createCheckoutSession(cart: any[], orderDetails: any) {
     try {
+      console.log("hitting 1");
       // Create line items from cart
       const lineItems = cart.map((item) => ({
         price_data: {
@@ -43,7 +44,8 @@ class StripeService {
           }),
         }
       );
-
+      console.log("response");
+      console.log(response);
       const session = await response.json();
 
       // Redirect to Stripe Checkout
