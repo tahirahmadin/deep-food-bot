@@ -26,7 +26,7 @@ class StripeService {
       let sellerId = "acct_1QmrcrH8oBYxi1Wf";
       // Create checkout session
       const response = await fetch(
-        "https://testapi.gobbl.io/create-payment-intent",
+        "https://testapi.gobbl.io/api/create-payment-intent",
         {
           method: "POST",
           headers: {
