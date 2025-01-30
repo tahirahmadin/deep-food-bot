@@ -45,7 +45,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
             {message.structuredText.items1?.length > 0 && (
               <div className="flex items-center gap-1 mt-2 mb-3">
                 <div className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
-                  <span>Papa Johns</span>
+                  <span>Dunkin Donuts</span>
                 </div>
                 <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px]  font-medium">
                   <svg

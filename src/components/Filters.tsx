@@ -18,7 +18,7 @@ export const Filters: React.FC<FiltersProps> = ({
   const { state, dispatch } = useChatContext();
 
   return (
-    <div className="p-3 bg-white/50 backdrop-blur-sm border-b border-white/20 flex items-center justify-between">
+    <div className="px-3 bg-white/50 backdrop-blur-sm border-b border-white/20 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1">
           <button

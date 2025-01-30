@@ -21,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
   }, [state.cart]);
 
   return (
-    <div className="p-4 border-b border-white/20 flex items-center justify-between bg-white/50 backdrop-blur-sm">
+    <div className="pt-3 px-3 pb-1 border-b border-white/20 flex items-center justify-between bg-white/50 backdrop-blur-sm">
       <div className="flex items-center gap-2">
         <img
           src="https://gobbl-bucket.s3.ap-south-1.amazonaws.com/gobbl_token.png"
@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
           className="w-8 h-8 rounded-full object-cover"
         />
         <div>
-          <h1 className="font-semibold">Deep Food Bot</h1>
+          <h1 className="font-semibold">Smart Food Bot</h1>
         </div>
       </div>
       <div className="flex items-center gap-3">
