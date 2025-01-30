@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { RefreshCw } from "lucide-react";
-import { MenuItem } from "./MenuItem";
+import { ChatMenuItem } from "./ChatMenuItem";
 import { MenuItemWithImage } from "../data/menuDataFront";
 import { useChatContext, QueryType } from "../context/ChatContext";
 import { ChatService } from "../services/chatService";
@@ -39,20 +39,21 @@ export const MenuList: React.FC<MenuListProps> = ({ items }) => {
   }, [items, MenuItemWithImage]);
 
   return (
-    <div className="mt-2 ">
-      <div className="grid grid-cols-2 sm:flex overflow-x-auto px-2 sm:px-4 gap-2 sm:gap-3 snap-x scrollbar-hide pb-2">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
         {filteredMenuItems.map((meal, index) => (
-          <div key={index} className="sm:flex-none sm:w-[120px] snap-start">
-            <MenuItem
-              id={meal.id}
-              name={meal.name}
-              price={meal.price}
-              image={meal.image}
-              quantity={meal.quantity}
-              compact={true}
-            />
-          </div>
+          <ChatMenuItem
+            key={index}
+            id={meal.id}
+            name={meal.name}
+            price={meal.price}
+            image={meal.image}
+            quantity={meal.quantity}
+          />
         ))}
+        <button className="h-6 px-2  text-primary text-xs font-medium rounded-lg  transition-colors">
+          Choose
+        </button>
       </div>
     </div>
   );

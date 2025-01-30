@@ -39,15 +39,17 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
 
         {message.isBot && message.structuredText ? (
           <div>
-            <p className="text-gray-600">{message.structuredText.text}</p>
+            <p className="text-gray-600 text-[14px]">
+              {message.structuredText.text}
+            </p>
             {message.structuredText.items1?.length > 0 && (
-              <div className="flex items-center gap-2 mt-2 mb-3">
-                <div className="flex items-center gap-1.5 bg-primary/10 text-primary-600 px-3 py-1 rounded-full text-xs font-medium">
+              <div className="flex items-center gap-1 mt-2 mb-3">
+                <div className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
                   <span>Papa Johns</span>
                 </div>
-                <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2.5 py-1 rounded-full text-xs font-medium">
+                <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px]  font-medium">
                   <svg
-                    className="w-3.5 h-3.5"
+                    className="w-3 h-3"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
@@ -67,19 +69,19 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
               </div>
             )}
             {message.structuredText.items2?.length > 0 && (
-              <div className="flex items-center gap-2 mt-2 mb-3">
-                <div className="flex items-center gap-1.5 bg-primary/10 text-primary-600 px-3 py-1 rounded-full text-xs font-medium">
-                  <span>Papa Johns</span>
+              <div className="flex items-center gap-1 mt-2 mb-3">
+                <div className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
+                  <span>Art of Dum</span>
                 </div>
-                <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2.5 py-1 rounded-full text-xs font-medium">
+                <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px]  font-medium">
                   <svg
-                    className="w-3.5 h-3.5"
+                    className="w-3 h-3"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
                     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                   </svg>
-                  <span>4.5</span>
+                  <span>4.3</span>
                 </div>
               </div>
             )}
@@ -94,7 +96,13 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
             )}
           </div>
         ) : (
-          <div className={message.isBot ? "text-gray-800" : "text-white"}>
+          <div
+            className={
+              message.isBot
+                ? "text-gray-800 text-[14px]"
+                : "text-white text-[14px]"
+            }
+          >
             {message.text}
           </div>
         )}
