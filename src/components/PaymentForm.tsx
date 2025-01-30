@@ -2,6 +2,7 @@ import React from "react";
 import { ShoppingBag, MapPin, Phone, Clock, Wallet } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 import { useWallet } from "../context/WalletContext";
+import { stripeService } from "../services/stripeService";
 
 interface PaymentFormProps {
   onSubmit: (e: React.FormEvent) => void;
@@ -22,35 +23,11 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!connected) {
-      await connectWallet();
-      return;
-    }
-
     try {
-      const signature = await transferUSDT(parseFloat(usdtAmount));
+      // Create Stripe checkout session
+      await stripeService.createCheckoutSession(state.cart, orderDetails);
 
-      if (signature) {
-        dispatch({
-          type: "ADD_MESSAGE",
-          payload: {
-            id: Date.now(),
-            text: `🎉 Payment Successful! Transaction: ${signature.slice(
-              0,
-              8
-            )}...
-                  Your order will be delivered to ${orderDetails.address}. 
-                  We'll send updates to ${
-                    orderDetails.phone
-                  }. Thank you for choosing Dunkin'!`,
-            isBot: true,
-            time: new Date().toLocaleTimeString(),
-            queryType: "CHECKOUT",
-          },
-        });
-        dispatch({ type: "CLEAR_CART" });
-        dispatch({ type: "SET_CHECKOUT_STEP", payload: null });
-      }
+      // Note: The actual success message will be handled after redirect back from Stripe
     } catch (error) {
       console.error("Payment failed:", error);
       dispatch({
@@ -64,26 +41,6 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
         },
       });
     }
-    // Simulate payment processing
-    dispatch({
-      type: "ADD_MESSAGE",
-      payload: {
-        id: Date.now(),
-        text: `🎉 Order Confirmed! Your order will be delivered to ${orderDetails.address} in approximately 30 minutes. We'll send updates to ${orderDetails.phone}. Thank you for choosing Dunkin'!`,
-        isBot: true,
-        time: new Date().toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "numeric",
-          hour12: true,
-        }),
-        queryType: "CHECKOUT",
-      },
-    });
-
-    // Reset checkout state
-    dispatch({ type: "SET_CHECKOUT_STEP", payload: null });
-    // Clear cart
-    dispatch({ type: "CLEAR_CART" });
   };
 
   return (
@@ -135,18 +92,17 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
       {/* Action Button */}
       <button
         onClick={handleSubmit}
-        className="w-full p-3 mt-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all shadow-lg flex items-center justify-center gap-2"
+        className="w-full p-3 mt-3 bg-primary text-white rounded-xl hover:bg-primary-600 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={
+          !orderDetails.name || !orderDetails.address || !orderDetails.phone
+        }
       >
         <Wallet className="w-4 h-4" />
-        {connected
-          ? `Pay ${usdtAmount} USDT & Place Order`
-          : "Connect Wallet to Pay"}
+        Pay {total} AED & Place Order
       </button>
 
       <p className="text-xs text-center text-gray-500 mt-2">
-        {connected
-          ? `Send exactly ${usdtAmount} USDT to complete your order • 1 USDT = 3.3 AED`
-          : "Connect your Phantom wallet to pay with USDT"}
+        Secure payment powered by Stripe
       </p>
     </div>
   );

@@ -34,20 +34,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
       </div>
       <div className="flex items-center gap-3">
         <button
-          onClick={connected ? disconnectWallet : connectWallet}
-          className="flex items-center gap-2 px-3 py-1.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm"
-        >
-          <Wallet className="w-4 h-4" />
-          {connected ? (
-            <span className="hidden sm:inline">
-              {publicKey?.slice(0, 4)}...{publicKey?.slice(-4)}
-            </span>
-          ) : (
-            <span className="hidden sm:inline">Connect Wallet</span>
-          )}
-        </button>
-
-        <button
           onClick={onOpenPanel}
           className="p-2 hover:bg-black/5 rounded-full transition-colors"
         >

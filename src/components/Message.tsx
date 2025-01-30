@@ -41,12 +41,19 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
           <div>
             <p className="text-gray-600">{message.structuredText.text}</p>
             {message.structuredText.items1?.length > 0 && (
-              <div className="flex justify-start items-center">
-                <div className="bg-[black] w-[fit-content] h-6 rounded-xl text-white px-2 text-[11px] flex justify-start items-center">
-                  Papa Johns
+              <div className="flex items-center gap-2 mt-2 mb-3">
+                <div className="flex items-center gap-1.5 bg-primary/10 text-primary-600 px-3 py-1 rounded-full text-xs font-medium">
+                  <span>Papa Johns</span>
                 </div>
-                <div className="bg-[green] w-[fit-content] h-6 rounded-xl text-white px-2 text-[11px]  flex justify-start items-center">
-                  4.5
+                <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2.5 py-1 rounded-full text-xs font-medium">
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                  </svg>
+                  <span>4.5</span>
                 </div>
               </div>
             )}
@@ -56,6 +63,32 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                 <MenuList
                   messageId={message.id}
                   items={message.structuredText.items1}
+                />
+              </div>
+            )}
+            {message.structuredText.items2?.length > 0 && (
+              <div className="flex items-center gap-2 mt-2 mb-3">
+                <div className="flex items-center gap-1.5 bg-primary/10 text-primary-600 px-3 py-1 rounded-full text-xs font-medium">
+                  <span>Papa Johns</span>
+                </div>
+                <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2.5 py-1 rounded-full text-xs font-medium">
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                  </svg>
+                  <span>4.5</span>
+                </div>
+              </div>
+            )}
+
+            {message.structuredText.items2?.length > 0 && (
+              <div className="mt-2 pl-3">
+                <MenuList
+                  messageId={message.id}
+                  items={message.structuredText.items2}
                 />
               </div>
             )}

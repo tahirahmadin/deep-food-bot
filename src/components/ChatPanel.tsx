@@ -3,9 +3,10 @@ import { Message } from "./Message";
 import { ChatInput } from "./ChatInput";
 import { useChatContext } from "../context/ChatContext";
 import { MenuItem } from "./MenuItem";
-import { MenuItemWithImage as allMenuItems } from "../data/menuDataFront";
+// import { menuItems as allMenuItems } from "../data/menus/1";
 import { useState } from "react";
 import { Menu } from "lucide-react";
+import { MenuItemFront } from "../types/menu";
 
 interface ChatPanelProps {
   input: string;
@@ -25,7 +26,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   const { state } = useChatContext();
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [allMenuItems, setAllMenuItems] = useState<MenuItemFront[]>([]);
 
+  useEffect(() => {
+    async function asyncFn() {
+      let restaurant1Menu = await getMenuItemsByFile(1);
+      setAllMenuItems(restaurant1Menu);
+    }
+    asyncFn();
+  });
   // Extract unique categories
   const categories = Array.from(
     new Set(allMenuItems.map((item) => item.category).filter(Boolean))
@@ -115,6 +124,27 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     e.preventDefault();
     onSubmit(e, serializedMemory); // Pass serialized memory along with form submission
   };
+
+  // Function to get menuItems by file number
+  async function getMenuItemsByFile(fileNumber: number): Promise<any[]> {
+    try {
+      // Dynamically import the specific file
+      const file = await import(`../data/menus/${fileNumber}.ts`);
+      console.log("File loaded:", file); // Debugging
+
+      // Check if the file has menuItems
+      if (file.menuItems && Array.isArray(file.menuItems)) {
+        console.log(file.menuItems);
+        return file.menuItems;
+      } else {
+        console.error(`File ${fileNumber}.ts does not contain menuItems.`);
+        return [];
+      }
+    } catch (error) {
+      console.error(`Error loading file ${fileNumber}.ts:`, error);
+      return [];
+    }
+  }
 
   return (
     <>

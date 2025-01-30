@@ -533,7 +533,7 @@ export const DunkinOrderApp: React.FC = () => {
               <div className="p-4 border-t">
                 <div className="flex justify-between mb-4">
                   <span className="font-medium">Total</span>
-                  <span className="font-bold text-orange-500">
+                  <span className="font-bold text-primary">
                     $
                     {state.cart
                       .reduce(
@@ -549,7 +549,7 @@ export const DunkinOrderApp: React.FC = () => {
                     setIsCartOpen(false);
                     dispatch({ type: "SET_CHECKOUT_STEP", payload: "details" });
                   }}
-                  className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
                 >
                   Proceed to Checkout
                 </button>

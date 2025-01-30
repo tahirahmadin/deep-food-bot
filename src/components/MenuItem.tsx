@@ -85,8 +85,8 @@ export const MenuItem: React.FC<MenuItemProps> = ({
                 compact ? "p-0.5" : "p-1.5"
               } flex items-center justify-center rounded-full transition-all ${
                 isInCart
-                  ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm"
-                  : "bg-orange-50 text-orange-600 hover:bg-orange-100"
+                  ? "bg-primary text-white hover:bg-primary-600 shadow-sm"
+                  : "bg-primary-50 text-primary-600 hover:bg-primary-100"
               }`}
             >
               <Plus className={compact ? "w-3.5 h-3.5" : "w-3.5 h-3.5"} />
