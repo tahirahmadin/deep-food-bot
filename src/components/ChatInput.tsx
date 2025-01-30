@@ -72,22 +72,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             </button>
 
             <button
-              onClick={() => handleQuickAction("Suggest Donut Box Deal?")}
+              onClick={() => handleQuickAction("Suggest best pizza options?")}
               className="flex items-center gap-2 p-2 bg-white/80 rounded-xl hover:bg-white/90 transition-colors text-xs text-gray-700 border border-gray-100"
             >
               <Pizza className="w-4 h-4 text-orange-500" />
               <span className="text-left">
-                <span className="font-medium block">Donut Box Deal</span>
+                <span className="font-medium block">Best Pizza options</span>
               </span>
             </button>
 
             <button
-              onClick={() => handleQuickAction("Suggest Coffee and Donuts?")}
+              onClick={() => handleQuickAction("Suggest best chicken options?")}
               className="flex items-center gap-2 p-2 bg-white/80 rounded-xl hover:bg-white/90 transition-colors text-xs text-gray-700 border border-gray-100"
             >
               <Clock className="w-4 h-4 text-orange-500" />
               <span className="text-left">
-                <span className="font-medium block">Coffee and Donuts</span>
+                <span className="font-medium block">Best chicken options</span>
               </span>
             </button>
           </div>

@@ -157,7 +157,8 @@ const initialState: ChatState = {
       id: 1,
       text: JSON.stringify({
         text: "Hi! I'm your menu assistant. What would you like to know about our offerings?",
-        items: [],
+        items1: [],
+        items2: [],
       }),
 
       isBot: true,

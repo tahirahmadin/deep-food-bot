@@ -40,11 +40,22 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
         {message.isBot && message.structuredText ? (
           <div>
             <p className="text-gray-600">{message.structuredText.text}</p>
-            {message.structuredText.items?.length > 0 && (
-              <div className="mt-2">
+            {message.structuredText.items1?.length > 0 && (
+              <div className="flex justify-start items-center">
+                <div className="bg-[black] w-[fit-content] h-6 rounded-xl text-white px-2 text-[11px] flex justify-start items-center">
+                  Papa Johns
+                </div>
+                <div className="bg-[green] w-[fit-content] h-6 rounded-xl text-white px-2 text-[11px]  flex justify-start items-center">
+                  4.5
+                </div>
+              </div>
+            )}
+
+            {message.structuredText.items1?.length > 0 && (
+              <div className="mt-2 pl-3">
                 <MenuList
                   messageId={message.id}
-                  items={message.structuredText.items}
+                  items={message.structuredText.items1}
                 />
               </div>
             )}

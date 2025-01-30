@@ -13,7 +13,8 @@ type MenuItem = {
 
 type StructuredText = {
   text: string;
-  items: MenuItem[];
+  items1: MenuItem[];
+  items2: MenuItem[];
 };
 
 export interface Message {

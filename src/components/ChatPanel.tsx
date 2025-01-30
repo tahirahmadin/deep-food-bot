@@ -74,7 +74,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               parsedText &&
               typeof parsedText === "object" &&
               "text" in parsedText &&
-              "items" in parsedText
+              "items1" in parsedText
             ) {
               // Restructure the message object
               console.log("Going here last try");
@@ -88,7 +88,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 queryType: message.queryType,
                 structuredText: {
                   text: parsedText.text,
-                  items: parsedText.items,
+                  items1: parsedText.items1,
+                  items2: parsedText.items2,
                 },
               };
             }

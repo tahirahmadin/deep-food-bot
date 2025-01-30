@@ -356,7 +356,9 @@ export const DunkinOrderApp: React.FC = () => {
           // Construct the menuPrompt only after restaurant1Menu and restaurant2Menu are assigned
           const menuPrompt = `You are a menu recommendation system. Analyze the following menu items from 2 restaurants: ${JSON.stringify(
             restaurant1Menu
-          )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items": [{ id: number, name: string, price: string }] }, where "text" is a creative information related to user query and the relevant menu items, and "items" is an array of menu items (id, name, price) that match the user's query. Include a maximum of 6 items and minimum 2 items - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format.`;
+          )} and ${JSON.stringify(
+            restaurant2Menu
+          )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items" is an array of menu items (id, name, price) that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both`;
 
           console.log(menuPrompt);
           // Call the DeepSeek API with the correct request format
