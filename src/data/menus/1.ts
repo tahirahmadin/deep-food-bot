@@ -27,7 +27,8 @@ export const menuItems: MenuItemFront[] = [
     category: "ART OF DUM ROLLS",
     price: "27.30",
     restaurant: "Art Of Dum",
-    image: "",
+    image:
+      "https://deliverect-legacy.imgix.net/static/art-of-dum/menu/mutton-seekh-kebab-roll_3f72f744fce033684b15a0497ff06599.jpg",
     spicinessLevel: 1,
     sweetnessLevel: 0,
     dietaryPreference: ["Vegetarian"],

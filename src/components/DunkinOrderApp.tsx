@@ -12,8 +12,8 @@ import { ImageService } from "../services/imageService";
 import axios from "axios";
 const chatService = new ChatService();
 import { saveAs } from "file-saver";
-import { MenuItemFront } from "../types/menu";
 import { restroItems } from "../data/restroData";
+import { useRestaurant } from "../context/RestaurantContext";
 
 interface ApiResponse {
   text: string;
@@ -22,9 +22,9 @@ interface ApiResponse {
 
 export const DunkinOrderApp: React.FC = () => {
   const { state, dispatch } = useChatContext();
+  const { setRestaurants } = useRestaurant();
   const [input, setInput] = useState("");
   const [isVegOnly, setIsVegOnly] = useState(true);
-  const [peopleCount, setPeopleCount] = useState(1);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
@@ -112,18 +112,8 @@ export const DunkinOrderApp: React.FC = () => {
   // Function to get menuItems by file number
   async function getMenuItemsByFile(fileNumber: number): Promise<any[]> {
     try {
-      // Dynamically import the specific file
-      const file = await import(`../data/menus/${fileNumber}.ts`);
-      console.log("File loaded:", file); // Debugging
-
-      // Check if the file has menuItems
-      if (file.menuItems && Array.isArray(file.menuItems)) {
-        console.log(file.menuItems);
-        return file.menuItems;
-      } else {
-        console.error(`File ${fileNumber}.ts does not contain menuItems.`);
-        return [];
-      }
+      const module = await import(`../data/menus/${fileNumber}.ts`);
+      return module.menuItems || [];
     } catch (error) {
       console.error(`Error loading file ${fileNumber}.ts:`, error);
       return [];
@@ -345,6 +335,11 @@ export const DunkinOrderApp: React.FC = () => {
         let suggestRestroText = JSON.parse(apiResponseText).text;
         let suggestRestroIds = JSON.parse(apiResponseText).restroIds;
 
+        // Save restaurant IDs to context
+        if (suggestRestroIds && suggestRestroIds.length > 0) {
+          setRestaurants(suggestRestroIds);
+        }
+
         if (suggestRestroIds && suggestRestroIds.length > 0) {
           // Ensure at least 1 restaurant ID is present
           restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
@@ -359,7 +354,7 @@ export const DunkinOrderApp: React.FC = () => {
             restaurant1Menu
           )} and ${JSON.stringify(
             restaurant2Menu
-          )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items" is an array of menu items (id, name, price) that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both`;
+          )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both`;
 
           console.log(menuPrompt);
           // Call the DeepSeek API with the correct request format
@@ -458,12 +453,7 @@ export const DunkinOrderApp: React.FC = () => {
           // queryType={state.currentQueryType}
         />
 
-        <Filters
-          isVegOnly={isVegOnly}
-          setIsVegOnly={setIsVegOnly}
-          peopleCount={peopleCount}
-          setPeopleCount={setPeopleCount}
-        />
+        <Filters isVegOnly={isVegOnly} setIsVegOnly={setIsVegOnly} />
 
         <ChatPanel
           input={input}

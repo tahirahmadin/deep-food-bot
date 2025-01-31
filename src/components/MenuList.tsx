@@ -4,6 +4,7 @@ import { ChatMenuItem } from "./ChatMenuItem";
 import { MenuItemWithImage } from "../data/menuDataFront";
 import { useChatContext, QueryType } from "../context/ChatContext";
 import { ChatService } from "../services/chatService";
+import { getRestaurantNameById } from "../utils/menuUtils";
 
 const chatService = new ChatService();
 
@@ -14,6 +15,15 @@ interface MenuListProps {
 
 export const MenuList: React.FC<MenuListProps> = ({ items }) => {
   const { state, dispatch } = useChatContext();
+
+  const handleSelectRestro = (restroId: number) => {
+    if (restroId) {
+      const restaurantName = getRestaurantNameById(restroId);
+      if (restaurantName !== "Unknown Restaurant") {
+        dispatch({ type: "SET_SELECTED_RESTAURANT", payload: restaurantName });
+      }
+    }
+  };
 
   // Get serialized memory for chat context
   const serializedMemory = React.useMemo(() => {
@@ -50,9 +60,6 @@ export const MenuList: React.FC<MenuListProps> = ({ items }) => {
             quantity={meal.quantity}
           />
         ))}
-        <button className="h-6 px-2  text-primary text-xs font-medium rounded-lg  transition-colors">
-          Choose
-        </button>
       </div>
     </div>
   );

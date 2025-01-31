@@ -4,17 +4,21 @@
 export enum QueryType {
   GENERAL_QUERY = "GENERAL_QUERY",
   MENU_QUERY = "MENU_QUERY",
+  CHECKOUT = "CHECKOUT",
+  BROWSE = "BROWSE",
 }
 
 type MenuItem = {
   name: string;
   price: string;
+  id: number;
 };
 
 type StructuredText = {
   text: string;
   items1: MenuItem[];
   items2: MenuItem[];
+  restroIds?: number[];
 };
 
 export interface Message {
@@ -24,7 +28,7 @@ export interface Message {
   time: string;
   image?: string;
   mealCards?: MenuCard[];
-  queryType: "GENERAL" | "MENU_QUERY";
+  queryType: QueryType;
   structuredText?: StructuredText; // Optional for non-MENU_QUERY types
   checkout?: {
     step: "details" | "payment" | "confirmation";

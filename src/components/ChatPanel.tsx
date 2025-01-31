@@ -30,11 +30,16 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
   useEffect(() => {
     async function asyncFn() {
-      let restaurant1Menu = await getMenuItemsByFile(1);
-      setAllMenuItems(restaurant1Menu);
+      try {
+        const module = await import("../data/menus/1.ts");
+        setAllMenuItems(module.menuItems);
+      } catch (error) {
+        console.error("Error loading menu items:", error);
+        setAllMenuItems([]);
+      }
     }
     asyncFn();
-  });
+  }, []);
   // Extract unique categories
   const categories = Array.from(
     new Set(allMenuItems.map((item) => item.category).filter(Boolean))
@@ -249,6 +254,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                   id={item.id}
                   name={item.name}
                   price={item.price}
+                  restaurant={item.restaurant}
                   image={item.image}
                   quantity={0}
                 />

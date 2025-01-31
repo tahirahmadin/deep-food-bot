@@ -1,26 +1,26 @@
 import React from "react";
-import { Users, MessageSquare, Menu } from "lucide-react";
+import { MessageSquare, Menu, X, Globe, Store } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 
 interface FiltersProps {
   isVegOnly: boolean;
   setIsVegOnly: (value: boolean) => void;
-  peopleCount: number;
-  setPeopleCount: (value: number) => void;
 }
 
 export const Filters: React.FC<FiltersProps> = ({
   isVegOnly,
   setIsVegOnly,
-  peopleCount,
-  setPeopleCount,
 }) => {
   const { state, dispatch } = useChatContext();
+
+  const handleClearRestaurant = () => {
+    dispatch({ type: "SET_SELECTED_RESTAURANT", payload: null });
+  };
 
   return (
     <div className="px-3 bg-white/50 backdrop-blur-sm border-b border-white/20 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setIsVegOnly(!isVegOnly)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -36,7 +36,7 @@ export const Filters: React.FC<FiltersProps> = ({
           <span className="text-sm font-medium text-gray-700">Veg</span>
         </div>
 
-        <div className="flex bg-gray-200 rounded-lg p-1">
+        <div className="flex bg-gray-100 rounded-lg p-1">
           <button
             onClick={() => dispatch({ type: "SET_MODE", payload: "chat" })}
             className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium transition-colors ${
@@ -62,19 +62,31 @@ export const Filters: React.FC<FiltersProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Users className="w-4 h-4 text-gray-600" />
-        <select
-          value={peopleCount}
-          onChange={(e) => setPeopleCount(Number(e.target.value))}
-          className="bg-white/50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 p-2 pr-8"
+      <div className="relative flex items-center">
+        <div
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
+            state.selectedRestaurant
+              ? "bg-primary/10 text-primary"
+              : "bg-gray-100 text-gray-600"
+          }`}
         >
-          {[1, 2, 3, 4, 5].map((num) => (
-            <option key={num} value={num}>
-              {num} {num === 1 ? "Person" : "People"}
-            </option>
-          ))}
-        </select>
+          {state.selectedRestaurant ? (
+            <Store className="w-4 h-4" />
+          ) : (
+            <Globe className="w-4 h-4" />
+          )}
+          <span className="text-sm font-medium">
+            {state.selectedRestaurant || "All Restaurants"}
+          </span>
+          {state.selectedRestaurant && (
+            <button
+              onClick={handleClearRestaurant}
+              className="p-1 hover:bg-primary/20 rounded-full transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

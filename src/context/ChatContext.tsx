@@ -1,4 +1,3 @@
-// src/context/ChatContext.tsx
 import React, { createContext, useContext, useReducer } from "react";
 
 export enum QueryType {
@@ -22,6 +21,7 @@ interface ChatState {
   error: string | null;
   currentQueryType: QueryType;
   mode: "chat" | "browse";
+  selectedRestaurant: string | null;
   cart: CartItem[];
   checkout: {
     step: "details" | "payment" | null;
@@ -41,6 +41,7 @@ export interface CartItem {
   name: string;
   price: string;
   quantity: number;
+  restaurant: string;
 }
 
 type ChatAction =
@@ -49,6 +50,7 @@ type ChatAction =
   | { type: "SET_ERROR"; payload: string | null }
   | { type: "SET_QUERY_TYPE"; payload: QueryType }
   | { type: "CLEAR_MESSAGES" }
+  | { type: "SET_SELECTED_RESTAURANT"; payload: string | null }
   | { type: "SET_MODE"; payload: "chat" | "browse" }
   | { type: "ADD_TO_CART"; payload: CartItem }
   | { type: "REMOVE_FROM_CART"; payload: number }
@@ -86,6 +88,11 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return {
         ...state,
         mode: action.payload,
+      };
+    case "SET_SELECTED_RESTAURANT":
+      return {
+        ...state,
+        selectedRestaurant: action.payload,
       };
     case "CLEAR_MESSAGES":
       return {
@@ -170,6 +177,7 @@ const initialState: ChatState = {
   error: null,
   currentQueryType: QueryType.GENERAL,
   mode: "chat",
+  selectedRestaurant: null,
   cart: [],
   checkout: {
     step: null,

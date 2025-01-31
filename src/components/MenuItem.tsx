@@ -1,5 +1,5 @@
 import React from "react";
-import { X, Plus, Minus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 
 interface MenuItemProps {
@@ -8,6 +8,7 @@ interface MenuItemProps {
   id: number;
   image: string;
   quantity: number;
+  restaurant?: string;
   compact?: boolean;
 }
 
@@ -15,6 +16,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   id,
   name,
   price,
+  restaurant = "",
   image,
   quantity,
   compact = false,
@@ -25,14 +27,17 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   const cartItem = state.cart.find((item) => item.id === id);
   const isInCart = Boolean(cartItem);
 
-  const handleRemove = () => {
-    dispatch({ type: "REMOVE_FROM_CART", payload: id });
+  const handleChooseRestaurant = () => {
+    if (restaurant) {
+      console.log("Setting restaurant:", restaurant);
+      dispatch({ type: "SET_SELECTED_RESTAURANT", payload: restaurant });
+    }
   };
 
   const handleAddToCart = () => {
     dispatch({
       type: "ADD_TO_CART",
-      payload: { id, name, price, quantity: 1 },
+      payload: { id, name, price, quantity: 1, restaurant },
     });
   };
   return (
@@ -78,7 +83,16 @@ export const MenuItem: React.FC<MenuItemProps> = ({
           >
             {price} AED
           </p>
-          <div>
+          <div className="flex items-center gap-2">
+            {!state.selectedRestaurant && (
+              <button
+                onClick={handleChooseRestaurant}
+                className="px-2 py-1 text-[10px] font-medium text-primary hover:bg-primary-50 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
+                disabled={!restaurant}
+              >
+                Choose
+              </button>
+            )}
             <button
               onClick={handleAddToCart}
               className={`${
