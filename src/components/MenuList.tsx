@@ -25,7 +25,6 @@ export const MenuList: React.FC<MenuListProps> = ({ items }) => {
   }, [state.messages]);
 
   const filteredMenuItems = useMemo(() => {
-    console.log(items);
     // Create a map from the items array for quick lookup
     const itemMap = new Map(items.map((item) => [item.id, item.name]));
 

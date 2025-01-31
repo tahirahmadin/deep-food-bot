@@ -71,12 +71,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             // Parse the text field into JSON
             console.log(JSON.parse(message.text));
             const parsedText = JSON.parse(message.text);
-            console.log("typeof");
-            console.log(typeof parsedText === "object");
-
-            console.log(message.id);
-            console.log("text" in parsedText);
-            console.log("items" in parsedText);
 
             // Validate the JSON structure
             if (
@@ -146,6 +140,24 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   }
 
+  const loadingMessage = () => {
+    const content = [
+      "Finding best options...",
+      "Talking to Gobbl...",
+      "Curating options...",
+      "Scanning menu...",
+      "Cooking best choices...",
+      "Checking fresh items...",
+      "Gathering tasty options...",
+      "Matching your cravings...",
+      "Assembling meal list...",
+      "Fetching recommendations...",
+      "Exploring hidden gems...",
+    ];
+
+    return content[Math.floor(Math.random() * content.length)];
+  };
+
   return (
     <>
       <div
@@ -159,13 +171,36 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         ))}
 
         {state.isLoading && (
+          <div className="flex items-center space-x-2 text-gray-500">
+            <span
+              className="font-sans animate-pulse inline-block ml-4"
+              style={{ transform: "skew(-10deg)" }}
+            >
+              {loadingMessage()}
+            </span>
+            <div className="flex space-x-1">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                  style={{
+                    animationDelay: `${i * 0.15}s`,
+                    animationDuration: "0.6s",
+                  }}
+                ></div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* {state.isLoading && (
           <div className="flex justify-center">
             <img
               src="https://i.pinimg.com/originals/f0/ca/90/f0ca90dd6924e009d86f4421cf2032b5.gif"
               className="h-24"
             />
           </div>
-        )}
+        )} */}
       </div>
 
       {state.mode === "browse" && (
@@ -193,7 +228,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`w-full text-left px-2 py-2 rounded-lg text-xs transition-colors ${
                     selectedCategory === category
                       ? "bg-orange-100 text-orange-800"
                       : "hover:bg-gray-100"

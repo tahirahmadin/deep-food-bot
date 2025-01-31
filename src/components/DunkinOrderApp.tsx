@@ -335,13 +335,14 @@ export const DunkinOrderApp: React.FC = () => {
 
         // Parse the API response
         const apiResponseText = response.data.choices[0].message.content;
-        console.log(apiResponseText);
+
         console.log(JSON.parse(apiResponseText));
         console.log(apiResponseText.restroIds);
 
         let restaurant1Menu = [];
         let restaurant2Menu = [];
 
+        let suggestRestroText = JSON.parse(apiResponseText).text;
         let suggestRestroIds = JSON.parse(apiResponseText).restroIds;
 
         if (suggestRestroIds && suggestRestroIds.length > 0) {
@@ -401,6 +402,18 @@ export const DunkinOrderApp: React.FC = () => {
 
           // Add bot message to chat
           dispatch({ type: "ADD_MESSAGE", payload: botMessage });
+        } else {
+          // Add error message
+          dispatch({
+            type: "ADD_MESSAGE",
+            payload: {
+              id: Date.now() + 1,
+              text: suggestRestroText,
+              isBot: true,
+              time: new Date().toLocaleTimeString(),
+              queryType: QueryType.GENERAL,
+            },
+          });
         }
       } catch (error) {
         console.error("Error calling DeepSeek API:", error);

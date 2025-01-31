@@ -3,6 +3,7 @@ import { SingleRestro } from "../types/menu";
 export const restroItems: SingleRestro[] = [
   {
     id: 1,
+
     restaurant: "Art Of Dum",
     items:
       "Indian cuisine featuring biryanis, kebabs, tikkas, parathas, and traditional desserts like Gulab Jamun. Includes vegetarian and non-vegetarian options.",
