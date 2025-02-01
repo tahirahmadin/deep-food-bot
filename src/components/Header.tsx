@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
           className="w-8 h-8 rounded-full object-cover"
         />
         <div>
-          <h1 className="font-semibold">Smart Food Bot</h1>
+          <h1 className="font-semibold">GobblAi - Food Assistant</h1>
         </div>
       </div>
       <div className="flex items-center gap-3">
