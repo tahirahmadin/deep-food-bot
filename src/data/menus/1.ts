@@ -19,24 +19,7 @@ export const menuItems: MenuItemFront[] = [
     caffeineLevel: "None",
     sufficientFor: 1,
   },
-  {
-    id: 278,
-    name: "MALAI SOYA CHAAP ROLL",
-    description:
-      "Creamy Soya Chunks. Allergens information: Soya, Milk, Nuts & Gluten.",
-    category: "ART OF DUM ROLLS",
-    price: "27.30",
-    restaurant: "Art Of Dum",
-    image:
-      "https://deliverect-legacy.imgix.net/static/art-of-dum/menu/mutton-seekh-kebab-roll_3f72f744fce033684b15a0497ff06599.jpg",
-    spicinessLevel: 1,
-    sweetnessLevel: 0,
-    dietaryPreference: ["Vegetarian"],
-    healthinessScore: 3,
-    popularity: 4,
-    caffeineLevel: "None",
-    sufficientFor: 1,
-  },
+
   {
     id: 279,
     name: "MUTTON SEEKH KEBAB ROLL",

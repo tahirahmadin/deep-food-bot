@@ -22,7 +22,11 @@ interface ApiResponse {
 
 export const DunkinOrderApp: React.FC = () => {
   const { state, dispatch } = useChatContext();
-  const { setRestaurants } = useRestaurant();
+  const {
+    state: restaurantState,
+    setActiveRestaurant,
+    setRestaurants,
+  } = useRestaurant();
   const [input, setInput] = useState("");
   const [isVegOnly, setIsVegOnly] = useState(true);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -287,7 +291,7 @@ export const DunkinOrderApp: React.FC = () => {
       text: input.trim(),
       isBot: false,
       time: new Date().toLocaleTimeString(),
-      queryType, // Include query type in message
+      queryType,
     };
 
     // Update state
@@ -297,23 +301,29 @@ export const DunkinOrderApp: React.FC = () => {
     dispatch({ type: "SET_LOADING", payload: true });
 
     try {
-      try {
+      let apiResponseText = null;
+      let restaurant1Menu = [];
+      let restaurant2Menu = [];
+      let suggestRestroText = "";
+      let suggestRestroIds = [];
+
+      if (restaurantState.activeRestroId === null) {
+        // Call system prompt if no active restaurant ID
         const systemPrompt = `You are a restaurant recommendation system. Analyze the following restaurant data: ${JSON.stringify(
           restroItems
         )}. Based on the user's query: ${input}, return a response in the format { "text": "", "restroIds": [] }, where "text" is a summary of the user's query and the relevant restaurants, and "restroIds" is an array of restaurant IDs (maximum 2) that match the user's query. Do not include more than 2 restaurant IDs. Do not include any additional text or explanations.`;
-        // Call the DeepSeek API with the correct request format
-        console.log(systemPrompt);
+
         const response = await axios.post(
           OPENAI_API_URL,
           {
-            model: "gpt-4o", // Specify the model you're using
+            model: "gpt-4o",
             messages: [
               {
                 role: "user",
                 content: systemPrompt,
               },
             ],
-            max_tokens: 500, // Adjust based on your needs
+            max_tokens: 500,
           },
           {
             headers: {
@@ -323,102 +333,84 @@ export const DunkinOrderApp: React.FC = () => {
           }
         );
 
-        // Parse the API response
-        const apiResponseText = response.data.choices[0].message.content;
+        apiResponseText = response.data.choices[0].message.content;
+        suggestRestroText = JSON.parse(apiResponseText).text;
+        suggestRestroIds = JSON.parse(apiResponseText).restroIds;
 
-        console.log(JSON.parse(apiResponseText));
-        console.log(apiResponseText.restroIds);
-
-        let restaurant1Menu = [];
-        let restaurant2Menu = [];
-
-        let suggestRestroText = JSON.parse(apiResponseText).text;
-        let suggestRestroIds = JSON.parse(apiResponseText).restroIds;
-
-        // Save restaurant IDs to context
         if (suggestRestroIds && suggestRestroIds.length > 0) {
           setRestaurants(suggestRestroIds);
-        }
-
-        if (suggestRestroIds && suggestRestroIds.length > 0) {
-          // Ensure at least 1 restaurant ID is present
           restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
-
-          // Check if a second restaurant ID exists
           if (suggestRestroIds.length > 1) {
             restaurant2Menu = await getMenuItemsByFile(suggestRestroIds[1]);
           }
+        }
+      } else {
+        // If active restaurant ID is available, directly fetch its menu
+        restaurant1Menu = await getMenuItemsByFile(
+          restaurantState.activeRestroId
+        );
+      }
 
-          // Construct the menuPrompt only after restaurant1Menu and restaurant2Menu are assigned
-          const menuPrompt = `You are a menu recommendation system. Analyze the following menu items from 2 restaurants: ${JSON.stringify(
-            restaurant1Menu
-          )} and ${JSON.stringify(
-            restaurant2Menu
-          )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both`;
+      // Construct the menu prompt
+      const menuPrompt =
+        restaurantState.activeRestroId != null
+          ? `You are a menu recommendation system. Analyze the following menu items from restaurants: ${JSON.stringify(
+              restaurant1Menu
+            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both`
+          : `You are a menu recommendation system. Analyze the following menu items from 2 restaurants: ${JSON.stringify(
+              restaurant1Menu
+            )} and ${JSON.stringify(
+              restaurant2Menu
+            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both`;
 
-          console.log(menuPrompt);
-          // Call the DeepSeek API with the correct request format
-          const response2 = await axios.post(
-            OPENAI_API_URL,
-            {
-              model: "gpt-4o", // Specify the model you're using
-              messages: [
-                {
-                  role: "user",
-                  content: menuPrompt,
-                },
-              ],
-              max_tokens: 1000, // Adjust based on your needs
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${OPENAI_KEY}`,
+      console.log("suggestRestroIds");
+      console.log(suggestRestroIds);
+      console.log(restaurantState.activeRestroId);
+      if (suggestRestroIds?.length > 0 || restaurantState.activeRestroId) {
+        const response2 = await axios.post(
+          OPENAI_API_URL,
+          {
+            model: "gpt-4o",
+            messages: [
+              {
+                role: "user",
+                content: menuPrompt,
               },
-            }
-          );
+            ],
+            max_tokens: 1000,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${OPENAI_KEY}`,
+            },
+          }
+        );
 
-          // Parse the API response
-          const apiResponseText2 = response2.data.choices[0].message.content;
-          console.log("apiResponseText2");
-          console.log(apiResponseText2);
+        const apiResponseText2 = response2.data.choices[0].message.content;
+        const botMessage = {
+          id: Date.now() + 1,
+          text: apiResponseText2,
+          isBot: true,
+          time: new Date().toLocaleTimeString(),
+          queryType,
+        };
 
-          // const apiResponse = JSON.parse(apiResponseText) as ApiResponse;
-          // setResponse(apiResponse);
-
-          // Create bot message
-          const botMessage = {
+        dispatch({ type: "ADD_MESSAGE", payload: botMessage });
+      } else {
+        dispatch({
+          type: "ADD_MESSAGE",
+          payload: {
             id: Date.now() + 1,
-            text: apiResponseText2,
+            text: suggestRestroText,
             isBot: true,
             time: new Date().toLocaleTimeString(),
-            queryType, // Keep the same query type for the response
-          };
-
-          // Add bot message to chat
-          dispatch({ type: "ADD_MESSAGE", payload: botMessage });
-        } else {
-          // Add error message
-          dispatch({
-            type: "ADD_MESSAGE",
-            payload: {
-              id: Date.now() + 1,
-              text: suggestRestroText,
-              isBot: true,
-              time: new Date().toLocaleTimeString(),
-              queryType: QueryType.GENERAL,
-            },
-          });
-        }
-      } catch (error) {
-        console.error("Error calling DeepSeek API:", error);
-      } finally {
-        // setIsLoading(false);
+            queryType: QueryType.GENERAL,
+          },
+        });
       }
     } catch (error) {
-      console.error("Error querying menu:", error);
-
-      // Add error message
+      console.error("Error calling DeepSeek API:", error);
       dispatch({
         type: "ADD_MESSAGE",
         payload: {

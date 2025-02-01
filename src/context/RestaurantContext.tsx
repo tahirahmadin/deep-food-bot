@@ -7,7 +7,7 @@ interface RestaurantState {
 
 type RestaurantAction =
   | { type: "SET_RESTRO_IDS"; payload: number[] }
-  | { type: "SET_ACTIVE_RESTRO"; payload: number }
+  | { type: "SET_ACTIVE_RESTRO"; payload: number | null }
   | { type: "CLEAR_RESTRO_IDS" };
 
 const initialState: RestaurantState = {
@@ -74,7 +74,7 @@ export const useRestaurant = () => {
     }
   };
 
-  const setActiveRestaurant = (id: number) => {
+  const setActiveRestaurant = (id: number | null) => {
     // Only dispatch if the ID is different from current active ID
     if (state.activeRestroId !== id) {
       dispatch({ type: "SET_ACTIVE_RESTRO", payload: id });

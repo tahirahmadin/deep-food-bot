@@ -1,6 +1,7 @@
 import React from "react";
 import { MessageSquare, Menu, X, Globe, Store } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
+import { useRestaurant } from "../context/RestaurantContext";
 
 interface FiltersProps {
   isVegOnly: boolean;
@@ -12,9 +13,11 @@ export const Filters: React.FC<FiltersProps> = ({
   setIsVegOnly,
 }) => {
   const { state, dispatch } = useChatContext();
+  const { state: restaurantState, setActiveRestaurant } = useRestaurant();
 
   const handleClearRestaurant = () => {
     dispatch({ type: "SET_SELECTED_RESTAURANT", payload: null });
+    setActiveRestaurant(null);
   };
 
   return (
