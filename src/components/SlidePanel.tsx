@@ -15,16 +15,22 @@ import { useAuth } from "../context/AuthContext";
 import { getUserOrders } from "../actions/serverActions";
 
 interface Order {
-  id: string;
+  _id: string;
+  orderId: string;
   items: Array<{
-    name: string;
+    price_data: {
+      currency: string;
+      product_data: {
+        name: string;
+      };
+      unit_amount: number;
+    };
     quantity: number;
-    price: string;
   }>;
-  total: string;
+  totalAmount: number;
   status: string;
   createdAt: string;
-  restaurant: string;
+  paymentStatus: string;
 }
 
 interface Address {
@@ -93,10 +99,27 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
+      month: "long",
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  const formatAmount = (amount: number): string => {
+    return (amount / 100).toFixed(2);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "processing":
+        return "bg-yellow-100 text-yellow-700";
+      case "completed":
+        return "bg-green-100 text-green-700";
+      case "cancelled":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
   };
 
   return (
@@ -176,13 +199,18 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
                 <div className="space-y-3 px-4">
                   {orders.map((order) => (
                     <div
-                      key={order.id}
+                      key={order._id}
                       className="bg-white rounded-xl p-4 shadow-sm"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h4 className="font-medium text-gray-900">
-                            {order.restaurant}
+                          <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                            Order {order.orderId}
+                            {order.paymentStatus === "paid" && (
+                              <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">
+                                Paid
+                              </span>
+                            )}
                           </h4>
                           <div className="flex items-center gap-1 text-xs text-gray-500">
                             <Clock className="w-3 h-3" />
@@ -191,16 +219,12 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
                         </div>
                         <div className="flex flex-col items-end">
                           <span className="text-sm font-medium text-primary">
-                            {order.total} AED
+                            {formatAmount(order.totalAmount)} AED
                           </span>
                           <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${
-                              order.status === "completed"
-                                ? "bg-green-100 text-green-700"
-                                : order.status === "pending"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-gray-100 text-gray-700"
-                            }`}
+                            className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(
+                              order.status
+                            )}`}
                           >
                             {order.status}
                           </span>
@@ -213,10 +237,11 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
                             className="flex justify-between items-center"
                           >
                             <span>
-                              {item.quantity}x {item.name}
+                              {item.quantity}x{" "}
+                              {item.price_data.product_data.name}
                             </span>
                             <span className="text-gray-500">
-                              {item.price} AED
+                              {formatAmount(item.price_data.unit_amount)} AED
                             </span>
                           </div>
                         ))}
@@ -305,64 +330,83 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3 px-4">
+                <div className="space-y-2 px-4 max-h-[60vh] overflow-y-auto">
                   {orders.map((order) => (
                     <div
-                      key={order.id}
-                      className="bg-white rounded-xl shadow-sm overflow-hidden"
+                      key={order._id}
+                      className="bg-white rounded-lg shadow-sm overflow-hidden"
                     >
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
+                      <div className="p-2">
+                        <div className="flex justify-between items-center">
                           <div>
-                            <h4 className="font-medium text-gray-900">
-                              {order.restaurant}
+                            <h4 className="text-xs font-medium text-gray-900">
+                              {order.orderId}
                             </h4>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-[10px] text-gray-500">
                               {formatDate(order.createdAt)}
                             </p>
                           </div>
-                          <div className="text-right">
-                            <p className="font-medium text-primary">
-                              {order.total} AED
+                          <div className="flex flex-col items-end">
+                            <p className="text-xs font-medium text-primary">
+                              {formatAmount(order.totalAmount)} AED
                             </p>
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full ${
-                                order.status === "completed"
-                                  ? "bg-green-100 text-green-700"
-                                  : order.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-gray-100 text-gray-700"
-                              }`}
-                            >
-                              {order.status}
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <span
+                                className={`text-[9px] px-1.5 rounded-full ${getStatusColor(
+                                  order.status
+                                )}`}
+                              >
+                                {order.status}
+                              </span>
+                              {order.paymentStatus === "paid" && (
+                                <span className="text-[9px] text-green-600">
+                                  •
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <button
-                          onClick={() => toggleOrderExpansion(order.id)}
-                          className="mt-2 text-xs text-primary hover:text-primary-600 transition-colors"
-                        >
-                          {expandedOrderId === order.id
-                            ? "Hide Details"
-                            : "View Details"}
-                        </button>
-                        {expandedOrderId === order.id && (
-                          <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="mt-1">
+                          <div className="text-[10px] text-gray-500 line-clamp-1">
+                            {order.items.map((item, index) => (
+                              <span key={index}>
+                                {item.quantity}x{" "}
+                                {item.price_data.product_data.name}
+                                {index < order.items.length - 1 ? ", " : ""}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        {expandedOrderId === order._id && (
+                          <div className="mt-2 pt-2 border-t border-gray-100">
                             {order.items.map((item, index) => (
                               <div
                                 key={index}
-                                className="flex justify-between items-center py-1"
+                                className="flex justify-between items-center py-0.5"
                               >
-                                <span className="text-sm text-gray-600">
-                                  {item.quantity}x {item.name}
+                                <span className="text-[11px] text-gray-600">
+                                  {item.quantity}x{" "}
+                                  {item.price_data.product_data.name}
                                 </span>
-                                <span className="text-sm text-gray-500">
-                                  {item.price} AED
+                                <span className="text-[11px] text-gray-500">
+                                  {formatAmount(item.price_data.unit_amount)}{" "}
+                                  AED
                                 </span>
                               </div>
                             ))}
                           </div>
                         )}
+                        <button
+                          onClick={() => toggleOrderExpansion(order._id)}
+                          className="mt-1 w-full text-[10px] text-primary hover:bg-primary-50 rounded transition-colors flex items-center justify-center gap-1 py-0.5"
+                        >
+                          {expandedOrderId === order._id ? "Less" : "More"}
+                          <ChevronRight
+                            className={`w-3 h-3 transition-transform ${
+                              expandedOrderId === order._id ? "rotate-90" : ""
+                            }`}
+                          />
+                        </button>
                       </div>
                     </div>
                   ))}

@@ -128,24 +128,9 @@ export const getUserOrders = async (
 ): Promise<ApiResponse<any>> => {
   try {
     let requestParams: string = `userId=${userId}`;
-    let url: string = `${apiUrl}/user/getUserOrders?${requestParams}`;
+    let url: string = `${apiUrl}/user/getUserOrderHistory?${requestParams}`;
 
-    // HMAC Response
-    let hmacResponse: HmacResponse | null =
-      getHmacMessageFromBody(requestParams);
-
-    if (!hmacResponse) {
-      return { error: true };
-    }
-
-    let axiosHeaders: { HMAC: string; Timestamp: string } = {
-      HMAC: hmacResponse.hmacHash,
-      Timestamp: hmacResponse.currentTimestamp,
-    };
-
-    const response: AxiosResponse = await axios.get(url, {
-      headers: axiosHeaders,
-    });
+    const response: AxiosResponse = await axios.get(url);
 
     if (response.data && !response.data.error) {
       console.log("Orders response:", response.data.result);
