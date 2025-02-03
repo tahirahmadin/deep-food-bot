@@ -7,6 +7,9 @@ import { MenuItem } from "./MenuItem";
 import { useState } from "react";
 import { Menu } from "lucide-react";
 import { MenuItemFront } from "../types/menu";
+import { useRestaurant } from "../context/RestaurantContext";
+import { RestaurantCard } from "./RestaurantCard";
+import { restroItems } from "../data/restroData";
 
 interface ChatPanelProps {
   input: string;
@@ -27,23 +30,38 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [allMenuItems, setAllMenuItems] = useState<MenuItemFront[]>([]);
+  const { state: restaurantState } = useRestaurant();
 
   useEffect(() => {
     async function asyncFn() {
       try {
-        const module = await import("../data/menus/1.ts");
-        setAllMenuItems(module.menuItems);
+        if (restaurantState.activeRestroId) {
+          const module = await import(
+            `../data/menus/${restaurantState.activeRestroId}.ts`
+          );
+          if (module.menuItems) {
+            setAllMenuItems(module.menuItems);
+          } else {
+            console.error("No menu items found in module");
+            setAllMenuItems([]);
+          }
+        } else {
+          setAllMenuItems([]);
+        }
       } catch (error) {
         console.error("Error loading menu items:", error);
         setAllMenuItems([]);
       }
     }
     asyncFn();
-  }, []);
+  }, [restaurantState.activeRestroId]);
   // Extract unique categories
-  const categories = Array.from(
-    new Set(allMenuItems.map((item) => item.category).filter(Boolean))
-  ).sort();
+  const categories = useMemo(() => {
+    if (allMenuItems.length === 0) return [];
+    return Array.from(
+      new Set(allMenuItems.map((item) => item.category).filter(Boolean))
+    ).sort();
+  }, [allMenuItems]);
 
   // Filter menu items by category
   const filteredMenuItems = selectedCategory
@@ -98,6 +116,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                   text: parsedText.text,
                   items1: parsedText.items1,
                   items2: parsedText.items2,
+                  restroIds: parsedText.restroIds,
                 },
               };
             }
@@ -210,57 +229,89 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
       {state.mode === "browse" && (
         <div className="flex-1 flex bg-white/30 backdrop-blur-sm overflow-y-auto">
-          {/* Categories Panel */}
-          <div className="w-1/3 border-r border-white/20 overflow-y-auto">
-            <div className="p-3 bg-orange-50 border-b border-white/20">
-              <div className="flex items-center gap-2 text-orange-800">
-                <Menu className="w-4 h-4" />
-                <span className="font-medium">Categories</span>
+          {!restaurantState.activeRestroId ? (
+            // Restaurant List View
+            <div className="flex-1 p-4">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                Available Restaurants
+              </h2>
+              <div className="grid grid-cols-2 gap-4">
+                {restroItems.map((restaurant) => (
+                  <RestaurantCard
+                    key={restaurant.id}
+                    id={restaurant.id}
+                    name={restaurant.restaurant}
+                    description={restaurant.items}
+                    image={
+                      restaurant.id === 1
+                        ? "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1974&auto=format&fit=crop"
+                        : restaurant.id === 2
+                        ? "https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=2070&auto=format&fit=crop"
+                        : restaurant.id === 3
+                        ? "https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?q=80&w=1887&auto=format&fit=crop"
+                        : restaurant.id === 4
+                        ? "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop"
+                        : "https://images.unsplash.com/photo-1590947132387-155cc02f3212?q=80&w=2070&auto=format&fit=crop"
+                    }
+                  />
+                ))}
               </div>
             </div>
-            <div className="space-y-1 p-2">
-              <button
-                onClick={() => setSelectedCategory(null)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                  selectedCategory === null
-                    ? "bg-orange-100 text-orange-800"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                All Items
-              </button>
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`w-full text-left px-2 py-2 rounded-lg text-xs transition-colors ${
-                    selectedCategory === category
-                      ? "bg-orange-100 text-orange-800"
-                      : "hover:bg-gray-100"
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-          </div>
+          ) : (
+            <>
+              {/* Categories Panel */}
+              <div className="w-1/3 border-r border-white/20 overflow-y-auto">
+                <div className="p-3 bg-orange-50 border-b border-white/20">
+                  <div className="flex items-center gap-2 text-orange-800">
+                    <Menu className="w-4 h-4" />
+                    <span className="font-medium">Categories</span>
+                  </div>
+                </div>
+                <div className="space-y-1 p-2">
+                  <button
+                    onClick={() => setSelectedCategory(null)}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                      selectedCategory === null
+                        ? "bg-orange-100 text-orange-800"
+                        : "hover:bg-gray-100"
+                    }`}
+                  >
+                    All Items
+                  </button>
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`w-full text-left px-2 py-2 rounded-lg text-xs transition-colors ${
+                        selectedCategory === category
+                          ? "bg-orange-100 text-orange-800"
+                          : "hover:bg-gray-100"
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          {/* Menu Items Grid */}
-          <div className="flex-1 overflow-y-scroll p-4">
-            <div className="grid grid-cols-2 gap-4">
-              {filteredMenuItems.map((item) => (
-                <MenuItem
-                  key={item.id}
-                  id={item.id}
-                  name={item.name}
-                  price={item.price}
-                  restaurant={item.restaurant}
-                  image={item.image}
-                  quantity={0}
-                />
-              ))}
-            </div>
-          </div>
+              {/* Menu Items Grid */}
+              <div className="flex-1 overflow-y-scroll p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {filteredMenuItems.map((item) => (
+                    <MenuItem
+                      key={item.id}
+                      id={item.id}
+                      name={item.name}
+                      price={item.price}
+                      restaurant={item.restaurant}
+                      image={item.image}
+                      quantity={0}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
