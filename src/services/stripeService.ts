@@ -5,12 +5,14 @@ class StripeService {
 
   constructor() {
     // Initialize Stripe with your publishable key
-    this.stripe = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!);
+    this.stripe = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!, {
+      stripeAccount: "acct_1QnDfMRsmaUdhKRS",
+    });
   }
-
   async createCheckoutSession(cart: any[], orderDetails: any) {
     try {
-      console.log("hitting 1");
+      let apiUrl: string = "https://payments.gobbl.ai/api";
+
       // Create line items from cart
       const lineItems = cart.map((item) => ({
         price_data: {
@@ -23,27 +25,29 @@ class StripeService {
         quantity: item.quantity,
       }));
 
-      let sellerId = "acct_1QmrcrH8oBYxi1Wf";
+      let sellerId = "acct_1QnDfMRsmaUdhKRS";
       // Create checkout session
-      const response = await fetch(
-        "https://testapi.gobbl.io/api/create-payment-intent",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const userId = user?.userId;
+
+      const response = await fetch(`${apiUrl}/payment/create-payment-intent`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lineItems,
+          sellerId,
+          userId, // Add userId to request
+          customerDetails: {
+            name: orderDetails.name,
+            email: orderDetails.email,
+            address: orderDetails.address,
+            phone: orderDetails.phone,
           },
-          body: JSON.stringify({
-            lineItems,
-            sellerId,
-            customerDetails: {
-              name: orderDetails.name,
-              email: orderDetails.email,
-              address: orderDetails.address,
-              phone: orderDetails.phone,
-            },
-          }),
-        }
-      );
+          orderId: "#1234",
+        }),
+      });
       console.log("response");
       console.log(response);
       const session = await response.json();
