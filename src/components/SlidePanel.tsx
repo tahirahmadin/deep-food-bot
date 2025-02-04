@@ -315,7 +315,6 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
 
           {isAddressesExpanded && (
             <div className="mt-4 px-4">
-              {console.log(addresses)}
               {addresses.map((addr, index) => (
                 <div
                   key={index}

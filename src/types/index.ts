@@ -57,7 +57,13 @@ export interface Address {
   id: string;
   name: string;
   address: string;
-  phone: string;
+  mobile: string;
+  type?: string;
+  landmark?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface OrderDetails {

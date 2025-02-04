@@ -1,8 +1,9 @@
-import React from 'react';
-import { ShoppingBag, CreditCard, ArrowLeft } from 'lucide-react';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { ShoppingBag, CreditCard, ArrowLeft } from "lucide-react";
 
 interface CheckoutFormProps {
-  step: 'details' | 'payment';
+  step: "details" | "payment";
   orderDetails: {
     name: string;
     address: string;
@@ -21,14 +22,16 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   orderDetails,
   setOrderDetails,
   onSubmit,
-  total
+  total,
+}) => {
+  const navigate = useNavigate();
 
-  if (step === 'details') {
+  if (step === "details") {
     return (
       <form onSubmit={onSubmit} className="p-4 space-y-3">
         <button
           type="button"
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -39,7 +42,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           placeholder="Full Name"
           required
           value={orderDetails.name}
-          onChange={(e) => setOrderDetails({ ...orderDetails, name: e.target.value })}
+          onChange={(e) =>
+            setOrderDetails({ ...orderDetails, name: e.target.value })
+          }
           className="w-full p-2 rounded-lg bg-white/50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
         <input
@@ -47,7 +52,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           placeholder="Delivery Address"
           required
           value={orderDetails.address}
-          onChange={(e) => setOrderDetails({ ...orderDetails, address: e.target.value })}
+          onChange={(e) =>
+            setOrderDetails({ ...orderDetails, address: e.target.value })
+          }
           className="w-full p-2 rounded-lg bg-white/50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
         <input
@@ -55,7 +62,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           placeholder="Phone Number"
           required
           value={orderDetails.phone}
-          onChange={(e) => setOrderDetails({ ...orderDetails, phone: e.target.value })}
+          onChange={(e) =>
+            setOrderDetails({ ...orderDetails, phone: e.target.value })
+          }
           className="w-full p-2 rounded-lg bg-white/50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
         <button
@@ -72,7 +81,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     <form onSubmit={onSubmit} className="p-4 space-y-3">
       <button
         type="button"
-        onClick={() => navigate('/')}
+        onClick={() => navigate("/")}
         className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -97,7 +106,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
         placeholder="Card Number"
         required
         value={orderDetails.cardNumber}
-        onChange={(e) => setOrderDetails({ ...orderDetails, cardNumber: e.target.value })}
+        onChange={(e) =>
+          setOrderDetails({ ...orderDetails, cardNumber: e.target.value })
+        }
         className="w-full p-2 rounded-lg bg-white/50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
       />
       <div className="grid grid-cols-2 gap-3">
@@ -106,7 +117,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           placeholder="MM/YY"
           required
           value={orderDetails.expiryDate}
-          onChange={(e) => setOrderDetails({ ...orderDetails, expiryDate: e.target.value })}
+          onChange={(e) =>
+            setOrderDetails({ ...orderDetails, expiryDate: e.target.value })
+          }
           className="w-full p-2 rounded-lg bg-white/50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
         <input
@@ -114,7 +127,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           placeholder="CVV"
           required
           value={orderDetails.cvv}
-          onChange={(e) => setOrderDetails({ ...orderDetails, cvv: e.target.value })}
+          onChange={(e) =>
+            setOrderDetails({ ...orderDetails, cvv: e.target.value })
+          }
           className="w-full p-2 rounded-lg bg-white/50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
       </div>

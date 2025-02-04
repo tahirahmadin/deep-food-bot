@@ -50,6 +50,7 @@ export const AddressModal: React.FC<AddressModalProps> = ({
   } | null>(null);
   const [editingAddress, setEditingAddress] = useState<number | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [currentLocation, setCurrentLocation] = useState("");
   const [locationError, setLocationError] = useState<string | null>(null);
 
@@ -139,6 +140,7 @@ export const AddressModal: React.FC<AddressModalProps> = ({
 
           // Auto-fill the address form
           setAddress(formattedAddress);
+          // Auto-show form when location is set
           setShowForm(true);
         } catch (error) {
           setLocationError("Failed to get address from coordinates");
