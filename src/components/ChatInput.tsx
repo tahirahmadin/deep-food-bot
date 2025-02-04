@@ -1,13 +1,6 @@
 // src/components/ChatInput.tsx
 import React from "react";
-import {
-  Send,
-  ImageIcon,
-  Coffee,
-  Pizza,
-  Clock,
-  Siren as Fire,
-} from "lucide-react";
+import { Send, ImageIcon, Leaf, Clock as Timer, Zap, Tag } from "lucide-react";
 
 interface ChatInputProps {
   input: string;
@@ -48,62 +41,57 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     >
       <div>
         {showQuickActions && !input && (
-          <div className="grid grid-cols-2 gap-1 mb-2 h-[80px]">
+          <div className="flex flex-col items-end gap-2 mb-4">
+            <button
+              onClick={() => handleQuickAction("Show me lunch combos")}
+              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm"
+            >
+              <Timer className="w-3.5 h-3.5" />
+              <span>Lunch combos ?</span>
+            </button>
+
+            <button
+              onClick={() => handleQuickAction("Show me best veg options")}
+              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm"
+            >
+              <Leaf className="w-3.5 h-3.5" />
+              <span>Best veg options ?</span>
+            </button>
+
+            <button
+              onClick={() => handleQuickAction("What are today's best offers?")}
+              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm"
+            >
+              <Tag className="w-3.5 h-3.5" />
+              <span>Best offers today ?</span>
+            </button>
+
             <button
               onClick={() =>
-                handleQuickAction("Suggest Lunch combo for AED 50 or less?")
+                handleQuickAction("Show me quickest delivery options")
               }
-              className="flex items-center gap-2 p-2 bg-white/80 rounded-xl hover:bg-white/90 transition-colors text-xs text-gray-700 border border-gray-100"
+              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm"
             >
-              <Fire className="w-4 h-4 text-primary" />
-              <span className="text-left">
-                <span className="font-medium block">Lunch combo</span>
-              </span>
-            </button>
-
-            <button
-              onClick={() => handleQuickAction("Suggest Best Hot Coffees?")}
-              className="flex items-center gap-2 p-2 bg-white/80 rounded-xl hover:bg-white/90 transition-colors text-xs text-gray-700 border border-gray-100"
-            >
-              <Coffee className="w-4 h-4 text-primary" />
-              <span className="text-left">
-                <span className="font-medium block">Best Hot Coffees</span>
-              </span>
-            </button>
-
-            <button
-              onClick={() => handleQuickAction("Suggest best pizza options?")}
-              className="flex items-center gap-2 p-2 bg-white/80 rounded-xl hover:bg-white/90 transition-colors text-xs text-gray-700 border border-gray-100"
-            >
-              <Pizza className="w-4 h-4 text-primary" />
-              <span className="text-left">
-                <span className="font-medium block">Best Pizza options</span>
-              </span>
-            </button>
-
-            <button
-              onClick={() => handleQuickAction("Suggest best chicken options?")}
-              className="flex items-center gap-2 p-2 bg-white/80 rounded-xl hover:bg-white/90 transition-colors text-xs text-gray-700 border border-gray-100"
-            >
-              <Clock className="w-4 h-4 text-primary" />
-              <span className="text-left">
-                <span className="font-medium block">Best chicken options</span>
-              </span>
+              <Zap className="w-3.5 h-3.5" />
+              <span>Quickest delivery ?</span>
             </button>
           </div>
         )}
       </div>
 
-      <form onSubmit={onSubmit} className="flex items-center gap-2">
+      <form
+        onSubmit={onSubmit}
+        className="flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2"
+      >
         <input
           type="text"
-          placeholder={placeholder}
+          placeholder="Ask here..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={isLoading}
-          className="flex-1 p-2 rounded-lg bg-white/50 focus:outline-none focus:ring-2 focus:ring-primary backdrop-blur-sm placeholder:text-gray-500 disabled:opacity-50"
+          className="flex-1 bg-transparent focus:outline-none placeholder:text-gray-400 text-sm"
         />
-        <label className="cursor-pointer p-2 bg-orange-500 hover:bg-orange-600 rounded-full text-white transition-colors">
+        <label className="cursor-pointer p-1 text-gray-400 hover:text-gray-600">
           <input
             type="file"
             accept="image/*"
@@ -114,8 +102,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         </label>
         <button
           type="submit"
-          disabled={isLoading || !input.trim()}
-          className="p-2 bg-primary hover:bg-primary-600 rounded-full text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`p-1 ${
+            input
+              ? "text-orange-500 hover:text-blue-700"
+              : "text-gray-400 hover:text-gray-600"
+          }`}
         >
           <Send className="w-5 h-5" />
         </button>

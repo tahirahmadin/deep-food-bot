@@ -31,6 +31,7 @@ export const DunkinOrderApp: React.FC = () => {
   const [isVegOnly, setIsVegOnly] = useState(true);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [numberOfPeople, setNumberOfPeople] = useState(1);
 
   // Function to filter data based on age
   const filterData = () => {
@@ -356,12 +357,12 @@ export const DunkinOrderApp: React.FC = () => {
         restaurantState.activeRestroId != null
           ? `You are a menu recommendation system. Analyze the following menu items from restaurants: ${JSON.stringify(
               restaurant1Menu
-            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both`
+            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both.Do not add 'json'`
           : `You are a menu recommendation system. Analyze the following menu items from 2 restaurants: ${JSON.stringify(
               restaurant1Menu
             )} and ${JSON.stringify(
               restaurant2Menu
-            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both`;
+            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both. Do not add 'json'`;
 
       console.log("suggestRestroIds");
       console.log(suggestRestroIds);
@@ -437,15 +438,20 @@ export const DunkinOrderApp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center bg-[#E0E0E0] sm:py-[5vh]">
-      <div className="relative bg-white/70 backdrop-blur-md rounded-none sm:rounded-2xl shadow-xl w-full h-screen sm:h-[90vh] max-w-md overflow-hidden border border-white/20 flex flex-col sm:mx-4">
+    <div className="min-h-screen relative flex items-center justify-center bg-gray-50">
+      <div className="relative bg-[#FFF5F2] w-full h-screen max-w-md overflow-hidden flex flex-col">
         <Header
           onOpenPanel={() => setIsPanelOpen(true)}
           onCartClick={() => setIsCartOpen(!isCartOpen)}
           // queryType={state.currentQueryType}
         />
 
-        <Filters isVegOnly={isVegOnly} setIsVegOnly={setIsVegOnly} />
+        <Filters
+          isVegOnly={isVegOnly}
+          setIsVegOnly={setIsVegOnly}
+          numberOfPeople={numberOfPeople}
+          setNumberOfPeople={setNumberOfPeople}
+        />
 
         <ChatPanel
           input={input}

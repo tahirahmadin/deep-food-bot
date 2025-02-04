@@ -197,7 +197,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         {state.isLoading && (
           <div className="flex items-center space-x-2 text-gray-500">
             <span
-              className="font-sans animate-pulse inline-block ml-4"
+              className="font-sans animate-pulse inline-block ml-4 text-sm"
               style={{ transform: "skew(-10deg)" }}
             >
               {loadingMessage()}

@@ -93,6 +93,55 @@ export const getUserLeaderboardData = async (
   }
 };
 
+//4. USER:: Update User Addresses
+export const updateUserAddresses = async (
+  userId: string,
+  addresses: Array<{ name: string; address: string; mobile: string }>
+): Promise<{ error: boolean; result: any }> => {
+  try {
+    let url: string = `${apiUrl}/user/updateUserAddresses`;
+
+    // Encrypted data
+    let data = { userId, addresses };
+    let encryptedData: CipherTextResponse = getCipherText(data);
+
+    let response: AxiosResponse = await axios
+      .post(url, encryptedData)
+      .then((res: AxiosResponse) => res)
+      .catch((err: any) => err.response);
+
+    if (response.data && !response.data.error) {
+      return { error: false, result: response.data.result };
+    } else {
+      return { error: true, result: response.data.result };
+    }
+  } catch (err) {
+    console.error("Update addresses error:", err);
+    return { error: true, result: null };
+  }
+};
+
+//5. USER:: Get User Details
+export const getUserDetails = async (
+  userId: string
+): Promise<{ error: boolean; result: any }> => {
+  try {
+    let requestParams: string = `userId=${userId}`;
+    let url: string = `${apiUrl}/user/getUserDetails?${requestParams}`;
+
+    let response: AxiosResponse = await axios.get(url);
+
+    if (response.data && !response.data.error) {
+      return { error: false, result: response.data.result };
+    } else {
+      return { error: true, result: response.data.result };
+    }
+  } catch (err) {
+    console.error("Get user details error:", err);
+    return { error: true, result: null };
+  }
+};
+
 //2. USER:: SignUp and Login POST Login user using telegram
 export const loginUserFromBackendServer = async (
   via: string,

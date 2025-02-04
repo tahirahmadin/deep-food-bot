@@ -169,104 +169,6 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
             </div>
           </div>
 
-          {activeTab === "orders" && (
-            <div className="mt-4">
-              {isLoading ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  <span className="ml-3 text-gray-600">Loading orders...</span>
-                </div>
-              ) : error ? (
-                <div className="text-center py-4">
-                  <p className="text-red-500 mb-2">{error}</p>
-                  <button
-                    onClick={handleRetry}
-                    className="text-primary hover:text-primary-600 text-sm font-medium"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              ) : orders.length === 0 ? (
-                <div className="text-center text-gray-500 py-8">
-                  <ShoppingBag className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                  {isAuthenticated ? (
-                    <p>You haven't placed any orders yet</p>
-                  ) : (
-                    <p>Please log in to view your orders</p>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-3 px-4">
-                  {orders.map((order) => (
-                    <div
-                      key={order._id}
-                      className="bg-white rounded-xl p-4 shadow-sm"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                            Order {order.orderId}
-                            {order.paymentStatus === "paid" && (
-                              <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">
-                                Paid
-                              </span>
-                            )}
-                          </h4>
-                          <div className="flex items-center gap-1 text-xs text-gray-500">
-                            <Clock className="w-3 h-3" />
-                            {formatDate(order.createdAt)}
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end">
-                          <span className="text-sm font-medium text-primary">
-                            {formatAmount(order.totalAmount)} AED
-                          </span>
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(
-                              order.status
-                            )}`}
-                          >
-                            {order.status}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {order.items.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex justify-between items-center"
-                          >
-                            <span>
-                              {item.quantity}x{" "}
-                              {item.price_data.product_data.name}
-                            </span>
-                            <span className="text-gray-500">
-                              {formatAmount(item.price_data.unit_amount)} AED
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      <button className="w-full mt-3 py-2 text-xs text-primary hover:bg-primary-50 rounded-lg transition-colors flex items-center justify-center gap-1">
-                        View Details
-                        <ChevronRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {isAuthenticated && (
-            <button
-              onClick={authLogout}
-              className="mt-4 w-full py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
-          )}
-
           <div className="bg-white rounded-xl p-3 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Gobbl Points</span>
@@ -444,6 +346,15 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
                 </p>
               )}
             </div>
+          )}
+          {isAuthenticated && (
+            <button
+              onClick={authLogout}
+              className="mt-4 w-full py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
           )}
         </div>
       </div>
