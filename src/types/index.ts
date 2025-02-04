@@ -29,6 +29,7 @@ export interface Message {
   image?: string;
   mealCards?: MenuCard[];
   queryType: QueryType;
+  imageUrl?: any;
   structuredText?: StructuredText; // Optional for non-MENU_QUERY types
   checkout?: {
     step: "details" | "payment" | "confirmation";

@@ -98,24 +98,30 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                 <MenuList
                   messageId={message.id}
                   items={message.structuredText.items1}
+                  restroId={restaurantState.selectedRestroIds[0]}
                 />
-                <button
-                  onClick={() =>
-                    restaurantState.selectedRestroIds[0] &&
-                    handleSelectRestro(restaurantState.selectedRestroIds[0])
-                  }
-                  className={`h-6 px-2 text-xs font-medium rounded-lg transition-all ${
+                <label
+                  className={`inline-flex items-center gap-2 cursor-pointer ${
                     restaurantState.activeRestroId ===
                     restaurantState.selectedRestroIds[0]
-                      ? "bg-primary text-white"
-                      : "text-primary hover:bg-primary-50"
+                      ? "text-primary"
+                      : "text-gray-700"
                   }`}
                 >
-                  {restaurantState.activeRestroId ===
-                  restaurantState.selectedRestroIds[0]
-                    ? "Selected"
-                    : "Choose"}
-                </button>
+                  <input
+                    type="radio"
+                    name="restaurantSelection" // Ensure consistent name for radio group
+                    checked={
+                      restaurantState.activeRestroId ===
+                      restaurantState.selectedRestroIds[0]
+                    }
+                    onChange={() =>
+                      restaurantState.selectedRestroIds[0] &&
+                      handleSelectRestro(restaurantState.selectedRestroIds[0])
+                    }
+                    className="form-radio h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                  />
+                </label>
               </div>
             )}
             {message.structuredText?.items2?.length > 0 && (
@@ -145,24 +151,30 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                 <MenuList
                   messageId={message.id}
                   items={message.structuredText.items2}
+                  restroId={restaurantState.selectedRestroIds[1]}
                 />
-                <button
-                  onClick={() =>
-                    restaurantState.selectedRestroIds[1] &&
-                    handleSelectRestro(restaurantState.selectedRestroIds[1])
-                  }
-                  className={`h-6 px-2 text-xs font-medium rounded-lg transition-all ${
+                <label
+                  className={`inline-flex items-center gap-2 cursor-pointer ${
                     restaurantState.activeRestroId ===
                     restaurantState.selectedRestroIds[1]
-                      ? "bg-primary text-white"
-                      : "text-primary hover:bg-primary-50"
+                      ? "text-primary"
+                      : "text-gray-700"
                   }`}
                 >
-                  {restaurantState.activeRestroId ===
-                  restaurantState.selectedRestroIds[1]
-                    ? "Selected"
-                    : "Choose"}
-                </button>
+                  <input
+                    type="radio"
+                    name="restaurantSelection" // Ensure consistent name for radio group
+                    checked={
+                      restaurantState.activeRestroId ===
+                      restaurantState.selectedRestroIds[1]
+                    }
+                    onChange={() =>
+                      restaurantState.selectedRestroIds[1] &&
+                      handleSelectRestro(restaurantState.selectedRestroIds[1])
+                    }
+                    className="form-radio h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                  />
+                </label>
               </div>
             )}
           </div>

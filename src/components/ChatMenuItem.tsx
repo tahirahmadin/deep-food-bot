@@ -1,6 +1,8 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
+import { useRestaurant } from "../context/RestaurantContext";
+import * as menuUtils from "../utils/menuUtils";
 
 interface ChatMenuItemProps {
   name: string;
@@ -8,6 +10,7 @@ interface ChatMenuItemProps {
   id: number;
   image: string;
   quantity: number;
+  restroId: number;
 }
 
 export const ChatMenuItem: React.FC<ChatMenuItemProps> = ({
@@ -16,8 +19,15 @@ export const ChatMenuItem: React.FC<ChatMenuItemProps> = ({
   price,
   image,
   quantity,
+  restroId,
 }) => {
   const { state, dispatch } = useChatContext();
+  const {
+    state: restaurantState,
+    setActiveRestaurant,
+    setRestaurants,
+  } = useRestaurant();
+  const { dispatch: chatDispatch } = useChatContext();
 
   // Check if item is in cart
   const cartItem = state.cart.find((item) => item.id === id);
@@ -28,6 +38,27 @@ export const ChatMenuItem: React.FC<ChatMenuItemProps> = ({
       type: "ADD_TO_CART",
       payload: { id, name, price, quantity: 1 },
     });
+    handleSelectRestro(restroId);
+  };
+
+  const handleSelectRestro = (restroId: number) => {
+    // If clicking on already active restaurant, clear selection
+    if (restaurantState.activeRestroId === restroId) {
+      // Clear active restaurant and selected restaurant name
+      // Clear active restaurant only
+      setActiveRestaurant(null);
+    } else {
+      // Set new active restaurant and update selected restaurant name
+      // Set new active restaurant only
+      setActiveRestaurant(restroId);
+      const restaurantName = menuUtils.getRestaurantNameById(restroId);
+      if (restaurantName !== "Unknown Restaurant") {
+        chatDispatch({
+          type: "SET_SELECTED_RESTAURANT",
+          payload: restaurantName,
+        });
+      }
+    }
   };
 
   return (

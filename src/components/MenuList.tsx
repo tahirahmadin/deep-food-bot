@@ -11,19 +11,11 @@ const chatService = new ChatService();
 interface MenuListProps {
   messageId: number;
   items: any[];
+  restroId: number;
 }
 
-export const MenuList: React.FC<MenuListProps> = ({ items }) => {
+export const MenuList: React.FC<MenuListProps> = ({ items, restroId }) => {
   const { state, dispatch } = useChatContext();
-
-  const handleSelectRestro = (restroId: number) => {
-    if (restroId) {
-      const restaurantName = getRestaurantNameById(restroId);
-      if (restaurantName !== "Unknown Restaurant") {
-        dispatch({ type: "SET_SELECTED_RESTAURANT", payload: restaurantName });
-      }
-    }
-  };
 
   // Get serialized memory for chat context
   const serializedMemory = React.useMemo(() => {
@@ -58,6 +50,7 @@ export const MenuList: React.FC<MenuListProps> = ({ items }) => {
             price={meal.price}
             image={meal.image}
             quantity={meal.quantity}
+            restroId={restroId}
           />
         ))}
       </div>

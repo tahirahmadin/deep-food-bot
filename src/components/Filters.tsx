@@ -10,6 +10,8 @@ import {
   Zap,
   MapPin,
   ChevronDown,
+  Plus,
+  Minus,
 } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
@@ -157,7 +159,7 @@ export const Filters: React.FC<FiltersProps> = ({
               onClick={() => setNumberOfPeople(Math.max(1, numberOfPeople - 1))}
               className="w-4 h-4 flex items-center justify-center hover:bg-gray-200 rounded-full text-gray-600"
             >
-              -
+              <Minus className="w-3 h-3" />
             </button>
             <div className="flex items-center gap-1">
               <span className="text-xs font-medium text-gray-700">
@@ -166,9 +168,9 @@ export const Filters: React.FC<FiltersProps> = ({
             </div>
             <button
               onClick={() => setNumberOfPeople(numberOfPeople + 1)}
-              className="w-4 h-3 flex items-center justify-center hover:bg-gray-200 rounded-full text-gray-600"
+              className="w-4 h-4 flex items-center justify-center hover:bg-gray-200 rounded-full text-gray-600"
             >
-              +
+              <Plus className="w-3 h-3" />
             </button>
           </div>
 
