@@ -11,6 +11,9 @@ import {
   MapPin,
   ChevronDown,
   Plus,
+  Home,
+  Building2,
+  Hotel,
   Minus,
 } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
@@ -46,10 +49,25 @@ export const Filters: React.FC<FiltersProps> = ({
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setActiveRestaurant } = useRestaurant();
   const { user } = useAuth();
-  const { addresses, setAddresses } = useAuth();
+  const [addresses, setAddresses] = useState<
+    Array<{ name: string; address: string; mobile: string }>
+  >([]);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState<number>(0);
   const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (user?.userId) {
+        const userDetails = await getUserDetails(user.userId);
+        if (userDetails.addresses) {
+          setAddresses(userDetails.addresses);
+        }
+      }
+    };
+    fetchUserDetails();
+  }, [user]);
 
   const conversationStyles = [
     {
@@ -92,20 +110,58 @@ export const Filters: React.FC<FiltersProps> = ({
   return (
     <div className="px-4 py-1 bg-white border-b border-gray-100">
       {/* Home Address Section */}
-      <div className="w-full flex justify-between items-center mb-1">
-        {/* Home and Address Button (Left Side) */}
-        <button
-          onClick={() => setIsAddressModalOpen(true)}
-          className="flex justify-start items-center items-start gap-1 hover:bg-gray-50 p-1 rounded-lg transition-colors"
-        >
-          <MapPin className="w-4 h-4 text-gray-800" />
-          <div className="text-[11px] font-bold text-gray-900">Home:</div>
-          <div className="text-[10px] text-gray-600">
-            {addresses[selectedAddressIndex]?.address ||
-              "Add delivery address..."}
-          </div>
-          <ChevronDown className="w-3 h-3" />
-        </button>
+      <div className="relative w-full flex justify-between items-center mb-1">
+        <div className="relative flex-1">
+          <button
+            onClick={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
+            className="flex items-center gap-1 hover:bg-gray-50 p-1 rounded-lg transition-colors w-full"
+          >
+            <MapPin className="w-3.5 h-3.5 text-gray-600" />
+            <div className="text-[10px] text-gray-900 font-medium truncate">
+              {addresses[selectedAddressIndex]?.address ||
+                "Add delivery address"}
+            </div>
+            <ChevronDown className="w-3 h-3 text-gray-400" />
+          </button>
+
+          {/* Address Dropdown */}
+          {isAddressDropdownOpen && (
+            <div className="absolute top-full left-0 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+              {addresses.map((addr, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setSelectedAddressIndex(index);
+                    setIsAddressDropdownOpen(false);
+                  }}
+                  className={`flex items-start gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors ${
+                    selectedAddressIndex === index ? "bg-orange-50" : ""
+                  }`}
+                >
+                  <Home className="w-3.5 h-3.5 mt-0.5 text-gray-400" />
+                  <div className="text-left">
+                    <p className="text-[11px] font-medium text-gray-900 line-clamp-1">
+                      {addr.name}
+                    </p>
+                    <p className="text-[10px] text-gray-500 line-clamp-1">
+                      {addr.address}
+                    </p>
+                  </div>
+                </button>
+              ))}
+              <button
+                onClick={() => {
+                  setIsAddressModalOpen(true);
+                  setIsAddressDropdownOpen(false);
+                }}
+                className="flex items-center gap-2 w-full px-3 py-2 text-primary hover:bg-gray-50 transition-colors border-t"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span className="text-[11px] font-medium">Add New Address</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Agent A (Right Side) */}
         <div className="relative">

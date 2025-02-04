@@ -7,6 +7,8 @@ import {
   Wallet,
   CreditCard,
   Lock,
+  CheckCircle2,
+  PartyPopper,
 } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 import {
@@ -32,6 +34,7 @@ const CheckoutForm: React.FC<{
   const elements = useElements();
   const { dispatch } = useChatContext();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,12 +96,19 @@ const CheckoutForm: React.FC<{
         throw new Error(result.error.message);
       }
 
+      // Set success state
+      setIsSuccess(true);
+
       // Handle successful payment
       dispatch({
         type: "ADD_MESSAGE",
         payload: {
           id: Date.now(),
-          text: `Payment successful! Your order for ${total} AED has been placed and will be delivered to ${orderDetails.address}. We'll send updates to ${orderDetails.phone}.`,
+          text: JSON.stringify({
+            text: `Payment successful! Your order for ${total} AED has been placed and will be delivered to ${orderDetails.address}. We'll send updates to ${orderDetails.phone}.`,
+            items1: [],
+            items2: [],
+          }),
           isBot: true,
           time: new Date().toLocaleTimeString(),
           queryType: "CHECKOUT",
@@ -117,6 +127,49 @@ const CheckoutForm: React.FC<{
     }
   };
 
+  if (isSuccess) {
+    return (
+      <div className="bg-white/80 rounded-lg p-4 shadow-sm backdrop-blur-sm mb-3 max-w-sm mx-auto">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 className="w-8 h-8 text-green-500" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            Order Confirmed!
+          </h3>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <PartyPopper className="w-5 h-5 text-primary" />
+            <p className="text-primary font-medium">Thank you for your order</p>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-600">Order Total</span>
+              <span className="font-semibold text-gray-800">{total} AED</span>
+            </div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-600">Delivery To</span>
+              <span className="text-sm text-gray-800 text-right">
+                {orderDetails.address}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Contact</span>
+              <span className="text-sm text-gray-800">
+                {orderDetails.phone}
+              </span>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 mb-4">
+            We'll send order updates to your phone number
+          </p>
+          <div className="text-xs text-gray-500 flex items-center justify-center gap-1">
+            <Clock className="w-3 h-3" />
+            <span>Estimated delivery time: 30-45 minutes</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="bg-white/80 rounded-lg p-2.5 shadow-sm backdrop-blur-sm mb-3 max-w-sm mx-auto">
       <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg overflow-hidden p-2.5 text-white">

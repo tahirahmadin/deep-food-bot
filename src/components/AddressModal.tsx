@@ -48,19 +48,13 @@ export const AddressModal: React.FC<AddressModalProps> = ({
     lat: number;
     lng: number;
   } | null>(null);
-  const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<number | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [currentLocation, setCurrentLocation] = useState("");
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [selectedAddressIndex, setSelectedAddressIndex] = useState<
-    number | null
-  >(null);
 
   const handleAddNewClick = () => {
-    setShowForm(true);
     setEditingAddress(null);
-    setSelectedAddressIndex(null);
     setName("");
     setAddress("");
     setLandmark("");
@@ -71,7 +65,6 @@ export const AddressModal: React.FC<AddressModalProps> = ({
 
   const handleEditClick = (index: number) => {
     const addressToEdit = addresses[index];
-    setSelectedAddressIndex(index);
     setName(addressToEdit.name);
     setAddress(addressToEdit.address);
     setLandmark(addressToEdit.landmark || "");
@@ -79,33 +72,24 @@ export const AddressModal: React.FC<AddressModalProps> = ({
     setAddressType(addressToEdit.type || "home");
     setCoordinates(addressToEdit.coordinates || null);
     setEditingAddress(index);
-    setShowForm(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedAddressIndex !== null) {
-      // If an address is selected, use it directly
-      onSave(addresses[selectedAddressIndex]);
-      setSelectedAddressIndex(null);
-    } else {
-      // Otherwise save the new/edited address
-      onSave({
-        name,
-        address,
-        landmark,
-        mobile,
-        type: addressType,
-        coordinates: coordinates || undefined,
-      });
-    }
+    onSave({
+      name,
+      address,
+      landmark,
+      mobile,
+      type: addressType,
+      coordinates: coordinates || undefined,
+    });
     setName("");
     setAddress("");
     setLandmark("");
     setMobile("");
     setAddressType("home");
     setCoordinates(null);
-    setShowForm(false);
     setEditingAddress(null);
     onClose();
   };
@@ -182,13 +166,9 @@ export const AddressModal: React.FC<AddressModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-start justify-center p-4 pt-8">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-slide-up">
-        <div className="p-4 bg-orange-50 border-b flex justify-between items-center">
+        <div className="p-3 bg-orange-50 border-b flex justify-between items-center">
           <h2 className="font-semibold text-gray-800">
-            {showForm
-              ? editingAddress !== null
-                ? "Edit Address"
-                : "Add New Address"
-              : "Saved Addresses"}
+            {editingAddress !== null ? "Edit Address" : "Add New Address"}
           </h2>
           <button
             onClick={onClose}
@@ -198,209 +178,149 @@ export const AddressModal: React.FC<AddressModalProps> = ({
           </button>
         </div>
 
-        {/* Search Bar */}
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {/* Current Location Button */}
+          <button
+            type="button"
+            onClick={handleGetCurrentLocation}
+            disabled={isLoadingLocation}
+            className="w-full flex items-center gap-2 p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left mb-4"
+          >
+            <MapPin className="w-4 h-4 text-primary" />
+            <div className="flex-1">
+              <span className="text-sm font-medium text-gray-900 block">
+                Use current location
+              </span>
+              <span className="text-xs text-gray-500">
+                {isLoadingLocation ? (
+                  <span className="flex items-center gap-1">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Getting location...
+                  </span>
+                ) : locationError ? (
+                  <span className="text-red-500">{locationError}</span>
+                ) : (
+                  currentLocation || "Click to detect your location"
+                )}
+              </span>
+            </div>
+          </button>
 
-        {/* Add New Address Button */}
-        <button
-          onClick={handleAddNewClick}
-          className="flex items-center gap-3 w-full px-4 py-3 hover:bg-gray-50 transition-colors border-b"
-        >
-          <Plus className="w-5 h-5 text-primary" />
-          <span className="text-primary font-medium">Add address</span>
-        </button>
-
-        {/* Current Location */}
-        <button
-          onClick={handleGetCurrentLocation}
-          disabled={isLoadingLocation}
-          className="flex items-center gap-3 w-full px-4 py-3 hover:bg-gray-50 transition-colors border-b relative"
-        >
-          <MapPin className="w-5 h-5 text-primary" />
-          <div className="flex-1 text-left">
-            <span className="text-primary font-medium block">
-              Use your current location
-            </span>
-            <span className="text-sm text-gray-500 line-clamp-1">
-              {isLoadingLocation ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Getting your location...
-                </span>
-              ) : locationError ? (
-                <span className="text-red-500">{locationError}</span>
-              ) : (
-                currentLocation || "Click to detect your location"
-              )}
-            </span>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+              Full Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Enter your full name"
+            />
           </div>
-        </button>
 
-        {!showForm ? (
-          <div className="p-4">
-            {/* Saved Addresses Section */}
-            {addresses.length > 0 && (
-              <div className="space-y-2">
-                {addresses.map((addr, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setSelectedAddressIndex(index);
-                      handleSubmit(new Event("submit") as React.FormEvent);
-                    }}
-                    className={`w-full flex items-start gap-2 p-2.5 text-left hover:bg-gray-50 rounded-lg transition-colors border ${
-                      selectedAddressIndex === index
-                        ? "border-primary bg-primary/5"
-                        : "border-gray-100"
-                    }`}
-                  >
-                    <Home className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-medium text-gray-900">
-                          {addr.name}
-                        </h4>
-                        <div className="flex gap-1">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditClick(index);
-                            }}
-                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                          >
-                            <Pencil className="w-3 h-3 text-gray-500" />
-                          </button>
-                        </div>
-                      </div>
-                      <p className="text-[11px] text-gray-600 mt-0.5 line-clamp-2">
-                        {addr.address}
-                      </p>
-                      <p className="text-[10px] text-gray-500 mt-0.5">
-                        {addr.mobile}
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+              Delivery Address
+            </label>
+            <textarea
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              required
+              rows={3}
+              className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Enter your complete address"
+            />
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="p-4 space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="Enter your full name"
-              />
-            </div>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                Delivery Address
-              </label>
-              <textarea
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                required
-                rows={2}
-                className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="Enter your complete address"
-              />
-            </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+              Landmark
+            </label>
+            <input
+              type="text"
+              value={landmark}
+              onChange={(e) => setLandmark(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Enter a nearby landmark"
+            />
+          </div>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                Landmark
-              </label>
-              <input
-                type="text"
-                value={landmark}
-                onChange={(e) => setLandmark(e.target.value)}
-                className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="Enter a nearby landmark"
-              />
-            </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+              Mobile Number
+            </label>
+            <input
+              type="tel"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+              required
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Enter your mobile number"
+            />
+          </div>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                Mobile Number
-              </label>
-              <input
-                type="tel"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                required
-                className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="Enter your mobile number"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                Address Type
-              </label>
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => setAddressType("home")}
-                  className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border ${
-                    addressType === "home"
-                      ? "bg-primary text-white border-primary"
-                      : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  <Home className="w-3.5 h-3.5" />
-                  <span className="text-xs">Home</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAddressType("office")}
-                  className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border ${
-                    addressType === "office"
-                      ? "bg-primary text-white border-primary"
-                      : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  <Building2 className="w-3.5 h-3.5" />
-                  <span className="text-xs">Office</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAddressType("hotel")}
-                  className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border ${
-                    addressType === "hotel"
-                      ? "bg-primary text-white border-primary"
-                      : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  <Hotel className="w-3.5 h-3.5" />
-                  <span className="text-xs">Hotel</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-2 mt-2">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+              Address Type
+            </label>
+            <div className="flex gap-1">
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
-                className="flex-1 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                onClick={() => setAddressType("home")}
+                className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border ${
+                  addressType === "home"
+                    ? "bg-primary text-white border-primary"
+                    : "border-gray-200 hover:bg-gray-50"
+                }`}
               >
-                Cancel
+                <Home className="w-3.5 h-3.5" />
+                <span className="text-xs">Home</span>
               </button>
               <button
-                type="submit"
-                className="flex-1 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
+                type="button"
+                onClick={() => setAddressType("office")}
+                className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border ${
+                  addressType === "office"
+                    ? "bg-primary text-white border-primary"
+                    : "border-gray-200 hover:bg-gray-50"
+                }`}
               >
-                {editingAddress !== null ? "Update Address" : "Save Address"}
+                <Building2 className="w-3.5 h-3.5" />
+                <span className="text-xs">Office</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddressType("hotel")}
+                className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border ${
+                  addressType === "hotel"
+                    ? "bg-primary text-white border-primary"
+                    : "border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                <Hotel className="w-3.5 h-3.5" />
+                <span className="text-xs">Hotel</span>
               </button>
             </div>
-          </form>
-        )}
+          </div>
+
+          <div className="flex gap-2 mt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
+            >
+              {editingAddress !== null ? "Update Address" : "Save Address"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
