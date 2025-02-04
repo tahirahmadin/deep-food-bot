@@ -168,19 +168,6 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
               </div>
             </div>
           </div>
-
-          <div className="bg-white rounded-xl p-3 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Gobbl Points</span>
-              <span className="text-orange-500 font-semibold">2,450</span>
-            </div>
-            <div className="mt-2 h-2 bg-orange-100 rounded-full overflow-hidden">
-              <div className="h-full w-3/4 bg-orange-500 rounded-full" />
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              550 points until next reward
-            </p>
-          </div>
         </div>
 
         <div className="p-4">
@@ -188,8 +175,6 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
             {[
               { id: "orders", icon: ShoppingBag, label: "Previous Orders" },
               { id: "addresses", icon: Home, label: "Saved Addresses" },
-              { id: "points", icon: Award, label: "Points & Rewards" },
-              { id: "deals", icon: Gift, label: "Special Offers" },
             ].map((tab) => (
               <button
                 key={tab.id}
