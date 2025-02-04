@@ -83,11 +83,9 @@ export class ChatService {
     query = query.toLowerCase();
     console.log("Lowercase Query:", query);
 
-    console.log("\nChecking Menu Keywords:", menuKeywords);
     const matchedMenuKeywords = menuKeywords.filter((keyword) =>
       query.includes(keyword)
     );
-    console.log("Matched Menu Keywords:", matchedMenuKeywords);
 
     if (matchedMenuKeywords.length > 0) {
       console.log("➡️ Determined Type: MENU_QUERY");

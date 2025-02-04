@@ -92,7 +92,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         if (message.isBot && message.text) {
           try {
             // Parse the text field into JSON
-            console.log(JSON.parse(message.text));
             const parsedText = JSON.parse(message.text);
 
             // Validate the JSON structure
@@ -103,9 +102,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               "items1" in parsedText
             ) {
               // Restructure the message object
-              console.log("Going here last try");
-              console.log(parsedText);
-              console.log(parsedText.text);
               return {
                 id: message.id,
                 isBot: message.isBot,

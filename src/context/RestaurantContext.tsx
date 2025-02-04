@@ -30,7 +30,6 @@ const restaurantReducer = (
       return {
         ...state,
         activeRestroId: action.payload,
-        selectedRestroIds: action.payload ? [action.payload] : [],
       };
     case "CLEAR_RESTRO_IDS":
       return {

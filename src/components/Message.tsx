@@ -64,7 +64,8 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
             className="h-32 object-cover rounded-lg mb-2"
           />
         )}
-
+        {console.log(restaurantState.activeRestroId)}
+        {console.log(restaurantState.selectedRestroIds)}
         {message.isBot && message.structuredText ? (
           <div>
             <p className="text-gray-600 text-[14px]">
@@ -186,7 +187,6 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
       // Clear active restaurant and selected restaurant name
       // Clear active restaurant only
       setActiveRestaurant(null);
-      chatDispatch({ type: "SET_SELECTED_RESTAURANT", payload: null });
     } else {
       // Set new active restaurant and update selected restaurant name
       // Set new active restaurant only
