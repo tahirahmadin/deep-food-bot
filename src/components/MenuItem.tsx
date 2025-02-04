@@ -35,6 +35,24 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   };
 
   const handleAddToCart = () => {
+    // Check if cart has items from a different restaurant
+    const cartRestaurant = state.cart[0]?.restaurant;
+
+    if (cartRestaurant && cartRestaurant !== restaurant) {
+      if (
+        window.confirm(
+          `Your cart contains items from ${cartRestaurant}. Would you like to clear your cart and add items from ${restaurant} instead?`
+        )
+      ) {
+        dispatch({ type: "CLEAR_CART" });
+        dispatch({
+          type: "ADD_TO_CART",
+          payload: { id, name, price, quantity: 1, restaurant },
+        });
+      }
+      return;
+    }
+
     dispatch({
       type: "ADD_TO_CART",
       payload: { id, name, price, quantity: 1, restaurant },

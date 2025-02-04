@@ -34,9 +34,35 @@ export const ChatMenuItem: React.FC<ChatMenuItemProps> = ({
   const isInCart = Boolean(cartItem);
 
   const handleAddToCart = () => {
+    // Check if cart has items from a different restaurant
+    const cartRestaurant = state.cart[0]?.restaurant;
+    const currentRestaurant = menuUtils.getRestaurantNameById(restroId);
+
+    if (cartRestaurant && cartRestaurant !== currentRestaurant) {
+      if (
+        window.confirm(
+          `Your cart contains items from ${cartRestaurant}. Would you like to clear your cart and add items from ${currentRestaurant} instead?`
+        )
+      ) {
+        dispatch({ type: "CLEAR_CART" });
+        dispatch({
+          type: "ADD_TO_CART",
+          payload: {
+            id,
+            name,
+            price,
+            quantity: 1,
+            restaurant: currentRestaurant,
+          },
+        });
+        handleSelectRestro(restroId);
+      }
+      return;
+    }
+
     dispatch({
       type: "ADD_TO_CART",
-      payload: { id, name, price, quantity: 1 },
+      payload: { id, name, price, quantity: 1, restaurant: currentRestaurant },
     });
     handleSelectRestro(restroId);
   };
