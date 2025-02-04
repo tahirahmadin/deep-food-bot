@@ -26,6 +26,11 @@ interface FiltersProps {
   setIsFastDelivery: (value: boolean) => void;
   numberOfPeople: number;
   setNumberOfPeople: (value: number) => void;
+  selectedStyle: {
+    name: string;
+    image: string;
+  };
+  setSelectedStyle: (style: { name: string; image: string }) => void;
 }
 
 export const Filters: React.FC<FiltersProps> = ({
@@ -35,6 +40,8 @@ export const Filters: React.FC<FiltersProps> = ({
   setIsFastDelivery,
   numberOfPeople,
   setNumberOfPeople,
+  selectedStyle,
+  setSelectedStyle,
 }) => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setActiveRestaurant } = useRestaurant();
@@ -43,11 +50,6 @@ export const Filters: React.FC<FiltersProps> = ({
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState<number>(0);
   const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
-  const [selectedStyle, setSelectedStyle] = useState({
-    name: "Trump",
-    image:
-      "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop",
-  });
 
   const conversationStyles = [
     {

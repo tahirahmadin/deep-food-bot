@@ -25,6 +25,11 @@ export const DunkinOrderApp: React.FC = () => {
   const [isFastDelivery, setIsFastDelivery] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [numberOfPeople, setNumberOfPeople] = useState(1);
+  const [selectedStyle, setSelectedStyle] = useState({
+    name: "Trump",
+    image:
+      "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop",
+  });
 
   // Reset UI states when auth state changes
   useEffect(() => {
@@ -352,12 +357,16 @@ export const DunkinOrderApp: React.FC = () => {
         restaurantState.activeRestroId != null
           ? `You are a menu recommendation system. Analyze the following menu items from restaurants: ${JSON.stringify(
               restaurant1Menu
-            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both.Do not add 'json'`
+            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query in ${
+              selectedStyle.name
+            } style and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both.Do not add 'json'`
           : `You are a menu recommendation system. Analyze the following menu items from 2 restaurants: ${JSON.stringify(
               restaurant1Menu
             )} and ${JSON.stringify(
               restaurant2Menu
-            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both. Do not add 'json'`;
+            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query in ${
+              selectedStyle.name
+            } style and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both. Do not add 'json'`;
 
       console.log("suggestRestroIds");
       console.log(suggestRestroIds);
@@ -446,6 +455,8 @@ export const DunkinOrderApp: React.FC = () => {
           setIsVegOnly={setIsVegOnly}
           isFastDelivery={isFastDelivery}
           setIsFastDelivery={setIsFastDelivery}
+          selectedStyle={selectedStyle}
+          setSelectedStyle={setSelectedStyle}
           numberOfPeople={numberOfPeople}
           setNumberOfPeople={setNumberOfPeople}
         />
