@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from "react";
 import {
   User,
-  MapPin,
   ShoppingBag,
-  Gift,
-  Award,
   Home,
   Trash2,
   LogOut,
   Clock,
   ChevronRight,
+  ChevronDown,
+  MapPin,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { getUserOrders } from "../actions/serverActions";
+import { getUserOrders, updateUserAddresses } from "../actions/serverActions";
 
 interface Order {
   _id: string;
@@ -43,28 +42,28 @@ interface Address {
 interface SlidePanelProps {
   isOpen: boolean;
   onClose: () => void;
-  savedAddresses: Address[];
-  onDeleteAddress: (id: string) => void;
 }
 
-export const SlidePanel: React.FC<SlidePanelProps> = ({
-  isOpen,
-  onClose,
-  savedAddresses,
-  onDeleteAddress,
-}) => {
-  const { user, isAuthenticated, handleLogout: authLogout } = useAuth();
-  const [activeTab, setActiveTab] = React.useState("orders");
+export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
+  const {
+    user,
+    isAuthenticated,
+    handleLogout: authLogout,
+    addresses,
+    setAddresses,
+  } = useAuth();
+  const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
+  const [isAddressesExpanded, setIsAddressesExpanded] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const latestAddress = savedAddresses[savedAddresses.length - 1];
+  const latestAddress = addresses[addresses.length - 1];
 
   useEffect(() => {
     const fetchOrders = async () => {
-      if (isAuthenticated && user?.userId && activeTab === "orders") {
+      if (isAuthenticated && user?.userId) {
         setIsLoading(true);
         setError(null);
         try {
@@ -87,7 +86,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
     };
 
     fetchOrders();
-  }, [isAuthenticated, user?.userId, activeTab, retryCount]);
+  }, [isAuthenticated, user?.userId, retryCount]);
 
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
@@ -171,27 +170,23 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
         </div>
 
         <div className="p-4">
-          <div className="space-y-2">
-            {[
-              { id: "orders", icon: ShoppingBag, label: "Previous Orders" },
-              { id: "addresses", icon: Home, label: "Saved Addresses" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${
-                  activeTab === tab.id
-                    ? "bg-orange-50 text-orange-500"
-                    : "hover:bg-gray-50"
-                }`}
-              >
-                <tab.icon className="w-5 h-5" />
-                <span className="font-medium">{tab.label}</span>
-              </button>
-            ))}
-          </div>
+          {/* Orders Section */}
+          <button
+            onClick={() => setIsOrdersExpanded(!isOrdersExpanded)}
+            className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <ShoppingBag className="w-5 h-5" />
+              <span className="font-medium">Previous Orders</span>
+            </div>
+            <ChevronDown
+              className={`w-5 h-5 transition-transform ${
+                isOrdersExpanded ? "rotate-180" : ""
+              }`}
+            />
+          </button>
 
-          {activeTab === "orders" && (
+          {isOrdersExpanded && (
             <div className="mt-4">
               {isLoading ? (
                 <div className="flex justify-center items-center py-8">
@@ -217,7 +212,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
                   </p>
                 </div>
               ) : (
-                <div className="space-y-2 px-4 max-h-[60vh] overflow-y-auto">
+                <div className="space-y-2 pl-11 pr-4 max-h-[60vh] overflow-y-auto">
                   {orders.map((order) => (
                     <div
                       key={order._id}
@@ -302,11 +297,27 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
             </div>
           )}
 
-          {activeTab === "addresses" && (
+          {/* Addresses Section */}
+          <button
+            onClick={() => setIsAddressesExpanded(!isAddressesExpanded)}
+            className="w-full flex items-center justify-between p-3 mt-2 hover:bg-gray-50 rounded-xl transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Home className="w-5 h-5" />
+              <span className="font-medium">Saved Addresses</span>
+            </div>
+            <ChevronDown
+              className={`w-5 h-5 transition-transform ${
+                isAddressesExpanded ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {isAddressesExpanded && (
             <div className="mt-4 px-4">
-              {savedAddresses.map((addr) => (
+              {addresses.map((addr, index) => (
                 <div
-                  key={addr.id}
+                  key={index}
                   className="bg-white p-3 rounded-xl mb-3 shadow-sm"
                 >
                   <div className="flex justify-between items-start">
@@ -314,10 +325,23 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
                       <p className="text-sm font-medium text-gray-800">
                         {addr.address}
                       </p>
-                      <p className="text-xs text-gray-500">{addr.phone}</p>
+                      <p className="text-xs text-gray-500">{addr.mobile}</p>
                     </div>
                     <button
-                      onClick={() => onDeleteAddress(addr.id)}
+                      onClick={() => {
+                        const newAddresses = addresses.filter(
+                          (_, i) => i !== index
+                        );
+                        if (user?.userId) {
+                          updateUserAddresses(user.userId, newAddresses).then(
+                            (response) => {
+                              if (!response.error) {
+                                setAddresses(newAddresses);
+                              }
+                            }
+                          );
+                        }
+                      }}
                       className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -325,17 +349,18 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
                   </div>
                 </div>
               ))}
-              {savedAddresses.length === 0 && (
-                <p className="text-center text-gray-500 text-sm">
+              {addresses.length === 0 && (
+                <p className="text-center text-gray-500 text-sm pl-7">
                   No saved addresses
                 </p>
               )}
             </div>
           )}
+
           {isAuthenticated && (
             <button
               onClick={authLogout}
-              className="mt-4 w-full py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+              className="mt-6 w-full py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
             >
               <LogOut className="w-4 h-4" />
               Logout

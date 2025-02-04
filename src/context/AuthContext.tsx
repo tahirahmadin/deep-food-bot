@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState } from "react";
 import { useEffect } from "react";
-import { loginUserFromBackendServer } from "../actions/serverActions";
+import {
+  loginUserFromBackendServer,
+  getUserDetails,
+} from "../actions/serverActions";
 
 interface User {
   email: string;
@@ -9,11 +12,19 @@ interface User {
   userId?: string; // Add userId to User interface
 }
 
+interface Address {
+  name: string;
+  address: string;
+  mobile: string;
+}
+
 interface AuthContextType {
   user: User | null;
   setUser: (user: User | null) => void;
   isAuthenticated: boolean;
   handleLogout: () => void;
+  addresses: Address[];
+  setAddresses: (addresses: Address[]) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -25,7 +36,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
+  const [addresses, setAddresses] = useState<Address[]>([]);
 
+  // Load user data and addresses on mount
   useEffect(() => {
     const checkAndRefreshUser = async () => {
       const savedUser = localStorage.getItem("user");
@@ -45,6 +58,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               userId: loginResponse.result._id,
             };
             setUser(updatedUser);
+
+            console.log("Fetching user details for:", loginResponse.result._id);
+            // Fetch user details including addresses
+            const userDetails = await getUserDetails(loginResponse.result._id);
+            if (!userDetails.error && userDetails.result?.addresses) {
+              setAddresses(userDetails.result.addresses);
+            }
           } else {
             console.error("Failed to refresh user data");
             // Optionally handle login failure
@@ -59,6 +79,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     checkAndRefreshUser();
   }, []); // Run once on mount
 
+  // Effect to fetch addresses when user changes
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (user?.userId) {
+        console.log("Fetching addresses for user:", user.userId);
+        const userDetails = await getUserDetails(user.userId);
+        if (!userDetails.error && userDetails.result?.addresses) {
+          setAddresses(userDetails.result.addresses);
+        }
+      }
+    };
+
+    fetchAddresses();
+  }, [user?.userId]);
   const setUser = (newUser: User | null) => {
     setInternalUser(newUser);
     if (newUser) {
@@ -70,6 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleLogout = () => {
     setUser(null);
+    setAddresses([]);
     localStorage.removeItem("user");
   };
 
@@ -78,6 +113,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setUser,
     isAuthenticated: !!user,
     handleLogout,
+    addresses,
+    setAddresses,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

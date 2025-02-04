@@ -31,13 +31,13 @@ export const ChatMenuItem: React.FC<ChatMenuItemProps> = ({
   };
 
   return (
-    <div className="bg-[#F9FAFB] rounded-lg shadow-sm overflow-hidden flex flex-col w-[85px]">
+    <div className="bg-[#F9FAFB] rounded-lg shadow-sm overflow-hidden flex flex-col w-[80px]">
       {/* Image Container */}
       <div className=" w-full relative">
         <img
           src={image || "https://via.placeholder.com/100"}
           alt={name}
-          className="w-full h-[70px] object-cover"
+          className="w-full h-[55px] object-cover"
         />
         <button
           onClick={handleAddToCart}
@@ -47,16 +47,16 @@ export const ChatMenuItem: React.FC<ChatMenuItemProps> = ({
               : "bg-white text-primary hover:bg-primary-50"
           }`}
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-3 h-3" />
         </button>
       </div>
 
       {/* Content Container */}
       <div className="p-1.5 flex flex-col">
-        <h3 className="text-[10px] font-medium text-gray-800 line-clamp-2 min-h-[2rem]">
+        <h3 className="text-[9px] font-medium text-gray-800 line-clamp-2 min-h-[2rem]">
           {name}
         </h3>
-        <p className="text-primary font-bold text-[10px] mt-0.5">{price} AED</p>
+        <p className="text-primary font-bold text-[9px]">{price} AED</p>
       </div>
     </div>
   );

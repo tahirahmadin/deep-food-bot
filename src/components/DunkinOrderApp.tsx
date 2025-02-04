@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useChatContext } from "../context/ChatContext";
 import { ChatService } from "../services/chatService";
 import { Header } from "./Header";
@@ -11,37 +11,32 @@ import { menuItems } from "../data/menuData";
 import { ImageService } from "../services/imageService";
 import axios from "axios";
 const chatService = new ChatService();
-import { saveAs } from "file-saver";
 import { restroItems } from "../data/restroData";
 import { useRestaurant } from "../context/RestaurantContext";
-
-interface ApiResponse {
-  text: string;
-  items: { id: number; name: string; price: string }[];
-}
+import { useAuth } from "../context/AuthContext";
 
 export const DunkinOrderApp: React.FC = () => {
   const { state, dispatch } = useChatContext();
-  const {
-    state: restaurantState,
-    setActiveRestaurant,
-    setRestaurants,
-  } = useRestaurant();
+  const { state: restaurantState, setRestaurants } = useRestaurant();
+  const { user, setUser, isAuthenticated } = useAuth();
   const [input, setInput] = useState("");
   const [isVegOnly, setIsVegOnly] = useState(true);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isFastDelivery, setIsFastDelivery] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [numberOfPeople, setNumberOfPeople] = useState(1);
 
-  // Function to filter data based on age
-  const filterData = () => {
-    const filtered = menuItems.filter((obj) => obj.restaurant === "Papa Jones");
-    const blob = new Blob([JSON.stringify(filtered, null, 2)], {
-      type: "application/json",
-    });
-    saveAs(blob, "5.json");
-  };
-
+  // Reset UI states when auth state changes
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setInput("");
+      setIsVegOnly(true);
+      setIsFastDelivery(false);
+      setIsPanelOpen(false);
+      setIsCartOpen(false);
+      setNumberOfPeople(1);
+    }
+  }, [isAuthenticated]);
   // Replace with your DeepSeek API endpoint and API key
   const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"; // Example endpoint
   const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"; // Example endpoint
@@ -449,6 +444,8 @@ export const DunkinOrderApp: React.FC = () => {
         <Filters
           isVegOnly={isVegOnly}
           setIsVegOnly={setIsVegOnly}
+          isFastDelivery={isFastDelivery}
+          setIsFastDelivery={setIsFastDelivery}
           numberOfPeople={numberOfPeople}
           setNumberOfPeople={setNumberOfPeople}
         />
@@ -465,12 +462,7 @@ export const DunkinOrderApp: React.FC = () => {
         <CartSummary />
       </div>
 
-      <SlidePanel
-        isOpen={isPanelOpen}
-        onClose={() => setIsPanelOpen(false)}
-        savedAddresses={[]}
-        onDeleteAddress={() => {}}
-      />
+      <SlidePanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} />
 
       {/* Cart Summary */}
       {isCartOpen && (

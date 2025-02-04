@@ -20,6 +20,8 @@ import { AddressModal } from "./AddressModal";
 interface FiltersProps {
   isVegOnly: boolean;
   setIsVegOnly: (value: boolean) => void;
+  isFastDelivery: boolean;
+  setIsFastDelivery: (value: boolean) => void;
   numberOfPeople: number;
   setNumberOfPeople: (value: number) => void;
 }
@@ -27,29 +29,41 @@ interface FiltersProps {
 export const Filters: React.FC<FiltersProps> = ({
   isVegOnly,
   setIsVegOnly,
+  isFastDelivery,
+  setIsFastDelivery,
   numberOfPeople,
   setNumberOfPeople,
 }) => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setActiveRestaurant } = useRestaurant();
   const { user } = useAuth();
+  const { addresses, setAddresses } = useAuth();
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const [addresses, setAddresses] = useState<
-    Array<{ name: string; address: string; mobile: string }>
-  >([]);
-  const [selectedAddress, setSelectedAddress] = useState<number>(0);
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState<number>(0);
+  const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
+  const [selectedStyle, setSelectedStyle] = useState({
+    name: "Trump",
+    image:
+      "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop",
+  });
 
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      if (user?.userId) {
-        const response = await getUserDetails(user.userId);
-        if (!response.error && response.result?.addresses) {
-          setAddresses(response.result.addresses);
-        }
-      }
-    };
-    fetchUserDetails();
-  }, [user?.userId]);
+  const conversationStyles = [
+    {
+      name: "Trump",
+      image:
+        "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop",
+    },
+    {
+      name: "Modi",
+      image:
+        "https://www.thestatesman.com/wp-content/uploads/2022/09/03_Merged.jpg",
+    },
+    {
+      name: "SRK",
+      image:
+        "https://kalingatv.com/wp-content/uploads/2020/11/shah-rukh-khan-turns-55.jpg",
+    },
+  ];
 
   const handleSaveAddress = async (newAddress: {
     name: string;
@@ -61,7 +75,7 @@ export const Filters: React.FC<FiltersProps> = ({
       const response = await updateUserAddresses(user.userId, updatedAddresses);
       if (!response.error) {
         setAddresses(updatedAddresses);
-        setSelectedAddress(updatedAddresses.length - 1);
+        setSelectedAddressIndex(updatedAddresses.length - 1);
       }
     }
   };
@@ -83,15 +97,48 @@ export const Filters: React.FC<FiltersProps> = ({
           <MapPin className="w-4 h-4 text-gray-800" />
           <div className="text-[11px] font-bold text-gray-900">Home:</div>
           <div className="text-[10px] text-gray-600">
-            {addresses[selectedAddress]?.address || "Add delivery address..."}
+            {addresses[selectedAddressIndex]?.address ||
+              "Add delivery address..."}
           </div>
           <ChevronDown className="w-3 h-3" />
         </button>
 
         {/* Agent A (Right Side) */}
-        <div className="flex items-center gap-1 text-xs">
-          <span>OpenAI</span>
-          <ChevronDown className="w-3 h-3" />
+        <div className="relative">
+          <button
+            onClick={() => setIsStyleDropdownOpen(!isStyleDropdownOpen)}
+            className="flex items-center gap-2 text-xs hover:bg-gray-50 p-1.5 rounded-lg transition-colors"
+          >
+            <img
+              src={selectedStyle.image}
+              alt={selectedStyle.name}
+              className="w-5 h-5 rounded-full object-cover"
+            />
+            <span>{selectedStyle.name}</span>
+            <ChevronDown className="w-3 h-3" />
+          </button>
+
+          {isStyleDropdownOpen && (
+            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 py-1 w-48 z-50">
+              {conversationStyles.map((style) => (
+                <button
+                  key={style.name}
+                  onClick={() => {
+                    setSelectedStyle(style);
+                    setIsStyleDropdownOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors"
+                >
+                  <img
+                    src={style.image}
+                    alt={style.name}
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                  <span className="text-sm">{style.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -119,7 +166,7 @@ export const Filters: React.FC<FiltersProps> = ({
             </div>
             <button
               onClick={() => setNumberOfPeople(numberOfPeople + 1)}
-              className="w-4 h-4 flex items-center justify-center hover:bg-gray-200 rounded-full text-gray-600"
+              className="w-4 h-3 flex items-center justify-center hover:bg-gray-200 rounded-full text-gray-600"
             >
               +
             </button>
@@ -137,7 +184,14 @@ export const Filters: React.FC<FiltersProps> = ({
             <span className="text-xs">Veg</span>
           </button>
 
-          <button className="flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 text-gray-600">
+          <button
+            onClick={() => setIsFastDelivery(!isFastDelivery)}
+            className={`flex items-center gap-1 px-2 py-1 rounded-full border ${
+              isFastDelivery
+                ? "bg-primary/10 border-primary text-primary"
+                : "border-gray-200 text-gray-600"
+            } transition-colors`}
+          >
             <Zap className="w-3 h-3" />
             <span className="text-xs">Fast Delivery</span>
           </button>

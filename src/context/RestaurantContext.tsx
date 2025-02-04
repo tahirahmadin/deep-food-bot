@@ -8,7 +8,8 @@ interface RestaurantState {
 type RestaurantAction =
   | { type: "SET_RESTRO_IDS"; payload: number[] }
   | { type: "SET_ACTIVE_RESTRO"; payload: number | null }
-  | { type: "CLEAR_RESTRO_IDS" };
+  | { type: "CLEAR_RESTRO_IDS" }
+  | { type: "RESET_STATE" };
 
 const initialState: RestaurantState = {
   selectedRestroIds: [],
@@ -37,6 +38,8 @@ const restaurantReducer = (
         selectedRestroIds: [],
         activeRestroId: null,
       };
+    case "RESET_STATE":
+      return initialState;
     default:
       return state;
   }

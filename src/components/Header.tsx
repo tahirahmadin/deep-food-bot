@@ -7,7 +7,8 @@ import {
   MapPin,
   ChevronDown,
 } from "lucide-react";
-import { useChatContext } from "../context/ChatContext";
+import { useChatContext, QueryType } from "../context/ChatContext";
+import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
 import { loginUserFromBackendServer } from "../actions/serverActions";
 import { useGoogleLogin, googleLogout } from "@react-oauth/google";
@@ -20,8 +21,14 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
-  const { state } = useChatContext();
-  const { user, setUser, isAuthenticated } = useAuth();
+  const { dispatch: chatDispatch } = useChatContext();
+  const { dispatch: restaurantDispatch } = useRestaurant();
+  const {
+    user,
+    setUser,
+    isAuthenticated,
+    handleLogout: authLogout,
+  } = useAuth();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -80,9 +87,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
     ux_mode: "popup",
   });
 
-  const handleLogout = () => {
+  const handleLogoutClick = () => {
     googleLogout();
-    handleLogout();
+    // Reset all states
+    chatDispatch({ type: "RESET_STATE" });
+    restaurantDispatch({ type: "RESET_STATE" });
+    // Reset auth state
+    authLogout();
     setLoginError(null);
   };
 
@@ -108,12 +119,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
           <div className="flex items-center gap-2">
             <img
               src={user?.picture}
-              alt={user?.name}
+              alt={user?.name || "User"}
               className="w-8 h-8 rounded-full border-2 border-primary"
             />
             <span className="text-sm font-medium text-gray-800">
               {user?.name?.split(" ")[0]}
             </span>
+            <button
+              onClick={handleLogoutClick}
+              className="ml-2 p-1.5 hover:bg-gray-50 rounded-full transition-colors"
+            >
+              <LogOut className="w-4 h-4 text-gray-600" />
+            </button>
           </div>
         ) : (
           <button
@@ -140,7 +157,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
               />
             </svg>
             <span className="text-sm font-medium">
-              {isLoggingIn ? "Signing in..." : "Sign in with Google"}
+              {isLoggingIn ? "Signing in..." : "Sign in"}
             </span>
           </button>
         )}

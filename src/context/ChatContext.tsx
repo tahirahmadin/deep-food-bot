@@ -1,3 +1,4 @@
+// src/context/ChatContext.tsx
 import React, { createContext, useContext, useReducer } from "react";
 
 export enum QueryType {
@@ -60,7 +61,8 @@ type ChatAction =
       type: "UPDATE_ORDER_DETAILS";
       payload: Partial<ChatState["checkout"]["orderDetails"]>;
     }
-  | { type: "CLEAR_CART" };
+  | { type: "CLEAR_CART" }
+  | { type: "RESET_STATE" };
 
 const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
   switch (action.type) {
@@ -152,6 +154,11 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return {
         ...state,
         cart: [],
+      };
+    case "RESET_STATE":
+      return {
+        ...initialState,
+        messages: [initialState.messages[0]], // Keep only the welcome message
       };
     default:
       return state;
