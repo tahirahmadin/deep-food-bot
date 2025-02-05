@@ -2,6 +2,7 @@ import { loadStripe } from "@stripe/stripe-js";
 
 class StripeService {
   private stripe: Promise<any>;
+  private apiUrl: string = "https://payments.gobbl.ai/api";
 
   constructor() {
     this.stripe = loadStripe(
@@ -13,15 +14,13 @@ class StripeService {
     );
   }
 
-  async processPayment(
-    paymentMethodId: string,
+  async createPaymentIntent(
     cart: any[],
     orderDetails: any,
-    restaurantName: string
+    restaurantName: string,
+    userId: string
   ) {
     try {
-      let apiUrl: string = "https://payments.gobbl.ai/api";
-
       const lineItems = cart.map((item) => ({
         price_data: {
           currency: "aed",
@@ -33,40 +32,44 @@ class StripeService {
         quantity: item.quantity,
       }));
 
-      let sellerId = "acct_1QnDfMRsmaUdhKRS";
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const userId = user?.userId;
-
-      const response = await fetch(`${apiUrl}/payment/create-payment-intent`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Origin: window.location.origin,
-        },
-        body: JSON.stringify({
-          lineItems,
-          sellerId,
-          userId, // Add userId to request
-          restaurantName, // Pass the restaurant name from parameter
-          paymentMethodId,
-          customerDetails: {
-            name: orderDetails.name,
-            email: orderDetails.email,
-            address: orderDetails.address,
-            phone: orderDetails.phone,
+      const response = await fetch(
+        `${this.apiUrl}/payment/create-payment-intent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Origin: window.location.origin,
           },
-        }),
-      });
+          body: JSON.stringify({
+            lineItems,
+            sellerId: "acct_1QnDfMRsmaUdhKRS",
+            userId,
+            restaurantName,
+            customerDetails: {
+              name: orderDetails.name,
+              email: orderDetails.email,
+              address: orderDetails.address,
+              phone: orderDetails.phone,
+            },
+          }),
+        }
+      );
+
       if (!response.ok) {
-        throw new Error("Payment processing failed");
+        throw new Error("Failed to create payment intent");
       }
 
-      return await response.json();
+      const data = await response.json();
+      return data.clientSecret;
     } catch (error) {
-      console.error("Error creating checkout session:", error);
+      console.error("Error creating payment intent:", error);
       throw error;
     }
+  }
+
+  async getStripe() {
+    return await this.stripe;
   }
 }
 
