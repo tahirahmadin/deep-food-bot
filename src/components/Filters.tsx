@@ -62,14 +62,9 @@ export const Filters: React.FC = () => {
         "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop",
     },
     {
-      name: "Modi",
+      name: "Godden Ramsay",
       image:
-        "https://www.thestatesman.com/wp-content/uploads/2022/09/03_Merged.jpg",
-    },
-    {
-      name: "SRK",
-      image:
-        "https://kalingatv.com/wp-content/uploads/2020/11/shah-rukh-khan-turns-55.jpg",
+        "https://img.delicious.com.au/D-EUAdrh/w759-h506-cfill/del/2017/06/gordon-ramsay-47340-2.jpg",
     },
   ];
 
