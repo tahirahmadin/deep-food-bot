@@ -110,7 +110,7 @@ export const ChatMenuItem: React.FC<ChatMenuItemProps> = ({
 
       {/* Content Container */}
       <div className="p-1.5 flex flex-col">
-        <h3 className="text-[9px] font-medium text-gray-800 line-clamp-2 min-h-[2rem]">
+        <h3 className="text-[9px] font-medium text-gray-800 line-clamp-3 min-h-[2rem]">
           {name}
         </h3>
         <p className="text-primary font-bold text-[9px]">{price} AED</p>
