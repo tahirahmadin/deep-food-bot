@@ -1,7 +1,6 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
-import { CustomizationModal } from "./CustomizationModal";
 
 interface MenuItemProps {
   name: string;
@@ -109,11 +108,6 @@ export const MenuItem: React.FC<MenuItemProps> = ({
           </div>
         </div>
       </div>
-      <CustomizationModal
-        isOpen={isCustomizationOpen}
-        onClose={() => setIsCustomizationOpen(false)}
-        item={{ id, name, price, image }}
-      />
     </>
   );
 };

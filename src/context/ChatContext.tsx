@@ -170,7 +170,7 @@ const initialState: ChatState = {
     {
       id: 1,
       text: JSON.stringify({
-        text: "Hi! I'm your menu assistant. What would you like to know about our offerings?",
+        text: "Hi! Cozy weather in Dubai calls for something delicious. Let me know what you're craving?",
         items1: [],
         items2: [],
       }),
