@@ -200,7 +200,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
     if (restaurantState.activeRestroId === restroId) {
       // Clear active restaurant and selected restaurant name
       // Clear active restaurant only
-      setActiveRestaurant(null);
+      // setActiveRestaurant(null);
     } else {
       // Set new active restaurant and update selected restaurant name
       // Set new active restaurant only

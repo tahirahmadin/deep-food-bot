@@ -3,22 +3,21 @@ import { Message } from "./Message";
 import { ChatInput } from "./ChatInput";
 import { useChatContext } from "../context/ChatContext";
 import { MenuItem } from "./MenuItem";
-// import { menuItems as allMenuItems } from "../data/menus/1";
 import { useState } from "react";
 import { Menu } from "lucide-react";
 import { MenuItemFront } from "../types/menu";
 import { useRestaurant } from "../context/RestaurantContext";
 import { RestaurantCard } from "./RestaurantCard";
 import { restroItems } from "../data/restroData";
-import { useFiltersContext } from "../context/FiltersContext";
 
 interface ChatPanelProps {
   input: string;
   setInput: (value: string) => void;
-  onSubmit: (e: React.FormEvent, serializedMemory: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
   placeholder: string;
   onImageUpload: (file: File) => void;
   isLoading?: boolean;
+  queryType?: string;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -34,7 +33,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [allMenuItems, setAllMenuItems] = useState<MenuItemFront[]>([]);
   const { state: restaurantState } = useRestaurant();
-  const { selectedStyle } = useFiltersContext();
 
   useEffect(() => {
     async function asyncFn() {
@@ -59,6 +57,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     }
     asyncFn();
   }, [restaurantState.activeRestroId]);
+
   // Extract unique categories
   const categories = useMemo(() => {
     if (allMenuItems.length === 0) return [];
@@ -140,29 +139,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   // Handle submit and pass serialized memory
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(e, serializedMemory); // Pass serialized memory along with form submission
+    onSubmit(e); // Pass serialized memory along with form submission
   };
-
-  // Function to get menuItems by file number
-  async function getMenuItemsByFile(fileNumber: number): Promise<any[]> {
-    try {
-      // Dynamically import the specific file
-      const file = await import(`../data/menus/${fileNumber}.ts`);
-      console.log("File loaded:", file); // Debugging
-
-      // Check if the file has menuItems
-      if (file.menuItems && Array.isArray(file.menuItems)) {
-        console.log(file.menuItems);
-        return file.menuItems;
-      } else {
-        console.error(`File ${fileNumber}.ts does not contain menuItems.`);
-        return [];
-      }
-    } catch (error) {
-      console.error(`Error loading file ${fileNumber}.ts:`, error);
-      return [];
-    }
-  }
 
   const loadingMessage = () => {
     const content = [
@@ -185,7 +163,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   return (
     <>
       <div
-        className={`flex-1 overflow-y-auto p-2 bg-white/30 backdrop-blur-sm scroll-smooth ${
+        className={`flex-1 overflow-y-auto p-4 bg-white/30 backdrop-blur-sm scroll-smooth ${
           state.mode === "browse" ? "hidden" : ""
         }`}
         ref={chatContainerRef}
@@ -216,15 +194,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             </div>
           </div>
         )}
-
-        {/* {state.isLoading && (
-          <div className="flex justify-center">
-            <img
-              src="https://i.pinimg.com/originals/f0/ca/90/f0ca90dd6924e009d86f4421cf2032b5.gif"
-              className="h-24"
-            />
-          </div>
-        )} */}
       </div>
 
       {state.mode === "browse" && (
