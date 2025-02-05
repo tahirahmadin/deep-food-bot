@@ -25,9 +25,13 @@ import {
 import { loadStripe, StripeCardElement } from "@stripe/stripe-js";
 
 // Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!, {
-  stripeAccount: "acct_1QnDfMRsmaUdhKRS",
-});
+const stripePromise = loadStripe(
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
+    "pk_test_51QnDfMRsmaUdhKRSXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  {
+    stripeAccount: "acct_1QnDfMRsmaUdhKRS",
+  }
+);
 
 // Checkout Form Component
 const CheckoutForm: React.FC<{
@@ -361,12 +365,14 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
 
   return (
     <Elements stripe={stripePromise}>
-      <CheckoutForm
-        orderDetails={orderDetails}
-        total={total}
-        onSuccess={onSubmit}
-        cart={state.cart}
-      />
+      <div className="w-full max-w-md mx-auto">
+        <CheckoutForm
+          orderDetails={orderDetails}
+          total={total}
+          onSuccess={onSubmit}
+          cart={state.cart}
+        />
+      </div>
     </Elements>
   );
 };

@@ -4,9 +4,13 @@ class StripeService {
   private stripe: Promise<any>;
 
   constructor() {
-    this.stripe = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!, {
-      stripeAccount: "acct_1QnDfMRsmaUdhKRS",
-    });
+    this.stripe = loadStripe(
+      import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
+        "pk_test_51QnDfMRsmaUdhKRSXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+      {
+        stripeAccount: "acct_1QnDfMRsmaUdhKRS",
+      }
+    );
   }
 
   async processPayment(
@@ -37,6 +41,8 @@ class StripeService {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
+          Origin: window.location.origin,
         },
         body: JSON.stringify({
           lineItems,
