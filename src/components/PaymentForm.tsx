@@ -38,7 +38,7 @@ const CheckoutForm: React.FC<{
 }> = ({ orderDetails, total, onSuccess, cart }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const { dispatch } = useChatContext();
+  const { dispatch, state } = useChatContext();
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -76,17 +76,45 @@ const CheckoutForm: React.FC<{
       }
 
       // Process payment with our backend
-      await stripeService.processPayment(paymentMethod!.id, cart, orderDetails);
+      await stripeService.processPayment(
+        paymentMethod!.id,
+        cart,
+        orderDetails,
+        state.selectedRestaurant || "Unknown Restaurant"
+      );
 
       // Show success animation
       setShowSuccessAnimation(true);
 
-      // Fetch updated orders
+      // Wait a bit for the order to be processed on the backend
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Fetch updated orders and retry if not found
       if (user?.userId) {
-        const ordersResponse = await getUserOrders(user.userId);
-        if (!ordersResponse.error) {
-          // Update orders in context/state if needed
-          console.log("Orders updated:", ordersResponse.result);
+        let retries = 3;
+        let ordersResponse;
+
+        while (retries > 0) {
+          ordersResponse = await getUserOrders(user.userId);
+          if (!ordersResponse.error && ordersResponse.result?.length > 0) {
+            // Check if the latest order matches our current order
+            const latestOrder = ordersResponse.result[0];
+            const currentTotal = state.cart
+              .reduce(
+                (sum, item) => sum + parseFloat(item.price) * item.quantity,
+                0
+              )
+              .toFixed(2);
+
+            if (
+              parseFloat(latestOrder.totalAmount) ===
+              parseFloat(currentTotal) * 100
+            ) {
+              break;
+            }
+          }
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          retries--;
         }
       }
 
@@ -324,7 +352,7 @@ interface PaymentFormProps {
 }
 
 export const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
-  const { state } = useChatContext();
+  const { state, dispatch } = useChatContext();
   const { orderDetails } = state.checkout;
 
   const total = state.cart

@@ -96,12 +96,22 @@ export const getUserLeaderboardData = async (
 //4. USER:: Update User Addresses
 export const updateUserAddresses = async (
   userId: string,
-  addresses: Array<{ name: string; address: string; mobile: string }>
+  addresses: Array<{
+    name: string;
+    address: string;
+    mobile: string;
+    type: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  }>
 ): Promise<{ error: boolean; result: any }> => {
   try {
     let url: string = `${apiUrl}/user/updateUserAddresses`;
 
     // Encrypted data
+    console.log(addresses);
     let data = { userId, addresses };
     let encryptedData: CipherTextResponse = getCipherText(data);
 

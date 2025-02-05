@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import {
   loginUserFromBackendServer,
   getUserDetails,
+  updateUserAddresses,
 } from "../actions/serverActions";
 
 interface User {
@@ -16,6 +17,7 @@ interface Address {
   name: string;
   address: string;
   mobile: string;
+  type: string;
 }
 
 interface AuthContextType {
@@ -36,7 +38,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
-  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [addresses, setInternalAddresses] = useState<Address[]>([]);
+
+  const setAddresses = async (newAddresses: Address[]) => {
+    if (user?.userId) {
+      const response = await updateUserAddresses(user.userId, newAddresses);
+      if (!response.error) {
+        setInternalAddresses(newAddresses);
+      }
+    }
+  };
 
   // Load user data and addresses on mount
   useEffect(() => {

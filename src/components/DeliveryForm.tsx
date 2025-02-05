@@ -17,7 +17,7 @@ interface DeliveryFormProps {
 
 export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
   const { state, dispatch } = useChatContext();
-  const { addresses } = useAuth();
+  const { user, addresses, setAddresses } = useAuth();
   const [isAddressModalOpen, setIsAddressModalOpen] = React.useState(false);
   const { orderDetails } = state.checkout;
   const [selectedAddressIndex, setSelectedAddressIndex] = React.useState<
@@ -44,6 +44,31 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
     e.preventDefault();
     dispatch({ type: "SET_CHECKOUT_STEP", payload: "payment" });
     onSubmit(e);
+  };
+
+  const handleSaveAddress = async (newAddress: {
+    name: string;
+    address: string;
+    mobile: string;
+    type: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  }) => {
+    if (user?.userId) {
+      const updatedAddresses = [...addresses, newAddress];
+      await setAddresses(updatedAddresses);
+      setSelectedAddressIndex(updatedAddresses.length - 1);
+      dispatch({
+        type: "UPDATE_ORDER_DETAILS",
+        payload: {
+          name: newAddress.name,
+          address: newAddress.address,
+          phone: newAddress.mobile,
+        },
+      });
+    }
   };
 
   const total = state.cart
@@ -115,6 +140,7 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
                   </div>
                   <p className="text-sm text-gray-600 mt-0.5">{addr.address}</p>
                   <p className="text-sm text-gray-500 mt-0.5">{addr.mobile}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{addr.type}</p>
                 </div>
               </label>
             ))}
@@ -136,19 +162,7 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
       <AddressModal
         isOpen={isAddressModalOpen}
         onClose={() => setIsAddressModalOpen(false)}
-        onSave={(newAddress) => {
-          const newIndex = addresses.length;
-          setSelectedAddressIndex(newIndex);
-          dispatch({
-            type: "UPDATE_ORDER_DETAILS",
-            payload: {
-              name: newAddress.name,
-              address: newAddress.address,
-              phone: newAddress.mobile,
-            },
-          });
-          setIsAddressModalOpen(false);
-        }}
+        onSave={handleSaveAddress}
       />
     </div>
   );

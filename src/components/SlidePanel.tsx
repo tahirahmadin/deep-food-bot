@@ -16,6 +16,7 @@ import { getUserOrders, updateUserAddresses } from "../actions/serverActions";
 interface Order {
   _id: string;
   orderId: string;
+  restaurantName: string;
   items: Array<{
     price_data: {
       currency: string;
@@ -55,7 +56,6 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
   const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
   const [isAddressesExpanded, setIsAddressesExpanded] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -90,10 +90,6 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
 
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
-  };
-
-  const toggleOrderExpansion = (orderId: string) => {
-    setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
   };
 
   const formatDate = (dateString: string) => {
@@ -153,9 +149,9 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                 {isAuthenticated ? user?.name : "Guest User"}
               </h3>
               {isAuthenticated && (
-                <p className="text-sm text-gray-600">{user?.email}</p>
+                <p className="text-xs text-gray-600">{user?.email}</p>
               )}
-              <div className="flex items-center gap-1 text-sm text-gray-500">
+              <div className="flex items-center gap-1 text-xs text-gray-500">
                 {latestAddress && (
                   <>
                     <MapPin className="w-3 h-3" />
@@ -212,7 +208,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-2 pl-11 pr-4 max-h-[60vh] overflow-y-auto">
+                <div className="space-y-2 pl-4 pr-2 max-h-[40vh] overflow-y-auto">
                   {orders.map((order) => (
                     <div
                       key={order._id}
@@ -222,7 +218,9 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                         <div className="flex justify-between items-center">
                           <div>
                             <h4 className="text-xs font-medium text-gray-900">
-                              {order.orderId}
+                              {order.restaurantName
+                                ? order.restaurantName
+                                : "Restaurant"}
                             </h4>
                             <p className="text-[10px] text-gray-500">
                               {formatDate(order.createdAt)}
@@ -233,62 +231,30 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                               {formatAmount(order.totalAmount)} AED
                             </p>
                             <div className="flex items-center gap-1">
-                              <span
-                                className={`text-[9px] px-1.5 rounded-full ${getStatusColor(
-                                  order.status
-                                )}`}
-                              >
-                                {order.status}
-                              </span>
                               {order.paymentStatus === "paid" && (
                                 <span className="text-[9px] text-green-600">
-                                  •
+                                  Paid
                                 </span>
                               )}
                             </div>
                           </div>
                         </div>
-                        <div className="mt-1">
-                          <div className="text-[10px] text-gray-500 line-clamp-1">
-                            {order.items.map((item, index) => (
-                              <span key={index}>
+                        <div className="mt-2 pt-2 border-t border-gray-100">
+                          {order.items.map((item, index) => (
+                            <div
+                              key={index}
+                              className="flex justify-between items-center py-0.5"
+                            >
+                              <span className="text-[11px] text-gray-600">
                                 {item.quantity}x{" "}
                                 {item.price_data.product_data.name}
-                                {index < order.items.length - 1 ? ", " : ""}
                               </span>
-                            ))}
-                          </div>
+                              <span className="text-[11px] text-gray-500">
+                                {formatAmount(item.price_data.unit_amount)} AED
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                        {expandedOrderId === order._id && (
-                          <div className="mt-2 pt-2 border-t border-gray-100">
-                            {order.items.map((item, index) => (
-                              <div
-                                key={index}
-                                className="flex justify-between items-center py-0.5"
-                              >
-                                <span className="text-[11px] text-gray-600">
-                                  {item.quantity}x{" "}
-                                  {item.price_data.product_data.name}
-                                </span>
-                                <span className="text-[11px] text-gray-500">
-                                  {formatAmount(item.price_data.unit_amount)}{" "}
-                                  AED
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        <button
-                          onClick={() => toggleOrderExpansion(order._id)}
-                          className="mt-1 w-full text-[10px] text-primary hover:bg-primary-50 rounded transition-colors flex items-center justify-center gap-1 py-0.5"
-                        >
-                          {expandedOrderId === order._id ? "Less" : "More"}
-                          <ChevronRight
-                            className={`w-3 h-3 transition-transform ${
-                              expandedOrderId === order._id ? "rotate-90" : ""
-                            }`}
-                          />
-                        </button>
                       </div>
                     </div>
                   ))}
@@ -314,18 +280,23 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
           </button>
 
           {isAddressesExpanded && (
-            <div className="mt-4 px-4">
+            <div className="mt-4 px-2">
               {addresses.map((addr, index) => (
                 <div
                   key={index}
-                  className="bg-white p-3 rounded-xl mb-3 shadow-sm"
+                  className="bg-white p-2 rounded-xl mb-2 shadow-sm"
                 >
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-sm font-medium text-gray-800">
-                        {addr.address}
+                        {addr.type}
                       </p>
-                      <p className="text-xs text-gray-500">{addr.mobile}</p>
+                      <p className="text-xs  text-gray-500">
+                        {addr.name} - {addr.address}
+                      </p>
+                      <p className="text-[11px]  text-gray-400">
+                        {addr.mobile}
+                      </p>
                     </div>
                     <button
                       onClick={() => {

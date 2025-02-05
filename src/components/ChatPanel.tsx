@@ -10,12 +10,15 @@ import { MenuItemFront } from "../types/menu";
 import { useRestaurant } from "../context/RestaurantContext";
 import { RestaurantCard } from "./RestaurantCard";
 import { restroItems } from "../data/restroData";
+import { useFiltersContext } from "../context/FiltersContext";
 
 interface ChatPanelProps {
   input: string;
   setInput: (value: string) => void;
   onSubmit: (e: React.FormEvent, serializedMemory: string) => void;
   placeholder: string;
+  onImageUpload: (file: File) => void;
+  isLoading?: boolean;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -31,6 +34,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [allMenuItems, setAllMenuItems] = useState<MenuItemFront[]>([]);
   const { state: restaurantState } = useRestaurant();
+  const { selectedStyle } = useFiltersContext();
 
   useEffect(() => {
     async function asyncFn() {
@@ -181,7 +185,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   return (
     <>
       <div
-        className={`flex-1 overflow-y-auto p-4 bg-white/30 backdrop-blur-sm scroll-smooth ${
+        className={`flex-1 overflow-y-auto p-2 bg-white/30 backdrop-blur-sm scroll-smooth ${
           state.mode === "browse" ? "hidden" : ""
         }`}
         ref={chatContainerRef}

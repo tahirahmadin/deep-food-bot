@@ -12,7 +12,8 @@ class StripeService {
   async processPayment(
     paymentMethodId: string,
     cart: any[],
-    orderDetails: any
+    orderDetails: any,
+    restaurantName: string
   ) {
     try {
       let apiUrl: string = "https://payments.gobbl.ai/api";
@@ -41,6 +42,7 @@ class StripeService {
           lineItems,
           sellerId,
           userId, // Add userId to request
+          restaurantName, // Pass the restaurant name from parameter
           paymentMethodId,
           customerDetails: {
             name: orderDetails.name,
@@ -48,7 +50,6 @@ class StripeService {
             address: orderDetails.address,
             phone: orderDetails.phone,
           },
-          orderId: "#1234",
         }),
       });
       if (!response.ok) {

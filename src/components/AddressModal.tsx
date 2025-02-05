@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   Plus,
@@ -19,9 +19,8 @@ type AddressType = "home" | "office" | "hotel";
 interface Address {
   name: string;
   address: string;
-  landmark: string;
   mobile: string;
-  type: AddressType;
+  type: string;
   coordinates?: {
     lat: number;
     lng: number;
@@ -31,19 +30,20 @@ interface AddressModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (address: Address) => void;
+  editAddress?: Address | null;
 }
 
 export const AddressModal: React.FC<AddressModalProps> = ({
   isOpen,
   onClose,
   onSave,
+  editAddress,
 }) => {
   const { addresses } = useAuth();
-  const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
-  const [landmark, setLandmark] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [addressType, setAddressType] = useState<AddressType>("home");
+  const [name, setName] = useState(editAddress?.name || "");
+  const [addressName, setAddressName] = useState(editAddress?.type || "");
+  const [address, setAddress] = useState(editAddress?.address || "");
+  const [mobile, setMobile] = useState(editAddress?.mobile || "");
   const [coordinates, setCoordinates] = useState<{
     lat: number;
     lng: number;
@@ -54,42 +54,40 @@ export const AddressModal: React.FC<AddressModalProps> = ({
   const [currentLocation, setCurrentLocation] = useState("");
   const [locationError, setLocationError] = useState<string | null>(null);
 
+  // Update form when editAddress changes
+  useEffect(() => {
+    if (editAddress) {
+      setName(editAddress.name);
+      setAddress(editAddress.address);
+      setAddressName(editAddress.type || "");
+      setMobile(editAddress.mobile);
+      setCoordinates(editAddress.coordinates || null);
+    }
+  }, [editAddress]);
+
   const handleAddNewClick = () => {
     setEditingAddress(null);
     setName("");
+    setAddressName("");
     setAddress("");
-    setLandmark("");
     setMobile("");
-    setAddressType("home");
     setCoordinates(null);
-  };
-
-  const handleEditClick = (index: number) => {
-    const addressToEdit = addresses[index];
-    setName(addressToEdit.name);
-    setAddress(addressToEdit.address);
-    setLandmark(addressToEdit.landmark || "");
-    setMobile(addressToEdit.mobile);
-    setAddressType(addressToEdit.type || "home");
-    setCoordinates(addressToEdit.coordinates || null);
-    setEditingAddress(index);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
+    const newAddress = {
       name,
       address,
-      landmark,
+      type: addressName,
       mobile,
-      type: addressType,
       coordinates: coordinates || undefined,
-    });
+    };
+    onSave(newAddress);
     setName("");
+    setAddressName("");
     setAddress("");
-    setLandmark("");
     setMobile("");
-    setAddressType("home");
     setCoordinates(null);
     setEditingAddress(null);
     onClose();
@@ -170,7 +168,7 @@ export const AddressModal: React.FC<AddressModalProps> = ({
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-slide-up">
         <div className="p-3 bg-orange-50 border-b flex justify-between items-center">
           <h2 className="font-semibold text-gray-800">
-            {editingAddress !== null ? "Edit Address" : "Add New Address"}
+            {editAddress ? "Edit Address" : "Add New Address"}
           </h2>
           <button
             onClick={onClose}
@@ -238,14 +236,15 @@ export const AddressModal: React.FC<AddressModalProps> = ({
 
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-0.5">
-              Landmark
+              Address Name
             </label>
             <input
               type="text"
-              value={landmark}
-              onChange={(e) => setLandmark(e.target.value)}
+              value={addressName}
+              onChange={(e) => setAddressName(e.target.value)}
+              required
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="Enter a nearby landmark"
+              placeholder="e.g. Home, Office, Parent's House"
             />
           </div>
 
@@ -263,50 +262,6 @@ export const AddressModal: React.FC<AddressModalProps> = ({
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-0.5">
-              Address Type
-            </label>
-            <div className="flex gap-1">
-              <button
-                type="button"
-                onClick={() => setAddressType("home")}
-                className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border ${
-                  addressType === "home"
-                    ? "bg-primary text-white border-primary"
-                    : "border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                <Home className="w-3.5 h-3.5" />
-                <span className="text-xs">Home</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAddressType("office")}
-                className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border ${
-                  addressType === "office"
-                    ? "bg-primary text-white border-primary"
-                    : "border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span className="text-xs">Office</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAddressType("hotel")}
-                className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border ${
-                  addressType === "hotel"
-                    ? "bg-primary text-white border-primary"
-                    : "border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                <Hotel className="w-3.5 h-3.5" />
-                <span className="text-xs">Hotel</span>
-              </button>
-            </div>
-          </div>
-
           <div className="flex gap-2 mt-2">
             <button
               type="button"
@@ -319,7 +274,7 @@ export const AddressModal: React.FC<AddressModalProps> = ({
               type="submit"
               className="flex-1 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
             >
-              {editingAddress !== null ? "Update Address" : "Save Address"}
+              {editAddress ? "Update Address" : "Save Address"}
             </button>
           </div>
         </form>

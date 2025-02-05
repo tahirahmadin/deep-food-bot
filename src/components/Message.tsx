@@ -6,6 +6,7 @@ import { DeliveryForm } from "./DeliveryForm";
 import { PaymentForm } from "./PaymentForm";
 import { useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
+import { useFiltersContext } from "../context/FiltersContext";
 import * as menuUtils from "../utils/menuUtils";
 import { useEffect } from "react";
 
@@ -21,7 +22,8 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
     setActiveRestaurant,
     setRestaurants,
   } = useRestaurant();
-  const { dispatch: chatDispatch } = useChatContext();
+  const { selectedStyle } = useFiltersContext();
+  const { dispatch } = useChatContext();
   const messageRef = React.useRef(message);
   const isError =
     message.text.toLowerCase().includes("error") ||
@@ -205,7 +207,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
       setActiveRestaurant(restroId);
       const restaurantName = menuUtils.getRestaurantNameById(restroId);
       if (restaurantName !== "Unknown Restaurant") {
-        chatDispatch({
+        dispatch({
           type: "SET_SELECTED_RESTAURANT",
           payload: restaurantName,
         });
@@ -239,8 +241,17 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
     <div
       className={`mb-4 flex ${message.isBot ? "justify-start" : "justify-end"}`}
     >
+      {message.isBot && (
+        <div className="mr-1 flex-shrink-0">
+          <img
+            src={selectedStyle.image}
+            alt={selectedStyle.name}
+            className="w-8 h-8 rounded-full object-cover border-2 border-primary"
+          />
+        </div>
+      )}
       <div
-        className={`max-w-[90%] rounded-2xl p-3 ${
+        className={`max-w-[90%] rounded-2xl p-2 ${
           message.isBot
             ? "bg-white/80 shadow-sm backdrop-blur-sm w-full sm:w-auto"
             : "bg-orange-500 text-white"

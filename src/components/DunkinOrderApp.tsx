@@ -14,32 +14,23 @@ const chatService = new ChatService();
 import { restroItems } from "../data/restroData";
 import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
+import { useFiltersContext } from "../context/FiltersContext";
 
 export const DunkinOrderApp: React.FC = () => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setRestaurants } = useRestaurant();
   const { user, setUser, isAuthenticated } = useAuth();
+  const { selectedStyle } = useFiltersContext();
   const [input, setInput] = useState("");
-  const [isVegOnly, setIsVegOnly] = useState(true);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [isFastDelivery, setIsFastDelivery] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [numberOfPeople, setNumberOfPeople] = useState(1);
-  const [selectedStyle, setSelectedStyle] = useState({
-    name: "Trump",
-    image:
-      "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop",
-  });
 
   // Reset UI states when auth state changes
   useEffect(() => {
     if (!isAuthenticated) {
       setInput("");
-      setIsVegOnly(true);
-      setIsFastDelivery(false);
       setIsPanelOpen(false);
       setIsCartOpen(false);
-      setNumberOfPeople(1);
     }
   }, [isAuthenticated]);
   // Replace with your DeepSeek API endpoint and API key
@@ -359,7 +350,7 @@ export const DunkinOrderApp: React.FC = () => {
               restaurant1Menu
             )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query in ${
               selectedStyle.name
-            } style and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both.Do not add 'json'`
+            } style and the relevant menu items, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both. Do not add 'json'`
           : `You are a menu recommendation system. Analyze the following menu items from 2 restaurants: ${JSON.stringify(
               restaurant1Menu
             )} and ${JSON.stringify(
@@ -447,19 +438,9 @@ export const DunkinOrderApp: React.FC = () => {
         <Header
           onOpenPanel={() => setIsPanelOpen(true)}
           onCartClick={() => setIsCartOpen(!isCartOpen)}
-          // queryType={state.currentQueryType}
         />
 
-        <Filters
-          isVegOnly={isVegOnly}
-          setIsVegOnly={setIsVegOnly}
-          isFastDelivery={isFastDelivery}
-          setIsFastDelivery={setIsFastDelivery}
-          selectedStyle={selectedStyle}
-          setSelectedStyle={setSelectedStyle}
-          numberOfPeople={numberOfPeople}
-          setNumberOfPeople={setNumberOfPeople}
-        />
+        <Filters />
 
         <ChatPanel
           input={input}

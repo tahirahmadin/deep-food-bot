@@ -21,55 +21,41 @@ import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
 import { getUserDetails, updateUserAddresses } from "../actions/serverActions";
 import { AddressModal } from "./AddressModal";
+import { useFiltersContext } from "../context/FiltersContext";
 
-interface FiltersProps {
-  isVegOnly: boolean;
-  setIsVegOnly: (value: boolean) => void;
-  isFastDelivery: boolean;
-  setIsFastDelivery: (value: boolean) => void;
-  numberOfPeople: number;
-  setNumberOfPeople: (value: number) => void;
-  selectedStyle: {
-    name: string;
-    image: string;
-  };
-  setSelectedStyle: (style: { name: string; image: string }) => void;
-}
+export const Filters: React.FC = () => {
+  const {
+    isVegOnly,
+    setIsVegOnly,
+    isFastDelivery,
+    setIsFastDelivery,
+    numberOfPeople,
+    setNumberOfPeople,
+    selectedStyle,
+    setSelectedStyle,
+  } = useFiltersContext();
 
-export const Filters: React.FC<FiltersProps> = ({
-  isVegOnly,
-  setIsVegOnly,
-  isFastDelivery,
-  setIsFastDelivery,
-  numberOfPeople,
-  setNumberOfPeople,
-  selectedStyle,
-  setSelectedStyle,
-}) => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setActiveRestaurant } = useRestaurant();
-  const { user } = useAuth();
-  const [addresses, setAddresses] = useState<
-    Array<{ name: string; address: string; mobile: string }>
-  >([]);
+  const { user, addresses, isAuthenticated, setAddresses } = useAuth();
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState<number>(0);
   const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
 
+  // Set initial selected address to first address if available
   useEffect(() => {
-    const fetchUserDetails = async () => {
-      if (user?.userId) {
-        const userDetails = await getUserDetails(user.userId);
-        if (userDetails.addresses) {
-          setAddresses(userDetails.addresses);
-        }
-      }
-    };
-    fetchUserDetails();
-  }, [user]);
+    if (addresses.length > 0 && selectedAddressIndex === null) {
+      setSelectedAddressIndex(0);
+    }
+  }, [addresses]);
 
   const conversationStyles = [
+    {
+      name: "Gobbl",
+      image:
+        "https://gobbl-bucket.s3.ap-south-1.amazonaws.com/tapAssets/gobbl_coin.webp",
+    },
     {
       name: "Trump",
       image:
@@ -91,14 +77,16 @@ export const Filters: React.FC<FiltersProps> = ({
     name: string;
     address: string;
     mobile: string;
+    type: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
   }) => {
     if (user?.userId) {
       const updatedAddresses = [...addresses, newAddress];
-      const response = await updateUserAddresses(user.userId, updatedAddresses);
-      if (!response.error) {
-        setAddresses(updatedAddresses);
-        setSelectedAddressIndex(updatedAddresses.length - 1);
-      }
+      await setAddresses(updatedAddresses);
+      setSelectedAddressIndex(updatedAddresses.length - 1);
     }
   };
 
@@ -111,15 +99,24 @@ export const Filters: React.FC<FiltersProps> = ({
     <div className="px-4 py-1 bg-white border-b border-gray-100">
       {/* Home Address Section */}
       <div className="relative w-full flex justify-between items-center mb-1">
-        <div className="relative flex-1">
+        <div className="relative flex-1 max-w-[70%]">
           <button
             onClick={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
-            className="flex items-center gap-1 hover:bg-gray-50 p-1 rounded-lg transition-colors w-full"
+            className="flex items-center gap-1 hover:bg-gray-50 p-1 rounded-lg transition-colors w-full max-w-full"
+            disabled={!isAuthenticated}
           >
             <MapPin className="w-3.5 h-3.5 text-gray-600" />
-            <div className="text-[10px] text-gray-900 font-medium truncate">
-              {addresses[selectedAddressIndex]?.address ||
-                "Add delivery address"}
+            <div className="text-[10px] text-gray-900 font-medium truncate max-w-[200px]">
+              <span className="font-bold">
+                {isAuthenticated
+                  ? addresses[selectedAddressIndex]?.type || ""
+                  : ""}{" "}
+              </span>
+              -{" "}
+              {isAuthenticated
+                ? addresses[selectedAddressIndex]?.address ||
+                  "Add delivery address"
+                : "Sign in to add address..."}
             </div>
             <ChevronDown className="w-3 h-3 text-gray-400" />
           </button>
@@ -139,13 +136,14 @@ export const Filters: React.FC<FiltersProps> = ({
                   }`}
                 >
                   <Home className="w-3.5 h-3.5 mt-0.5 text-gray-400" />
-                  <div className="text-left">
+                  <div className="text-left flex-1 min-w-0">
                     <p className="text-[11px] font-medium text-gray-900 line-clamp-1">
                       {addr.name}
                     </p>
-                    <p className="text-[10px] text-gray-500 line-clamp-1">
+                    <p className="text-[10px] text-gray-500 line-clamp-1 max-w-[180px]">
                       {addr.address}
                     </p>
+                    <p className="text-[9px] text-gray-400">{addr.type}</p>
                   </div>
                 </button>
               ))}

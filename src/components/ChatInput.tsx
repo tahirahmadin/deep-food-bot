@@ -37,14 +37,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div
-      className={`p-4 border-t border-white/200 bg-white/50 backdrop-blur-sm ${className}`}
+      className={`p-2 border-t border-white/200 bg-white/50 backdrop-blur-sm ${className}`}
     >
-      <div>
+      <div className="w-full">
         {showQuickActions && !input && (
-          <div className="flex flex-col items-end gap-2 mb-4">
+          <div className="grid grid-cols-2 gap-2 mb-2">
             <button
               onClick={() => handleQuickAction("Show me lunch combos")}
-              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
             >
               <Timer className="w-3.5 h-3.5" />
               <span>Lunch combos ?</span>
@@ -52,7 +52,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
             <button
               onClick={() => handleQuickAction("Show me best veg options")}
-              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
             >
               <Leaf className="w-3.5 h-3.5" />
               <span>Best veg options ?</span>
@@ -60,7 +60,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
             <button
               onClick={() => handleQuickAction("What are today's best offers?")}
-              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
             >
               <Tag className="w-3.5 h-3.5" />
               <span>Best offers today ?</span>
@@ -70,7 +70,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               onClick={() =>
                 handleQuickAction("Show me quickest delivery options")
               }
-              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
             >
               <Zap className="w-3.5 h-3.5" />
               <span>Quickest delivery ?</span>
@@ -100,14 +100,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           />
           <ImageIcon className="w-5 h-5" />
         </label>
-        <button
-          type="submit"
-          className={`p-1 ${
-            input
-              ? "text-orange-500 hover:text-blue-700"
-              : "text-gray-400 hover:text-gray-600"
-          }`}
-        >
+        <button type="submit" className="p-1 text-gray-400 hover:text-gray-600">
           <Send className="w-5 h-5" />
         </button>
       </form>
