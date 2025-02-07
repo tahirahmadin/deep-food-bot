@@ -36,7 +36,10 @@ export const ChatMenuItem: React.FC<ChatMenuItemProps> = ({
   const handleAddToCart = () => {
     // Check if cart has items from a different restaurant
     const cartRestaurant = state.cart[0]?.restaurant;
-    const currentRestaurant = menuUtils.getRestaurantNameById(restroId);
+    const currentRestaurant = menuUtils.getRestaurantNameById(
+      restaurantState.restaurants,
+      restroId
+    );
 
     if (cartRestaurant && cartRestaurant !== currentRestaurant) {
       if (
@@ -77,7 +80,10 @@ export const ChatMenuItem: React.FC<ChatMenuItemProps> = ({
       // Set new active restaurant and update selected restaurant name
       // Set new active restaurant only
       setActiveRestaurant(restroId);
-      const restaurantName = menuUtils.getRestaurantNameById(restroId);
+      const restaurantName = menuUtils.getRestaurantNameById(
+        restaurantState.restaurants,
+        restroId
+      );
       if (restaurantName !== "Unknown Restaurant") {
         chatDispatch({
           type: "SET_SELECTED_RESTAURANT",

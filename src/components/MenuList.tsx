@@ -4,9 +4,6 @@ import { ChatMenuItem } from "./ChatMenuItem";
 import { MenuItemWithImage } from "../data/menuDataFront";
 import { useChatContext, QueryType } from "../context/ChatContext";
 import { ChatService } from "../services/chatService";
-import { getRestaurantNameById } from "../utils/menuUtils";
-
-const chatService = new ChatService();
 
 interface MenuListProps {
   messageId: number;

@@ -78,6 +78,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                 <div className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
                   <span>
                     {menuUtils.getRestaurantNameById(
+                      restaurantState.restaurants,
                       restaurantState.selectedRestroIds[0]
                     )}
                   </span>
@@ -131,6 +132,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                 <div className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
                   <span>
                     {menuUtils.getRestaurantNameById(
+                      restaurantState.restaurants,
                       restaurantState.selectedRestroIds[1]
                     )}
                   </span>
@@ -205,7 +207,10 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
       // Set new active restaurant and update selected restaurant name
       // Set new active restaurant only
       setActiveRestaurant(restroId);
-      const restaurantName = menuUtils.getRestaurantNameById(restroId);
+      const restaurantName = menuUtils.getRestaurantNameById(
+        restaurantState.restaurants,
+        restroId
+      );
       if (restaurantName !== "Unknown Restaurant") {
         dispatch({
           type: "SET_SELECTED_RESTAURANT",

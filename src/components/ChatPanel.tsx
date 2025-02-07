@@ -8,7 +8,6 @@ import { Menu } from "lucide-react";
 import { MenuItemFront } from "../types/menu";
 import { useRestaurant } from "../context/RestaurantContext";
 import { RestaurantCard } from "./RestaurantCard";
-import { restroItems } from "../data/restroData";
 
 interface ChatPanelProps {
   input: string;
@@ -205,7 +204,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 Available Restaurants
               </h2>
               <div className="grid grid-cols-2 gap-4">
-                {restroItems.map((restaurant) => (
+                {restaurantState.restaurants.map((restaurant) => (
                   <RestaurantCard
                     key={restaurant.id}
                     id={restaurant.id}

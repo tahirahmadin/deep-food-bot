@@ -1,19 +1,24 @@
 import React, { createContext, useContext, useReducer } from "react";
+import { getAllRestaurants } from "../actions/serverActions";
+import { SingleRestro } from "../types/menu";
 
 interface RestaurantState {
   selectedRestroIds: number[];
   activeRestroId: number | null;
+  restaurants: SingleRestro[];
 }
 
 type RestaurantAction =
   | { type: "SET_RESTRO_IDS"; payload: number[] }
   | { type: "SET_ACTIVE_RESTRO"; payload: number | null }
   | { type: "CLEAR_RESTRO_IDS" }
+  | { type: "SET_RESTAURANTS"; payload: SingleRestro[] }
   | { type: "RESET_STATE" };
 
 const initialState: RestaurantState = {
   selectedRestroIds: [],
   activeRestroId: null,
+  restaurants: [],
 };
 
 const restaurantReducer = (
@@ -31,6 +36,11 @@ const restaurantReducer = (
       return {
         ...state,
         activeRestroId: action.payload,
+      };
+    case "SET_RESTAURANTS":
+      return {
+        ...state,
+        restaurants: action.payload,
       };
     case "CLEAR_RESTRO_IDS":
       return {
@@ -54,6 +64,15 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state, dispatch] = useReducer(restaurantReducer, initialState);
+
+  React.useEffect(() => {
+    const fetchRestaurants = async () => {
+      const restaurantData = await getAllRestaurants();
+      console.log(restaurantData);
+      dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
+    };
+    fetchRestaurants();
+  }, []);
 
   return (
     <RestaurantContext.Provider value={{ state, dispatch }}>
@@ -89,12 +108,17 @@ export const useRestaurant = () => {
     dispatch({ type: "CLEAR_RESTRO_IDS" });
   };
 
+  const setRestaurantList = (restaurants: SingleRestro[]) => {
+    dispatch({ type: "SET_RESTAURANTS", payload: restaurants });
+  };
+
   const value = {
     state,
     dispatch,
     setRestaurants,
     setActiveRestaurant,
     clearRestaurants,
+    setRestaurantList,
   };
 
   return value;

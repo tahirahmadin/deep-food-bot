@@ -2,10 +2,18 @@ import axios, { AxiosResponse } from "axios";
 import CryptoJS from "crypto-js";
 
 let apiUrl: string = "https://payments.gobbl.ai/api";
+let restaurantApiUrl: string = "https://restauranttest.gobbl.ai/api";
 
 // Define types for the encryption function
 interface CipherTextResponse {
   data: string;
+}
+
+// Define restaurant types
+interface Restaurant {
+  id: number;
+  restaurant: string;
+  items: string;
 }
 
 // Encryption function
@@ -57,6 +65,23 @@ interface ApiResponse<T> {
   result?: T;
   error?: boolean;
 }
+
+// Get all online restaurants
+export const getAllRestaurants = async (): Promise<Restaurant[]> => {
+  try {
+    const response = await axios.get(
+      `${restaurantApiUrl}/restaurant/getAllRestaurants?online=true`
+    );
+
+    if (response.data && !response.data.error) {
+      return response.data.data;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching restaurants:", error);
+    return [];
+  }
+};
 
 //1. USER:: GET User Leader Data by address
 export const getUserLeaderboardData = async (
