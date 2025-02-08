@@ -22,6 +22,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { useRestaurant } from "../context/RestaurantContext";
 
 // Initialize Stripe
 const stripePromise = loadStripe(
@@ -61,6 +62,7 @@ const CheckoutForm: React.FC<{
   const stripe = useStripe();
   const elements = useElements();
   const { dispatch, state } = useChatContext();
+  const { state: restaurantState } = useRestaurant();
   const { user } = useAuth();
   const { connectWallet, transferUSDT, connected, publicKey } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -79,7 +81,8 @@ const CheckoutForm: React.FC<{
             cart,
             orderDetails,
             state.selectedRestaurant || "Unknown Restaurant",
-            user.userId
+            user.userId,
+            restaurantState.activeRestroId
           );
           setClientSecret(secret);
         } catch (error) {

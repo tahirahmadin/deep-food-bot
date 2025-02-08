@@ -18,7 +18,8 @@ class StripeService {
     cart: any[],
     orderDetails: any,
     restaurantName: string,
-    userId: string
+    userId: string,
+    restaurantId: number
   ) {
     try {
       const lineItems = cart.map((item) => ({
@@ -46,6 +47,7 @@ class StripeService {
             sellerId: "acct_1QnDfMRsmaUdhKRS",
             userId,
             restaurantName,
+            restaurantId,
             customerDetails: {
               name: orderDetails.name,
               email: orderDetails.email,
