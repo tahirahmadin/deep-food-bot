@@ -48,6 +48,7 @@ class StripeService {
             userId,
             restaurantName,
             restaurantId,
+            cart,
             customerDetails: {
               name: orderDetails.name,
               email: orderDetails.email,
