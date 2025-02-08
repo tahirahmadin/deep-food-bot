@@ -271,7 +271,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       name={item.name}
                       price={item.price}
                       restaurant={item.restaurant}
-                      image={item.image}
+                      image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurantState.activeRestroId}-${item.id}.jpg`}
                       quantity={0}
                     />
                   ))}
