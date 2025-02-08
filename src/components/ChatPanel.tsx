@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Menu } from "lucide-react";
 import { MenuItemFront } from "../types/menu";
 import { useRestaurant } from "../context/RestaurantContext";
+import { getMenuByRestaurantId } from "../utils/menuUtils";
 import { RestaurantCard } from "./RestaurantCard";
 
 interface ChatPanelProps {
@@ -31,23 +32,28 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [allMenuItems, setAllMenuItems] = useState<MenuItemFront[]>([]);
-  const { state: restaurantState } = useRestaurant();
+  const { state: restaurantState, dispatch: restaurantDispatch } =
+    useRestaurant();
 
   useEffect(() => {
     async function asyncFn() {
       try {
-        if (restaurantState.activeRestroId) {
-          const module = await import(
-            `../data/menus/${restaurantState.activeRestroId}.ts`
+        if (
+          restaurantState.activeRestroId &&
+          !restaurantState.menus[restaurantState.activeRestroId]
+        ) {
+          const menuItems = await getMenuByRestaurantId(
+            restaurantState.activeRestroId,
+            restaurantState,
+            restaurantDispatch
           );
-          if (module.menuItems) {
-            setAllMenuItems(module.menuItems);
-          } else {
-            console.error("No menu items found in module");
-            setAllMenuItems([]);
-          }
+          setAllMenuItems(menuItems);
         } else {
-          setAllMenuItems([]);
+          if (restaurantState.activeRestroId) {
+            setAllMenuItems(
+              restaurantState.menus[restaurantState.activeRestroId] || []
+            );
+          }
         }
       } catch (error) {
         console.error("Error loading menu items:", error);
@@ -55,7 +61,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       }
     }
     asyncFn();
-  }, [restaurantState.activeRestroId]);
+  }, [restaurantState.activeRestroId, restaurantState, restaurantDispatch]);
 
   // Extract unique categories
   const categories = useMemo(() => {
@@ -90,12 +96,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   // Use cleanMessages without modification
   const cleanMessages = useMemo(() => {
     if (state.messages?.length > 0) {
+      console.log("messages");
+      console.log(state.messages);
       let result = state.messages.map((message) => {
         if (message.isBot && message.text) {
           try {
             // Parse the text field into JSON
             const parsedText = JSON.parse(message.text);
-
+            console.log("parsedText");
+            console.log(parsedText);
             // Validate the JSON structure
             if (
               parsedText &&
@@ -208,7 +217,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                   <RestaurantCard
                     key={restaurant.id}
                     id={restaurant.id}
-                    name={restaurant.restaurant}
+                    name={restaurant.name}
                     description={restaurant.items}
                     image={
                       restaurant.id === 1

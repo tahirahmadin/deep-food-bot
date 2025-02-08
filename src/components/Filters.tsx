@@ -197,7 +197,10 @@ export const Filters: React.FC = () => {
 
       <AddressModal
         isOpen={isAddressModalOpen}
-        onClose={() => setIsAddressModalOpen(false)}
+        onClose={() => {
+          setIsAddressModalOpen(false);
+          console.log("making off");
+        }}
         onSave={handleSaveAddress}
       />
 

@@ -6,6 +6,9 @@ interface RestaurantState {
   selectedRestroIds: number[];
   activeRestroId: number | null;
   restaurants: SingleRestro[];
+  menus: {
+    [key: string]: any[];
+  };
 }
 
 type RestaurantAction =
@@ -13,12 +16,14 @@ type RestaurantAction =
   | { type: "SET_ACTIVE_RESTRO"; payload: number | null }
   | { type: "CLEAR_RESTRO_IDS" }
   | { type: "SET_RESTAURANTS"; payload: SingleRestro[] }
+  | { type: "SET_MENU"; payload: { restaurantId: string; menu: any[] } }
   | { type: "RESET_STATE" };
 
 const initialState: RestaurantState = {
   selectedRestroIds: [],
   activeRestroId: null,
   restaurants: [],
+  menus: {},
 };
 
 const restaurantReducer = (
@@ -42,6 +47,14 @@ const restaurantReducer = (
         ...state,
         restaurants: action.payload,
       };
+    case "SET_MENU":
+      return {
+        ...state,
+        menus: {
+          ...state.menus,
+          [action.payload.restaurantId]: action.payload.menu,
+        },
+      };
     case "CLEAR_RESTRO_IDS":
       return {
         ...state,
@@ -60,7 +73,7 @@ const RestaurantContext = createContext<{
   dispatch: React.Dispatch<RestaurantAction>;
 } | null>(null);
 
-export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
+const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state, dispatch] = useReducer(restaurantReducer, initialState);
@@ -81,7 +94,7 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export const useRestaurant = () => {
+function useRestaurant() {
   const context = useContext(RestaurantContext);
   if (!context) {
     throw new Error("useRestaurant must be used within a RestaurantProvider");
@@ -122,4 +135,6 @@ export const useRestaurant = () => {
   };
 
   return value;
-};
+}
+
+export { RestaurantProvider, useRestaurant };

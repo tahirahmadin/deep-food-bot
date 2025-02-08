@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useChatContext } from "../context/ChatContext";
 import { ChatService } from "../services/chatService";
 import { Header } from "./Header";
@@ -14,7 +14,7 @@ const chatService = new ChatService();
 import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
-import { SingleRestro } from "../types/menu";
+import { getMenuByRestaurantId } from "../utils/menuUtils";
 
 export const DunkinOrderApp: React.FC = () => {
   const { state, dispatch } = useChatContext();
@@ -108,14 +108,8 @@ export const DunkinOrderApp: React.FC = () => {
   };
 
   // Function to get menuItems by file number
-  async function getMenuItemsByFile(fileNumber: number): Promise<any[]> {
-    try {
-      const module = await import(`../data/menus/${fileNumber}.ts`);
-      return module.menuItems || [];
-    } catch (error) {
-      console.error(`Error loading file ${fileNumber}.ts:`, error);
-      return [];
-    }
+  async function getMenuItemsByFile(restaurantId: number): Promise<any[]> {
+    return await getMenuByRestaurantId(restaurantId, restaurantState, dispatch);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -305,7 +299,7 @@ export const DunkinOrderApp: React.FC = () => {
         // Call system prompt if no active restaurant ID
         const systemPrompt = `You are a restaurant recommendation system. Analyze the following restaurant data: ${JSON.stringify(
           restaurantState.restaurants
-        )}. Based on the user's query: ${input}, return a response in the format { "text": "", "restroIds": [] }, where "text" is a summary of the user's query and the relevant restaurants, and "restroIds" is an array of restaurant IDs (maximum 2) that match the user's query. Do not include more than 2 restaurant IDs. Do not include any additional text or explanations.`;
+        )}. Based on the user's query: ${input}, return a response in the format { "text": "", "restroIds": [] }, where "text" is a summary of the user's query and the relevant restaurants, and "restroIds" is an array of restaurant IDs (maximum 2) that match the user's query. Do not include more than 2 restaurant IDs. Do not include any additional text or explanations or any 'json tag in start'`;
 
         const response = await axios.post(
           OPENAI_API_URL,
@@ -335,6 +329,8 @@ export const DunkinOrderApp: React.FC = () => {
           setRestaurants(suggestRestroIds);
           restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
           if (suggestRestroIds.length > 1) {
+            console.log("suggestRestroIds call kyu hui");
+            console.log(suggestRestroIds);
             restaurant2Menu = await getMenuItemsByFile(suggestRestroIds[1]);
           }
         }
@@ -344,6 +340,7 @@ export const DunkinOrderApp: React.FC = () => {
           restaurantState.activeRestroId
         );
       }
+
       let onlyVeg = isVegOnly ? " Give only VEGETARIAN options " : "";
       let sufficientFor =
         numberOfPeople > 1
@@ -355,20 +352,21 @@ export const DunkinOrderApp: React.FC = () => {
         restaurantState.activeRestroId != null
           ? `You are a menu recommendation system. Analyze the following menu items from restaurants: ${JSON.stringify(
               restaurant1Menu
-            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query in ${
+            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number }],"items2": [{ "id": number }]}, where "text" is a creative information related to user query in ${
               selectedStyle.name
-            } style and the relevant menu items - ${instructionString}, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both. Do not add 'json'`
+            } style and the relevant menu items - ${instructionString}, and "items1" is array of menu items ("id") that match the user's query. Include a maximum of 3 items from menu data - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. Do not add 'json tag in start'. If no matching item is available then return proper not available text with empty item arrays.`
           : `You are a menu recommendation system. Analyze the following menu items from 2 restaurants: ${JSON.stringify(
               restaurant1Menu
             )} and ${JSON.stringify(
               restaurant2Menu
-            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string, "price": string }],"items2": [{ "id": number, "name": string, "price": string }]}, where "text" is a creative information related to user query in ${
+            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string }],"items2": [{ "id": number, "name": string }]}, where "text" is a creative information related to user query in ${
               selectedStyle.name
-            } style and the relevant menu items - ${instructionString}, and "items1" and "item2" are array of menu items ("id", "name", "price") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both. Do not add 'json'`;
+            } style and the relevant menu items - ${instructionString}, and "items1" and "item2" are array of menu items ("id", "name") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both. Do not add 'json tag in start', If no matching item is available then return proper not available text with empty item arrays.`;
 
       console.log("suggestRestroIds");
       console.log(suggestRestroIds);
       console.log(restaurantState.activeRestroId);
+
       if (suggestRestroIds?.length > 0 || restaurantState.activeRestroId) {
         const response2 = await axios.post(
           OPENAI_API_URL,

@@ -16,6 +16,28 @@ interface Restaurant {
   items: string;
 }
 
+// Define menu types
+interface MenuItem {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  price: string;
+  restaurant: string;
+  image: string;
+  spicinessLevel: number;
+  sweetnessLevel: number;
+  dietaryPreference: string[];
+  healthinessScore: number;
+  popularity: number;
+  caffeineLevel: string;
+  sufficientFor: number;
+}
+
+interface MenuResponse {
+  [key: string]: MenuItem[];
+}
+
 // Encryption function
 export const getCipherText = (inputBodyData: object): CipherTextResponse => {
   let secretKey: string = import.meta.env.VITE_CIPHER_KEY;
@@ -66,6 +88,8 @@ interface ApiResponse<T> {
   error?: boolean;
 }
 
+// *************** RESTAURANT APIS **************************
+
 // Get all online restaurants
 export const getAllRestaurants = async (): Promise<Restaurant[]> => {
   try {
@@ -79,6 +103,27 @@ export const getAllRestaurants = async (): Promise<Restaurant[]> => {
     return [];
   } catch (error) {
     console.error("Error fetching restaurants:", error);
+    return [];
+  }
+};
+
+// Get restaurant menu
+export const getRestaurantMenu = async (
+  restaurantId: number
+): Promise<MenuItem[]> => {
+  try {
+    const response = await axios.get(
+      `${restaurantApiUrl}/restaurant/getMultipleRestaurantMenu/${restaurantId}`
+    );
+
+    if (response.data && !response.data.error) {
+      // Extract menu items from the response
+      const menuData = response.data.data as MenuResponse;
+      return menuData[restaurantId.toString()] || [];
+    }
+    return [];
+  } catch (error) {
+    console.error(`Error fetching menu for restaurant ${restaurantId}:`, error);
     return [];
   }
 };
@@ -217,7 +262,6 @@ export const getUserOrders = async (
     const response: AxiosResponse = await axios.get(url);
 
     if (response.data && !response.data.error) {
-      console.log("Orders response:", response.data.result);
       return { error: false, result: response.data.result };
     } else {
       console.error("Orders API error:", response.data);

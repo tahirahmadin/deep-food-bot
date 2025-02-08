@@ -1,6 +1,8 @@
 export interface SingleRestro {
   id: number;
-  restaurant: string;
+  name: string;
+  menuSummary: string;
+  description: string;
   items: string;
 }
 export interface MenuItem {

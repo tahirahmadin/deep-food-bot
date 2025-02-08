@@ -1,11 +1,35 @@
 import React from "react";
 import { ShoppingBag, Plus, Minus, X } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
-import { findMenuItemById } from "../utils/menuUtils";
+import { useRestaurant } from "../context/RestaurantContext";
+import { getMenuByRestaurantId } from "../utils/menuUtils";
 
 export const CartSummary: React.FC = () => {
   const { state, dispatch } = useChatContext();
+  const { state: restaurantState } = useRestaurant();
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const [menuItems, setMenuItems] = React.useState<any[]>([]);
+
+  const { dispatch: restaurantDispatch } = useRestaurant();
+
+  React.useEffect(() => {
+    const fetchMenuItems = async () => {
+      if (
+        restaurantState.activeRestroId &&
+        !restaurantState.menus[restaurantState.activeRestroId]
+      ) {
+        const items = await getMenuByRestaurantId(
+          restaurantState.activeRestroId,
+          restaurantState,
+          restaurantDispatch
+        );
+        setMenuItems(
+          restaurantState.menus[restaurantState.activeRestroId] || []
+        );
+      }
+    };
+    fetchMenuItems();
+  }, [restaurantState.activeRestroId, restaurantState, restaurantDispatch]);
 
   const cartTotal = React.useMemo(() => {
     return state.cart
@@ -84,7 +108,9 @@ export const CartSummary: React.FC = () => {
             </div>
             <div className="max-h-96 overflow-y-auto">
               {state.cart.map((item) => {
-                const menuItem = findMenuItemById(item.id);
+                const menuItem = menuItems.find(
+                  (menuItem) => menuItem.id === item.id
+                );
                 return (
                   <div
                     key={item.id}

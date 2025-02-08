@@ -317,7 +317,7 @@ const CheckoutForm: React.FC<{
     <div className="bg-white/80 rounded-lg p-2.5 shadow-sm backdrop-blur-sm mb-3 max-w-sm mx-auto">
       <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg overflow-hidden p-2.5 text-white">
         {/* Payment Method Selection */}
-        <div className="flex gap-2 mb-4">
+        {/* <div className="flex gap-2 mb-4">
           <button
             onClick={() => setPaymentMethod("card")}
             className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
@@ -338,7 +338,7 @@ const CheckoutForm: React.FC<{
           >
             Pay with USDT
           </button>
-        </div>
+        </div> */}
 
         <div className="absolute right-2 top-2">
           <Lock className="w-4 h-4 text-orange-200" />

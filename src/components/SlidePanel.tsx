@@ -70,7 +70,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
           console.log("Fetching orders for user:", user.userId);
           const response = await getUserOrders(user.userId);
           if (!response.error && response.result) {
-            console.log("Orders fetched successfully:", response.result);
+            // console.log("Orders fetched successfully:", response.result);
             setOrders(response.result);
           } else {
             console.error("Failed to fetch orders:", response);
@@ -245,7 +245,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                               key={index}
                               className="flex justify-between items-center py-0.5"
                             >
-                              <span className="text-[11px] text-gray-600">
+                              <span className="text-[10px] text-gray-600">
                                 {item.quantity}x{" "}
                                 {item.price_data.product_data.name}
                               </span>
