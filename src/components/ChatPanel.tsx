@@ -219,17 +219,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                     id={restaurant.id}
                     name={restaurant.name}
                     description={restaurant.items}
-                    image={
-                      restaurant.id === 1
-                        ? "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1974&auto=format&fit=crop"
-                        : restaurant.id === 2
-                        ? "https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=2070&auto=format&fit=crop"
-                        : restaurant.id === 3
-                        ? "https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?q=80&w=1887&auto=format&fit=crop"
-                        : restaurant.id === 4
-                        ? "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop"
-                        : "https://images.unsplash.com/photo-1590947132387-155cc02f3212?q=80&w=2070&auto=format&fit=crop"
-                    }
+                    image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurant.id}-0.jpg`}
                   />
                 ))}
               </div>
