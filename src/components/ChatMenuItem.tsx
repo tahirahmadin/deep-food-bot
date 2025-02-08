@@ -96,6 +96,7 @@ export const ChatMenuItem: React.FC<ChatMenuItemProps> = ({
   return (
     <div className="bg-[#F9FAFB] rounded-lg shadow-sm overflow-hidden flex flex-col w-[80px]">
       {/* Image Container */}
+      {console.log(image)}
       <div className=" w-full relative">
         <img
           src={image || "https://via.placeholder.com/100"}
