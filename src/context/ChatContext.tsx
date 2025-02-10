@@ -23,6 +23,30 @@ interface ChatState {
   currentQueryType: QueryType;
   mode: "chat" | "browse";
   selectedRestaurant: string | null;
+  customization: {
+    isOpen: boolean;
+    item: {
+      id: number;
+      name: string;
+      price: string;
+      image?: string;
+      customisation?: {
+        categories: {
+          categoryName: string;
+          minQuantity: number;
+          maxQuantity: number;
+          items: {
+            name: string;
+            price: number;
+            _id: string;
+          }[];
+          _id: string;
+        }[];
+        _id: string;
+      };
+      restaurant?: string;
+    } | null;
+  };
   cart: CartItem[];
   checkout: {
     step: "details" | "payment" | null;
@@ -43,6 +67,13 @@ export interface CartItem {
   price: string;
   quantity: number;
   restaurant: string;
+  customizations?: {
+    categoryName: string;
+    selection: {
+      name: string;
+      price: number;
+    };
+  }[];
 }
 
 type ChatAction =
@@ -54,6 +85,10 @@ type ChatAction =
   | { type: "SET_SELECTED_RESTAURANT"; payload: string | null }
   | { type: "SET_MODE"; payload: "chat" | "browse" }
   | { type: "ADD_TO_CART"; payload: CartItem }
+  | {
+      type: "SET_CUSTOMIZATION_MODAL";
+      payload: { isOpen: boolean; item: ChatState["customization"]["item"] };
+    }
   | { type: "REMOVE_FROM_CART"; payload: number }
   | { type: "UPDATE_CART_ITEM"; payload: CartItem }
   | { type: "SET_CHECKOUT_STEP"; payload: "details" | "payment" | null }
@@ -90,6 +125,14 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return {
         ...state,
         mode: action.payload,
+      };
+    case "SET_CUSTOMIZATION_MODAL":
+      return {
+        ...state,
+        customization: {
+          isOpen: action.payload.isOpen,
+          item: action.payload.item,
+        },
       };
     case "SET_SELECTED_RESTAURANT":
       return {
@@ -185,6 +228,10 @@ const initialState: ChatState = {
   currentQueryType: QueryType.GENERAL,
   mode: "chat",
   selectedRestaurant: null,
+  customization: {
+    isOpen: false,
+    item: null,
+  },
   cart: [],
   checkout: {
     step: null,

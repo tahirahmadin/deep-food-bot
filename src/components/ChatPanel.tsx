@@ -179,8 +179,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         {cleanMessages.map((message) => (
           <Message key={message.id} message={message} onRetry={() => {}} />
         ))}
-        {console.log("cleanMessages")}
-        {console.log(cleanMessages)}
 
         {state.isLoading && (
           <div className="flex items-center space-x-2 text-gray-500">
@@ -272,9 +270,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       id={item.id}
                       name={item.name}
                       price={item.price}
-                      restaurant={item.restaurant}
+                      restaurant={
+                        state.selectedRestaurant ? state.selectedRestaurant : ""
+                      }
                       image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurantState.activeRestroId}-${item.id}.jpg`}
                       quantity={0}
+                      isCustomisable={item.isCustomisable}
+                      customisation={item.customisation}
                     />
                   ))}
                 </div>

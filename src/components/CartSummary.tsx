@@ -126,6 +126,21 @@ export const CartSummary: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm text-gray-800 truncate">
                         {item.name}
+                        <div className="mt-1">
+                          {item.customizations?.map((customization, index) => (
+                            <div key={index} className="text-xs text-gray-500">
+                              <span className="font-medium">
+                                {customization.categoryName}:
+                              </span>{" "}
+                              {customization.selection.name}
+                              {customization.selection.price > 0 && (
+                                <span className="text-primary ml-1">
+                                  (+{customization.selection.price} AED)
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </h4>
                       <p className="text-sm text-gray-500">{item.price} AED</p>
                     </div>

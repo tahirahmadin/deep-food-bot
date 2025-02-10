@@ -113,12 +113,12 @@ export const getRestaurantMenu = async (
 ): Promise<MenuItem[]> => {
   try {
     const response = await axios.get(
-      `${restaurantApiUrl}/restaurant/getMultipleRestaurantMenu/${restaurantId}`
+      `${apiUrl}/restaurant/getMultipleRestaurantMenu/${restaurantId}`
     );
 
     if (response.data && !response.data.error) {
       // Extract menu items from the response
-      const menuData = response.data.data as MenuResponse;
+      const menuData = response.data.result as MenuResponse;
       return menuData[restaurantId.toString()] || [];
     }
     return [];

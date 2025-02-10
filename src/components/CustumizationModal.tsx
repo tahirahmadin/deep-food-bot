@@ -1,276 +1,288 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Minus, Plus } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 
-interface CustomizationOption {
+interface SelectedOption {
   name: string;
-  price?: string;
-  isRequired?: boolean;
-  maxSelections?: number;
-  options: {
-    name: string;
-    price?: string;
-    isDefault?: boolean;
-  }[];
+  price: number;
+  categoryName: string;
 }
 
-interface CustomizationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  item: {
-    id: number;
-    name: string;
-    price: string;
-    image?: string;
-  };
-}
-
-export const CustomizationModal: React.FC<CustomizationModalProps> = ({
-  isOpen,
-  onClose,
-  item,
-}) => {
-  const { dispatch } = useChatContext();
+export const CustomizationModal: React.FC = () => {
+  const { state, dispatch } = useChatContext();
+  const { isOpen, item } = state.customization;
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<
-    Record<string, string>
+    Record<string, SelectedOption[]>
   >({});
 
-  // Example customization options - you can make this dynamic based on the item
-  const customizationOptions: CustomizationOption[] = [
-    {
-      name: "Select Bread",
-      isRequired: true,
-      maxSelections: 1,
-      options: [
-        { name: "Multigrain", isDefault: true },
-        { name: "White Italian" },
-      ],
-    },
-    {
-      name: "Select Preparation Style",
-      isRequired: true,
-      maxSelections: 1,
-      options: [{ name: "Toasted", isDefault: true }, { name: "Non-Toasted" }],
-    },
-    {
-      name: "Choose From Add Ons",
-      maxSelections: 1,
-      options: [
-        { name: "Cheese Slice", price: "28.57" },
-        { name: "Extra Veggies", price: "20.00" },
-      ],
-    },
-  ];
+  const handleClose = () => {
+    setQuantity(1);
+    setSelectedOptions({});
+    dispatch({
+      type: "SET_CUSTOMIZATION_MODAL",
+      payload: { isOpen: false, item: null },
+    });
+  };
 
   // Initialize default selections
-  React.useEffect(() => {
-    const defaults: Record<string, string> = {};
-    customizationOptions.forEach((category) => {
-      const defaultOption = category.options.find((opt) => opt.isDefault);
-      if (defaultOption) {
-        defaults[category.name] = defaultOption.name;
-      }
-    });
-    setSelectedOptions(defaults);
-  }, []);
+  useEffect(() => {
+    if (item?.customisation) {
+      const defaults: Record<string, SelectedOption[]> = {};
+      item.customisation.categories.forEach((category) => {
+        if (category.minQuantity > 0 && category.items.length > 0) {
+          // For required categories, select the minimum number of default options
+          defaults[category.categoryName] = [
+            {
+              name: category.items[0].name,
+              price: category.items[0].price,
+              categoryName: category.categoryName,
+            },
+          ];
+        }
+      });
+      setSelectedOptions(defaults);
+    }
+  }, [item]);
 
-  const handleOptionSelect = (category: string, optionName: string) => {
-    setSelectedOptions((prev) => ({
-      ...prev,
-      [category]: optionName,
-    }));
+  const handleOptionSelect = (
+    category: NonNullable<typeof item>["customisation"]["categories"][0],
+    option: { name: string; price: number; _id: string }
+  ) => {
+    if (!category) return;
+
+    const isRadio = category.maxQuantity === 1;
+    const currentSelections = selectedOptions[category.categoryName] || [];
+
+    if (isRadio) {
+      // Radio button behavior - single selection
+      setSelectedOptions((prev) => ({
+        ...prev,
+        [category.categoryName]: [
+          {
+            name: option.name,
+            price: option.price,
+            categoryName: category.categoryName,
+          },
+        ],
+      }));
+    } else {
+      // Checkbox behavior - multiple selections
+      const isSelected = currentSelections.some(
+        (sel) => sel.name === option.name
+      );
+      let newSelections: SelectedOption[];
+
+      if (isSelected) {
+        // Remove if already selected
+        newSelections = currentSelections.filter(
+          (sel) => sel.name !== option.name
+        );
+      } else {
+        // Add if within maxQuantity limit
+        if (currentSelections.length < category.maxQuantity) {
+          newSelections = [
+            ...currentSelections,
+            {
+              name: option.name,
+              price: option.price,
+              categoryName: category.categoryName,
+            },
+          ];
+        } else {
+          alert(
+            `You can only select up to ${category.maxQuantity} options for ${category.categoryName}`
+          );
+          return;
+        }
+      }
+
+      setSelectedOptions((prev) => ({
+        ...prev,
+        [category.categoryName]: newSelections,
+      }));
+    }
   };
 
   const calculateTotal = () => {
+    if (!item) return "0.00";
     let total = parseFloat(item.price);
 
-    // Add prices from selected add-ons
-    Object.entries(selectedOptions).forEach(([category, selection]) => {
-      const categoryOptions = customizationOptions.find(
-        (opt) => opt.name === category
-      );
-      const selectedOption = categoryOptions?.options.find(
-        (opt) => opt.name === selection
-      );
-      if (selectedOption?.price) {
-        total += parseFloat(selectedOption.price);
-      }
+    // Add prices from selected options
+    Object.values(selectedOptions).forEach((selections) => {
+      selections.forEach((selection) => {
+        total += selection.price;
+      });
     });
 
     return (total * quantity).toFixed(2);
   };
 
   const handleAddToCart = () => {
+    if (!item?.customisation) return;
+
     // Validate required selections
-    const missingRequired = customizationOptions
-      .filter((opt) => opt.isRequired)
-      .some((opt) => !selectedOptions[opt.name]);
+    const missingRequired = item.customisation.categories
+      .filter((cat) => cat.minQuantity > 0)
+      .some((cat) => {
+        const selections = selectedOptions[cat.categoryName] || [];
+        return selections.length < cat.minQuantity;
+      });
 
     if (missingRequired) {
       alert("Please make all required selections");
       return;
     }
 
+    // Validate selection counts
+    const invalidSelections = item.customisation.categories.some((category) => {
+      const selections = selectedOptions[category.categoryName] || [];
+      return (
+        selections.length < category.minQuantity ||
+        selections.length > category.maxQuantity
+      );
+    });
+
+    if (invalidSelections) {
+      alert("Please check the number of selections for each category");
+      return;
+    }
+
     // Format customizations for cart
-    const customizations = Object.entries(selectedOptions)
-      .map(([category, selection]) => `${category}: ${selection}`)
-      .join(", ");
+    const customizations = Object.entries(selectedOptions).flatMap(
+      ([categoryName, selections]) =>
+        selections.map((selection) => ({
+          categoryName,
+          selection: {
+            name: selection.name,
+            price: selection.price,
+          },
+        }))
+    );
 
     dispatch({
       type: "ADD_TO_CART",
       payload: {
         id: item.id,
-        name: `${item.name} (${customizations})`,
+        name: item.name,
         price: calculateTotal(),
-        quantity: quantity,
+        quantity,
+        restaurant: item.restaurant,
+        customizations,
       },
     });
 
-    onClose();
+    handleClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !item) return null;
 
   return (
-    <div
-      className={`fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-in-out transform ${
-        isOpen ? "translate-y-0" : "translate-y-full"
-      } bg-white shadow-xl w-full h-3/4 overflow-y-auto`}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div
-        className={`fixed bottom-0 left-0 right-0 bg-white overflow-hidden shadow-xl transition-all duration-300 ease-out ${
-          isOpen ? "translate-y-0" : "translate-y-full"
-        }`}
-        style={{ height: "92vh" }}
-      >
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center">
+      <div className="bg-white w-full max-w-lg rounded-t-xl sm:rounded-xl max-h-[80vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-white">
-          {/* Drag indicator */}
-          <div className="w-full flex justify-center py-3">
-            <div className="w-12 h-1 bg-gray-200 rounded-full"></div>
-          </div>
-
-          {/* Header content */}
-          <div className="px-4 pb-3 flex items-center gap-3">
-            {item.image && (
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-16 h-16 object-cover rounded-lg"
-              />
-            )}
-            <div className="flex-1">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="font-semibold text-gray-900 text-xl mb-1">
-                    {item.name}
-                  </h2>
-                  <p className="text-sm font-medium text-primary">
-                    {item.price} AED
-                  </p>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <X className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
+        <div className="sticky top-0 z-10 bg-white border-b p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">{item.name}</h2>
+              <p className="text-sm text-gray-500">{item.price} AED</p>
             </div>
+            <button
+              onClick={handleClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
-        {/* Main content */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-          {customizationOptions.map((category, idx) => (
-            <div key={idx} className="space-y-2">
+        {/* Customization Options */}
+        <div className="p-4 space-y-6">
+          {item.customisation?.categories.map((category) => (
+            <div key={category._id} className="space-y-3">
               <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-gray-900">
-                  {category.name}
-                  {category.isRequired && (
-                    <span className="text-xs text-red-500 ml-2 font-normal">
-                      Required
-                    </span>
+                <h3 className="font-medium">
+                  {category.categoryName}
+                  {category.minQuantity > 0 && (
+                    <span className="text-xs text-red-500 ml-1">*Required</span>
                   )}
                 </h3>
                 <span className="text-xs text-gray-500">
                   Select{" "}
-                  {category.maxSelections === 1
-                    ? "1"
-                    : `up to ${category.maxSelections}`}{" "}
-                  option
+                  {category.minQuantity === category.maxQuantity
+                    ? category.minQuantity
+                    : `${category.minQuantity}-${category.maxQuantity}`}
                 </span>
               </div>
 
               <div className="space-y-2">
-                {category.options.map((option, optIdx) => (
+                {category.items.map((option) => (
                   <label
-                    key={optIdx}
-                    className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                      selectedOptions[category.name] === option.name
+                    key={option._id}
+                    className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      (selectedOptions[category.categoryName] || []).some(
+                        (sel) => sel.name === option.name
+                      )
                         ? "border-primary bg-primary/5"
                         : "border-gray-100 hover:border-gray-200"
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <input
-                        type="radio"
-                        name={category.name}
-                        checked={selectedOptions[category.name] === option.name}
-                        onChange={() =>
-                          handleOptionSelect(category.name, option.name)
-                        }
-                        className="text-primary focus:ring-primary w-4 h-4"
+                        type={category.maxQuantity === 1 ? "radio" : "checkbox"}
+                        name={category.categoryName}
+                        checked={(
+                          selectedOptions[category.categoryName] || []
+                        ).some((sel) => sel.name === option.name)}
+                        onChange={() => handleOptionSelect(category, option)}
+                        className="text-primary focus:ring-primary"
                       />
-                      <span className="text-sm font-medium text-gray-800">
-                        {option.name}
-                      </span>
+                      <span className="font-medium">{option.name}</span>
                     </div>
-                    {option.price && (
-                      <span className="text-sm font-medium text-gray-600">
-                        +{option.price} AED
+                    {option.price > 0 && (
+                      <span className="text-sm text-gray-600">
+                        +{option.price.toFixed(2)} AED
                       </span>
                     )}
                   </label>
                 ))}
+                <p className="text-xs text-gray-500 mt-1">
+                  {(selectedOptions[category.categoryName] || []).length} of{" "}
+                  {category.maxQuantity} selected
+                </p>
               </div>
             </div>
           ))}
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 px-4 py-4 bg-white border-t">
-          <div className="flex items-center justify-between mb-3">
+        <div className="sticky bottom-0 bg-white border-t p-4">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100"
               >
                 <Minus className="w-4 h-4" />
               </button>
-              <span className="text-2xl font-semibold w-8 text-center">
-                {quantity}
-              </span>
+              <span className="text-xl font-semibold">{quantity}</span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100"
               >
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">Total Amount</p>
+            <div>
+              <p className="text-sm text-gray-500">Total</p>
               <p className="text-xl font-bold text-primary">
                 {calculateTotal()} AED
               </p>
             </div>
           </div>
-
           <button
             onClick={handleAddToCart}
-            className="w-full h-14 bg-primary text-white rounded-2xl hover:bg-primary-600 transition-all shadow-lg flex items-center justify-center text-base font-medium"
+            className="w-full py-3 bg-primary text-white rounded-xl hover:bg-primary-600 transition-colors"
           >
             Add to Cart
           </button>

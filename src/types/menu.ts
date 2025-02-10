@@ -35,4 +35,19 @@ export interface MenuItemFront {
   popularity: number;
   caffeineLevel: string;
   sufficientFor: number;
+  isCustomisable?: boolean;
+  customisation?: {
+    categories: {
+      categoryName: string;
+      minQuantity: number;
+      maxQuantity: number;
+      items: {
+        name: string;
+        price: number;
+        _id: string;
+      }[];
+      _id: string;
+    }[];
+    _id: string;
+  };
 }

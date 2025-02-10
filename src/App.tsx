@@ -4,6 +4,7 @@ import { WalletProvider } from "./context/WalletContext";
 import { RestaurantProvider } from "./context/RestaurantContext";
 import { AuthProvider } from "./context/AuthContext";
 import { DunkinOrderApp } from "./components/DunkinOrderApp";
+import { CustomizationModal } from "./components/CustumizationModal";
 import { AddressModal } from "./components/AddressModal";
 import { FiltersProvider } from "./context/FiltersContext";
 
@@ -25,6 +26,7 @@ export default function App() {
               <ChatProvider>
                 <>
                   <DunkinOrderApp />
+                  <CustomizationModal />
                   <AddressModal />
                 </>
               </ChatProvider>

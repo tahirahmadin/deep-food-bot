@@ -1,6 +1,8 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
+import { CustomizationModal } from "./CustomizationModal";
+import { MenuItemFront } from "../types/menu";
 
 interface MenuItemProps {
   name: string;
@@ -10,6 +12,21 @@ interface MenuItemProps {
   quantity: number;
   restaurant?: string;
   compact?: boolean;
+  isCustomisable?: boolean;
+  customisation?: {
+    categories: {
+      categoryName: string;
+      minQuantity: number;
+      maxQuantity: number;
+      items: {
+        name: string;
+        price: number;
+        _id: string;
+      }[];
+      _id: string;
+    }[];
+    _id: string;
+  };
 }
 
 export const MenuItem: React.FC<MenuItemProps> = ({
@@ -20,8 +37,11 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   image,
   quantity,
   compact = false,
+  isCustomisable = false,
+  customisation,
 }) => {
   const { state, dispatch } = useChatContext();
+
   const [isCustomizationOpen, setIsCustomizationOpen] = React.useState(false);
 
   // Check if item is in cart
@@ -29,8 +49,27 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   const isInCart = Boolean(cartItem);
 
   const handleAddToCart = () => {
+    if (isCustomisable && customisation) {
+      dispatch({
+        type: "SET_CUSTOMIZATION_MODAL",
+        payload: {
+          isOpen: true,
+          item: {
+            id,
+            name,
+            price,
+            image,
+            customisation,
+            restaurant,
+          },
+        },
+      });
+      return;
+    }
+
     // Check if cart has items from a different restaurant
     const cartRestaurant = state.cart[0]?.restaurant;
+
     if (cartRestaurant && cartRestaurant !== restaurant) {
       if (
         window.confirm(

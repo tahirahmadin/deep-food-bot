@@ -78,7 +78,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                   <span>
                     {menuUtils.getRestaurantNameById(
                       restaurantState.restaurants,
-                      message.restroIds[0]
+                      restaurantState.selectedRestroIds[0]
                     )}
                   </span>
                 </div>
@@ -100,11 +100,12 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                 <MenuList
                   messageId={message.id}
                   items={message.structuredText.items1}
-                  restroId={message.restroIds[0]}
+                  restroId={restaurantState.selectedRestroIds[0]}
                 />
                 <label
                   className={`inline-flex items-center gap-2 cursor-pointer ${
-                    restaurantState.activeRestroId === message.restroIds[0]
+                    restaurantState.activeRestroId ===
+                    restaurantState.selectedRestroIds[0]
                       ? "text-primary"
                       : "text-gray-700"
                   }`}
@@ -113,11 +114,12 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                     type="radio"
                     name="restaurantSelection" // Ensure consistent name for radio group
                     checked={
-                      restaurantState.activeRestroId === message.restroIds[0]
+                      restaurantState.activeRestroId ===
+                      restaurantState.selectedRestroIds[0]
                     }
                     onChange={() =>
-                      message.restroIds[0] &&
-                      handleSelectRestro(message.restroIds[0])
+                      restaurantState.selectedRestroIds[0] &&
+                      handleSelectRestro(restaurantState.selectedRestroIds[0])
                     }
                     className="form-radio h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                   />
@@ -130,7 +132,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                   <span>
                     {menuUtils.getRestaurantNameById(
                       restaurantState.restaurants,
-                      message.restroIds[1]
+                      restaurantState.selectedRestroIds[1]
                     )}
                   </span>
                 </div>
@@ -152,11 +154,12 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                 <MenuList
                   messageId={message.id}
                   items={message.structuredText.items2}
-                  restroId={message.restroIds[1]}
+                  restroId={restaurantState.selectedRestroIds[1]}
                 />
                 <label
                   className={`inline-flex items-center gap-2 cursor-pointer ${
-                    restaurantState.activeRestroId === message.restroIds[1]
+                    restaurantState.activeRestroId ===
+                    restaurantState.selectedRestroIds[1]
                       ? "text-primary"
                       : "text-gray-700"
                   }`}
@@ -165,11 +168,12 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                     type="radio"
                     name="restaurantSelection" // Ensure consistent name for radio group
                     checked={
-                      restaurantState.activeRestroId === message.restroIds[1]
+                      restaurantState.activeRestroId ===
+                      restaurantState.selectedRestroIds[1]
                     }
                     onChange={() =>
-                      message.restroIds[1] &&
-                      handleSelectRestro(message.restroIds[1])
+                      restaurantState.selectedRestroIds[1] &&
+                      handleSelectRestro(restaurantState.selectedRestroIds[1])
                     }
                     className="form-radio h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                   />
