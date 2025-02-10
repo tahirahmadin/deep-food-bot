@@ -28,16 +28,31 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   const cartItem = state.cart.find((item) => item.id === id);
   const isInCart = Boolean(cartItem);
 
-  const handleChooseRestaurant = () => {
-    if (restaurant) {
-      console.log("Setting restaurant:", restaurant);
-      dispatch({ type: "SET_SELECTED_RESTAURANT", payload: restaurant });
+  const handleAddToCart = () => {
+    // Check if cart has items from a different restaurant
+    const cartRestaurant = state.cart[0]?.restaurant;
+    if (cartRestaurant && cartRestaurant !== restaurant) {
+      if (
+        window.confirm(
+          `Your cart contains items from ${cartRestaurant}. Would you like to clear your cart and add items from ${restaurant} instead?`
+        )
+      ) {
+        dispatch({ type: "CLEAR_CART" });
+        dispatch({
+          type: "ADD_TO_CART",
+          payload: { id, name, price, quantity: 1, restaurant },
+        });
+      }
+      return;
     }
+
+    // Add item to cart
+    dispatch({
+      type: "ADD_TO_CART",
+      payload: { id, name, price, quantity: 1, restaurant },
+    });
   };
 
-  const handleAddToCart = () => {
-    setIsCustomizationOpen(true);
-  };
   return (
     <>
       <div
@@ -83,15 +98,6 @@ export const MenuItem: React.FC<MenuItemProps> = ({
               {price} AED
             </p>
             <div className="flex items-center gap-2">
-              {!state.selectedRestaurant && (
-                <button
-                  onClick={handleChooseRestaurant}
-                  className="px-2 py-1 text-[10px] font-medium text-primary hover:bg-primary-50 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
-                  disabled={!restaurant}
-                >
-                  Choose
-                </button>
-              )}
               <button
                 onClick={handleAddToCart}
                 className={`${
