@@ -17,7 +17,7 @@ interface DeliveryFormProps {
 
 export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
   const { state, dispatch } = useChatContext();
-  const { user, addresses, setAddresses } = useAuth();
+  const { user, addresses, setAddresses, isLoadingAddresses } = useAuth();
   const [isAddressModalOpen, setIsAddressModalOpen] = React.useState(false);
   const { orderDetails } = state.checkout;
   const [selectedAddressIndex, setSelectedAddressIndex] = React.useState<
@@ -26,7 +26,7 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
 
   React.useEffect(() => {
     // Auto-fill form with first address if available
-    if (addresses.length > 0) {
+    if (!isLoadingAddresses && addresses.length > 0) {
       setSelectedAddressIndex(0);
       const firstAddress = addresses[0];
       dispatch({
@@ -40,12 +40,6 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
     }
   }, [addresses]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    dispatch({ type: "SET_CHECKOUT_STEP", payload: "payment" });
-    onSubmit(e);
-  };
-
   const handleSaveAddress = async (newAddress: {
     name: string;
     address: string;
@@ -58,7 +52,7 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
   }) => {
     if (user?.userId) {
       const updatedAddresses = [...addresses, newAddress];
-      await setAddresses(updatedAddresses);
+      setAddresses(updatedAddresses);
       setSelectedAddressIndex(updatedAddresses.length - 1);
       dispatch({
         type: "UPDATE_ORDER_DETAILS",
@@ -69,6 +63,12 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
         },
       });
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    dispatch({ type: "SET_CHECKOUT_STEP", payload: "payment" });
+    onSubmit(e);
   };
 
   const total = state.cart

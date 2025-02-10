@@ -11,13 +11,16 @@ import {
   MapPin,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { getUserOrders, updateUserAddresses } from "../actions/serverActions";
+import { getUserOrders } from "../actions/serverActions";
 
 interface Order {
   _id: string;
   orderId: string;
-  estimatedDeliveryTime: number;
-  restaurantName: string;
+  customerDetails: {
+    name: string;
+    address: string;
+    phone: string;
+  };
   items: Array<{
     id: number;
     name: string;
@@ -29,11 +32,8 @@ interface Order {
   status: string;
   createdAt: string;
   paymentStatus: string;
-  customerDetails: {
-    name: string;
-    address: string;
-    phone: string;
-  };
+  restaurantName: string;
+  estimatedDeliveryTime: number;
 }
 
 interface Address {
@@ -54,7 +54,8 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
     isAuthenticated,
     handleLogout: authLogout,
     addresses,
-    setAddresses,
+    removeAddress,
+    isLoadingAddresses,
   } = useAuth();
   const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
   const [isAddressesExpanded, setIsAddressesExpanded] = useState(false);
@@ -73,6 +74,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
           console.log("Fetching orders for user:", user.userId);
           const response = await getUserOrders(user.userId);
           if (!response.error && response.result) {
+            // console.log("Orders fetched successfully:", response.result);
             setOrders(response.result);
           } else {
             console.error("Failed to fetch orders:", response);
@@ -114,8 +116,6 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
         return "bg-green-100 text-green-700";
       case "cancelled":
         return "bg-red-100 text-red-700";
-      case "out_for_delivery":
-        return "bg-blue-100 text-blue-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -221,38 +221,50 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                       <div className="p-2">
                         <div className="flex justify-between items-center">
                           <div>
-                            <h4 className="text-xs font-medium text-gray-900">
-                              {order.restaurantName}
-                            </h4>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-xs font-medium text-gray-900">
+                                {order.restaurantName || "Restaurant"}
+                              </h4>
+                            </div>
                             <p className="text-[10px] text-gray-500">
                               {formatDate(order.createdAt)}
                             </p>
                           </div>
                           <div className="flex flex-col items-end">
                             <p className="text-xs font-medium text-primary">
-                              {formatAmount(order.totalAmount)} AED
+                              {(order.totalAmount / 100).toFixed(2)} AED
                             </p>
                             <div className="flex items-center gap-1">
-                              {order.status === "PROCESSING" && (
-                                <span className="text-[9px] text-green-600">
-                                  Order placed
-                                </span>
-                              )}
-                              {order.status === "COOKING" && (
-                                <span className="text-[9px] text-green-600">
-                                  Preparing
-                                </span>
-                              )}
-                              {order.status === "OUT_FOR_DELIVERY" && (
-                                <span className="text-[9px] text-green-600">
-                                  ETD: {order.estimatedDeliveryTime} mins
-                                </span>
-                              )}
-                              {order.status === "COMPLETED" && (
-                                <span className="text-[9px] text-green-600">
-                                  Delivered
-                                </span>
-                              )}
+                              <span
+                                className={`text-[9px] px-1.5 py-0.5 rounded-full ${
+                                  order.status === "OUT_FOR_DELIVERY"
+                                    ? "bg-green-100 text-green-700"
+                                    : order.status === "PREPARING"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : "bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                {order.status === "PROCESSING" && (
+                                  <span className="text-[9px] text-green-600">
+                                    Order placed
+                                  </span>
+                                )}
+                                {order.status === "COOKING" && (
+                                  <span className="text-[9px] text-green-600">
+                                    Preparing
+                                  </span>
+                                )}
+                                {order.status === "OUT_FOR_DELIVERY" && (
+                                  <span className="text-[9px] text-green-600">
+                                    ETD: {order.estimatedDeliveryTime} mins
+                                  </span>
+                                )}
+                                {order.status === "COMPLETED" && (
+                                  <span className="text-[9px] text-green-600">
+                                    Delivered
+                                  </span>
+                                )}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -266,10 +278,22 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                                 {item.quantity}x {item.name}
                               </span>
                               <span className="text-[11px] text-gray-500">
-                                {item.price} AED
+                                {item.price.toFixed(2)} AED
                               </span>
                             </div>
                           ))}
+                          <div className="mt-2 pt-2 border-t border-gray-100">
+                            <div className="text-[10px] text-gray-500">
+                              <span>Delivery to:</span>
+                              <p className="text-gray-600">
+                                {order.customerDetails.name} -{" "}
+                                {order.customerDetails.phone}
+                              </p>
+                              <p className="text-gray-600">
+                                {order.customerDetails.address}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -316,18 +340,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                     </div>
                     <button
                       onClick={() => {
-                        const newAddresses = addresses.filter(
-                          (_, i) => i !== index
-                        );
-                        if (user?.userId) {
-                          updateUserAddresses(user.userId, newAddresses).then(
-                            (response) => {
-                              if (!response.error) {
-                                setAddresses(newAddresses);
-                              }
-                            }
-                          );
-                        }
+                        removeAddress(index);
                       }}
                       className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                     >
@@ -336,11 +349,15 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
               ))}
-              {addresses.length === 0 && (
+              {isLoadingAddresses ? (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                </div>
+              ) : addresses.length === 0 ? (
                 <p className="text-center text-gray-500 text-sm pl-7">
                   No saved addresses
                 </p>
-              )}
+              ) : null}
             </div>
           )}
 

@@ -27,6 +27,9 @@ interface AuthContextType {
   handleLogout: () => void;
   addresses: Address[];
   setAddresses: (addresses: Address[]) => void;
+  addNewAddress: (newAddress: Address) => Promise<void>;
+  removeAddress: (index: number) => Promise<void>;
+  isLoadingAddresses: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -39,12 +42,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return savedUser ? JSON.parse(savedUser) : null;
   });
   const [addresses, setInternalAddresses] = useState<Address[]>([]);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
 
-  const setAddresses = async (newAddresses: Address[]) => {
+  const setAddresses = (newAddresses: Address[]) => {
+    setInternalAddresses(newAddresses);
+  };
+
+  const addNewAddress = async (newAddress: Address) => {
     if (user?.userId) {
-      const response = await updateUserAddresses(user.userId, newAddresses);
+      const updatedAddresses = [...addresses, newAddress];
+      const response = await updateUserAddresses(user.userId, updatedAddresses);
       if (!response.error) {
-        setInternalAddresses(newAddresses);
+        setInternalAddresses(updatedAddresses);
+      }
+    }
+  };
+
+  const removeAddress = async (index: number) => {
+    if (user?.userId) {
+      const updatedAddresses = addresses.filter((_, i) => i !== index);
+      const response = await updateUserAddresses(user.userId, updatedAddresses);
+      if (!response.error) {
+        setInternalAddresses(updatedAddresses);
       }
     }
   };
@@ -55,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const savedUser = localStorage.getItem("user");
       if (savedUser) {
         try {
+          setIsLoadingAddresses(true);
           const userData = JSON.parse(savedUser);
           // Call backend login to get latest _id
           const loginResponse = await loginUserFromBackendServer(
@@ -73,7 +93,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             console.log("Fetching user details for:", loginResponse.result._id);
             // Fetch user details including addresses
             const userDetails = await getUserDetails(loginResponse.result._id);
-            if (!userDetails.error && userDetails.result?.addresses) {
+            if (
+              !userDetails.error &&
+              userDetails.result?.addresses?.length > 0
+            ) {
               setAddresses(userDetails.result.addresses);
             }
           } else {
@@ -83,6 +106,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           }
         } catch (error) {
           console.error("Error refreshing user data:", error);
+        } finally {
+          setIsLoadingAddresses(false);
         }
       }
     };
@@ -90,20 +115,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     checkAndRefreshUser();
   }, []); // Run once on mount
 
-  // Effect to fetch addresses when user changes
-  useEffect(() => {
-    const fetchAddresses = async () => {
-      if (user?.userId) {
-        console.log("Fetching addresses for user:", user.userId);
-        const userDetails = await getUserDetails(user.userId);
-        if (!userDetails.error && userDetails.result?.addresses) {
-          setAddresses(userDetails.result.addresses);
-        }
-      }
-    };
-
-    fetchAddresses();
-  }, [user?.userId]);
   const setUser = (newUser: User | null) => {
     setInternalUser(newUser);
     if (newUser) {
@@ -126,6 +137,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     handleLogout,
     addresses,
     setAddresses,
+    addNewAddress,
+    removeAddress,
+    isLoadingAddresses,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

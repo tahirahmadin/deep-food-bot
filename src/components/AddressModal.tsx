@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { X, MapPin, Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-type AddressType = "home" | "office" | "hotel";
-
 interface Address {
   name: string;
   address: string;
@@ -18,17 +16,15 @@ interface Address {
 interface AddressDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (address: Address) => void;
   editAddress?: Address | null;
 }
 
 export const AddressModal: React.FC<AddressDrawerProps> = ({
   isOpen,
   onClose,
-  onSave,
   editAddress,
 }) => {
-  const { addresses } = useAuth();
+  const { addNewAddress } = useAuth();
   const [name, setName] = useState(editAddress?.name || "");
   const [addressName, setAddressName] = useState(editAddress?.type || "");
   const [address, setAddress] = useState(editAddress?.address || "");
@@ -38,8 +34,57 @@ export const AddressModal: React.FC<AddressDrawerProps> = ({
     lng: number;
   } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState("");
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  const getCurrentLocation = () => {
+    setIsLoadingLocation(true);
+    setLocationError(null);
+
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser");
+      setIsLoadingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          setCoordinates({ lat: latitude, lng: longitude });
+
+          // Get address from coordinates using Geocoding API
+          const response = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${
+              import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+            }`
+          );
+          const data = await response.json();
+
+          if (data.results && data.results[0]) {
+            setAddress(data.results[0].formatted_address);
+          }
+        } catch (error) {
+          setLocationError("Failed to get address from coordinates");
+          console.error("Geocoding error:", error);
+        } finally {
+          setIsLoadingLocation(false);
+        }
+      },
+      (error) => {
+        setLocationError(
+          error.code === 1
+            ? "Location permission denied"
+            : "Failed to get your location"
+        );
+        setIsLoadingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
+  };
 
   useEffect(() => {
     if (editAddress) {
@@ -51,7 +96,7 @@ export const AddressModal: React.FC<AddressDrawerProps> = ({
     }
   }, [editAddress]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newAddress = {
       name,
@@ -60,7 +105,7 @@ export const AddressModal: React.FC<AddressDrawerProps> = ({
       mobile,
       coordinates: coordinates || undefined,
     };
-    onSave(newAddress);
+    await addNewAddress(newAddress);
     setName("");
     setAddressName("");
     setAddress("");
@@ -73,7 +118,7 @@ export const AddressModal: React.FC<AddressDrawerProps> = ({
     <div
       className={`fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-in-out transform ${
         isOpen ? "translate-y-0" : "translate-y-full"
-      } bg-[#f9f9f9] shadow-xl w-full h-3/4 overflow-y-auto border-t`}
+      } bg-white shadow-xl w-full h-3/4 overflow-y-auto`}
     >
       <div className="px-4 py-2 flex justify-between items-center border-b">
         <h2 className="text-lg font-semibold">
@@ -87,16 +132,28 @@ export const AddressModal: React.FC<AddressDrawerProps> = ({
         </button>
       </div>
       <form onSubmit={handleSubmit} className="px-4 py-2 space-y-4 flex-1">
-        <button
+        {/* <button
           type="button"
-          onClick={() => {}}
-          className="w-full flex items-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-left"
+          onClick={getCurrentLocation}
+          disabled={isLoadingLocation}
+          className="w-full flex items-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-left relative"
         >
-          <MapPin className="w-5 h-5 text-primary" />
+          {isLoadingLocation ? (
+            <Loader2 className="w-5 h-5 text-primary animate-spin" />
+          ) : (
+            <MapPin className="w-5 h-5 text-primary" />
+          )}
           <span className="text-sm font-medium text-gray-900">
-            Use current location
+            {isLoadingLocation
+              ? "Getting your location..."
+              : "Use current location"}
           </span>
-        </button>
+        </button> */}
+        {locationError && (
+          <div className="text-sm text-red-500 bg-red-50 p-2 rounded-lg">
+            {locationError}
+          </div>
+        )}
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
             Full Name
