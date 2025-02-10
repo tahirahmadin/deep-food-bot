@@ -132,7 +132,7 @@ export const AddressModal: React.FC<AddressDrawerProps> = ({
         </button>
       </div>
       <form onSubmit={handleSubmit} className="px-4 py-2 space-y-4 flex-1">
-        {/* <button
+        <button
           type="button"
           onClick={getCurrentLocation}
           disabled={isLoadingLocation}
@@ -148,7 +148,7 @@ export const AddressModal: React.FC<AddressDrawerProps> = ({
               ? "Getting your location..."
               : "Use current location"}
           </span>
-        </button> */}
+        </button>
         {locationError && (
           <div className="text-sm text-red-500 bg-red-50 p-2 rounded-lg">
             {locationError}
