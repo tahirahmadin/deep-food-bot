@@ -94,11 +94,11 @@ interface ApiResponse<T> {
 export const getAllRestaurants = async (): Promise<Restaurant[]> => {
   try {
     const response = await axios.get(
-      `${restaurantApiUrl}/restaurant/getAllRestaurants?online=true`
+      `${apiUrl}/restaurant/getAllRestaurants?online=true`
     );
 
     if (response.data && !response.data.error) {
-      return response.data.data;
+      return response.data.result;
     }
     return [];
   } catch (error) {

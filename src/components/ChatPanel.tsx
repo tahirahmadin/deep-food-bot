@@ -220,7 +220,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                     key={restaurant.id}
                     id={restaurant.id}
                     name={restaurant.name}
-                    description={restaurant.items}
+                    description={restaurant.description}
                     image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurant.id}-0.jpg`}
                   />
                 ))}

@@ -56,7 +56,7 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
             </div>
           </div>
         </div>
-        <p className="text-sm text-gray-500 line-clamp-2">{description}</p>
+        <p className="text-xs text-gray-500 line-clamp-2">{description}</p>
         <button className="mt-3 w-full py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-sm font-medium transition-colors">
           View Menu
         </button>
