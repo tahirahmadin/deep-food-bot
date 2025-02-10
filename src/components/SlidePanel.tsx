@@ -56,6 +56,8 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
     addresses,
     removeAddress,
     isLoadingAddresses,
+    setIsAddressModalOpen,
+    setEditingAddress,
   } = useAuth();
   const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
   const [isAddressesExpanded, setIsAddressesExpanded] = useState(false);
@@ -328,15 +330,25 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-medium text-gray-800">
-                        {addr.type}
-                      </p>
-                      <p className="text-xs  text-gray-500">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-gray-800">
+                          {addr.type}
+                        </p>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingAddress({ ...addr, index });
+                            setIsAddressModalOpen(true);
+                          }}
+                          className="text-[10px] text-primary hover:text-primary-600"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500">
                         {addr.name} - {addr.address}
                       </p>
-                      <p className="text-[11px]  text-gray-400">
-                        {addr.mobile}
-                      </p>
+                      <p className="text-[11px] text-gray-400">{addr.mobile}</p>
                     </div>
                     <button
                       onClick={() => {

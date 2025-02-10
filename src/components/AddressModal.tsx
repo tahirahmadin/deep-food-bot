@@ -2,9 +2,27 @@ import React, { useState, useEffect } from "react";
 import { X, MapPin, Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
+interface Address {
+  name: string;
+  address: string;
+  mobile: string;
+  type: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+}
+
 export const AddressModal: React.FC = () => {
-  const { addNewAddress, isAddressModalOpen, setIsAddressModalOpen } =
-    useAuth();
+  const {
+    addNewAddress,
+    isAddressModalOpen,
+    setIsAddressModalOpen,
+    editingAddress,
+    setEditingAddress,
+    addresses,
+    setAddresses,
+  } = useAuth();
   const [name, setName] = useState("");
   const [addressName, setAddressName] = useState("");
   const [address, setAddress] = useState("");
@@ -15,6 +33,23 @@ export const AddressModal: React.FC = () => {
   } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (editingAddress) {
+      setName(editingAddress.name);
+      setAddressName(editingAddress.type);
+      setAddress(editingAddress.address);
+      setMobile(editingAddress.mobile);
+      setCoordinates(editingAddress.coordinates || null);
+    } else {
+      // Reset form when not editing
+      setName("");
+      setAddressName("");
+      setAddress("");
+      setMobile("");
+      setCoordinates(null);
+    }
+  }, [editingAddress]);
 
   const getCurrentLocation = () => {
     setIsLoadingLocation(true);
@@ -75,7 +110,19 @@ export const AddressModal: React.FC = () => {
       mobile,
       coordinates: coordinates || undefined,
     };
-    await addNewAddress(newAddress);
+
+    if (editingAddress) {
+      // Update existing address
+      const updatedAddresses = addresses.map((addr, index) =>
+        index === editingAddress.index ? newAddress : addr
+      );
+      await setAddresses(updatedAddresses);
+      setEditingAddress(null);
+    } else {
+      // Add new address
+      await addNewAddress(newAddress);
+    }
+
     setName("");
     setAddressName("");
     setAddress("");
@@ -91,9 +138,14 @@ export const AddressModal: React.FC = () => {
       } bg-white shadow-xl w-full h-3/4 overflow-y-auto`}
     >
       <div className="px-4 py-2 flex justify-between items-center border-b">
-        <h2 className="text-lg font-semibold">Add New Address</h2>
+        <h2 className="text-lg font-semibold">
+          {editingAddress ? "Edit Address" : "Add New Address"}
+        </h2>
         <button
-          onClick={() => setIsAddressModalOpen(false)}
+          onClick={() => {
+            setIsAddressModalOpen(false);
+            setEditingAddress(null);
+          }}
           className="p-2 hover:bg-gray-200 rounded-full"
         >
           <X className="w-5 h-5 text-gray-500" />
@@ -176,7 +228,10 @@ export const AddressModal: React.FC = () => {
         </div>
         <div className="p-4 border-t flex gap-2">
           <button
-            onClick={() => setIsAddressModalOpen(false)}
+            onClick={() => {
+              setIsAddressModalOpen(false);
+              setEditingAddress(null);
+            }}
             className="flex-1 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
           >
             Cancel

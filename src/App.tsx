@@ -4,6 +4,7 @@ import { WalletProvider } from "./context/WalletContext";
 import { RestaurantProvider } from "./context/RestaurantContext";
 import { AuthProvider } from "./context/AuthContext";
 import { DunkinOrderApp } from "./components/DunkinOrderApp";
+import { AddressModal } from "./components/AddressModal";
 import { FiltersProvider } from "./context/FiltersContext";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
@@ -22,7 +23,10 @@ export default function App() {
           <RestaurantProvider>
             <FiltersProvider>
               <ChatProvider>
-                <DunkinOrderApp />
+                <>
+                  <DunkinOrderApp />
+                  <AddressModal />
+                </>
               </ChatProvider>
             </FiltersProvider>
           </RestaurantProvider>

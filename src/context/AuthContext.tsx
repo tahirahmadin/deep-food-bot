@@ -41,6 +41,8 @@ interface AuthContextType {
   isLoadingAddresses: boolean;
   isAddressModalOpen: boolean;
   setIsAddressModalOpen: (isOpen: boolean) => void;
+  editingAddress: ({ index: number } & Address) | null;
+  setEditingAddress: (address: ({ index: number } & Address) | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -55,6 +57,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [addresses, setInternalAddresses] = useState<Address[]>([]);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<
+    ({ index: number } & Address) | null
+  >(null);
 
   const setAddresses = async (newAddresses: Address[]) => {
     if (user?.userId) {
@@ -159,6 +164,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     isLoadingAddresses,
     isAddressModalOpen,
     setIsAddressModalOpen,
+    editingAddress,
+    setEditingAddress,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
