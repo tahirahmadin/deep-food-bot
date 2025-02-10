@@ -73,7 +73,7 @@ export const AddressModal: React.FC<AddressDrawerProps> = ({
     <div
       className={`fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-in-out transform ${
         isOpen ? "translate-y-0" : "translate-y-full"
-      } bg-white shadow-xl w-full h-3/4 overflow-y-auto`}
+      } bg-[#f9f9f9] shadow-xl w-full h-3/4 overflow-y-auto border-t`}
     >
       <div className="px-4 py-2 flex justify-between items-center border-b">
         <h2 className="text-lg font-semibold">

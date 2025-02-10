@@ -93,7 +93,6 @@ export const DunkinOrderApp: React.FC = () => {
         },
       });
     } catch (error) {
-      console.error("Image analysis error:", error);
       dispatch({
         type: "ADD_MESSAGE",
         payload: {
@@ -292,6 +291,7 @@ export const DunkinOrderApp: React.FC = () => {
       let apiResponseText = null;
       let restaurant1Menu = [];
       let restaurant2Menu = [];
+      let activeMenu = [];
       let suggestRestroText = "";
       let suggestRestroIds = [];
 
@@ -329,8 +329,6 @@ export const DunkinOrderApp: React.FC = () => {
           setRestaurants(suggestRestroIds);
           restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
           if (suggestRestroIds.length > 1) {
-            console.log("suggestRestroIds call kyu hui");
-            console.log(suggestRestroIds);
             restaurant2Menu = await getMenuItemsByFile(suggestRestroIds[1]);
           }
         }
@@ -341,6 +339,9 @@ export const DunkinOrderApp: React.FC = () => {
         );
       }
 
+      if (restaurantState.activeRestroId != null) {
+        activeMenu = await getMenuItemsByFile(restaurantState.activeRestroId);
+      }
       let onlyVeg = isVegOnly ? " Give only VEGETARIAN options " : "";
       let sufficientFor =
         numberOfPeople > 1
@@ -351,21 +352,17 @@ export const DunkinOrderApp: React.FC = () => {
       const menuPrompt =
         restaurantState.activeRestroId != null
           ? `You are a menu recommendation system. Analyze the following menu items from restaurants: ${JSON.stringify(
-              restaurant1Menu
-            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number }],"items2": [{ "id": number }]}, where "text" is a creative information related to user query in ${
+              activeMenu
+            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number }]}, where "text" is a creative information related to user query in ${
               selectedStyle.name
-            } style and the relevant menu items - ${instructionString}, and "items1" is array of menu items ("id") that match the user's query. Include a maximum of 3 items from menu data - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. Do not add 'json tag in start'. If no matching item is available then return proper not available text with empty item arrays.`
+            } style and the relevant menu items - ${instructionString}, and "items1" is array of menu items ("id") that match the user's query. Include a maximum of 3 items from menu data - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. Do not add 'json tag in start'. If no matching item is available then return proper not available text with empty item arrays. Return in strict format always.`
           : `You are a menu recommendation system. Analyze the following menu items from 2 restaurants: ${JSON.stringify(
               restaurant1Menu
             )} and ${JSON.stringify(
               restaurant2Menu
             )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string }],"items2": [{ "id": number, "name": string }]}, where "text" is a creative information related to user query in ${
               selectedStyle.name
-            } style and the relevant menu items - ${instructionString}, and "items1" and "item2" are array of menu items ("id", "name") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context then items1, items2 both. Do not add 'json tag in start', If no matching item is available then return proper not available text with empty item arrays.`;
-
-      console.log("suggestRestroIds");
-      console.log(suggestRestroIds);
-      console.log(restaurantState.activeRestroId);
+            } style and the relevant menu items - ${instructionString}, and "items1" and "item2" are array of menu items ("id", "name") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context passed then return items in both items1, items2 array. Do not add 'json tag in start', If no matching item is available then return proper not available text with empty item arrays. Return in strict format always.`;
 
       if (suggestRestroIds?.length > 0 || restaurantState.activeRestroId) {
         const response2 = await axios.post(
@@ -392,6 +389,9 @@ export const DunkinOrderApp: React.FC = () => {
         const botMessage = {
           id: Date.now() + 1,
           text: apiResponseText2,
+          restroIds: restaurantState.activeRestroId
+            ? [restaurantState.activeRestroId]
+            : suggestRestroIds,
           isBot: true,
           time: new Date().toLocaleTimeString(),
           queryType,
@@ -411,7 +411,6 @@ export const DunkinOrderApp: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error("Error calling DeepSeek API:", error);
       dispatch({
         type: "ADD_MESSAGE",
         payload: {
@@ -444,7 +443,6 @@ export const DunkinOrderApp: React.FC = () => {
           onOpenPanel={() => setIsPanelOpen(true)}
           onCartClick={() => setIsCartOpen(!isCartOpen)}
         />
-
         <Filters />
 
         <ChatPanel

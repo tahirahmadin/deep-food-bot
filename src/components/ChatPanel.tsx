@@ -117,13 +117,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 id: message.id,
                 isBot: message.isBot,
                 time: message.time,
+                restroIds: message.restroIds,
                 text: message.text,
                 queryType: message.queryType,
                 structuredText: {
                   text: parsedText.text,
                   items1: parsedText.items1,
                   items2: parsedText.items2,
-                  restroIds: parsedText.restroIds,
                 },
               };
             }
@@ -179,6 +179,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         {cleanMessages.map((message) => (
           <Message key={message.id} message={message} onRetry={() => {}} />
         ))}
+        {console.log("cleanMessages")}
+        {console.log(cleanMessages)}
 
         {state.isLoading && (
           <div className="flex items-center space-x-2 text-gray-500">

@@ -26,6 +26,7 @@ export interface Message {
   text: string; // Made optional
   isBot: boolean;
   time: string;
+  restroIds: number[];
   image?: string;
   mealCards?: MenuCard[];
   queryType: QueryType;

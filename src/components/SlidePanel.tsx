@@ -16,21 +16,24 @@ import { getUserOrders, updateUserAddresses } from "../actions/serverActions";
 interface Order {
   _id: string;
   orderId: string;
+  estimatedDeliveryTime: number;
   restaurantName: string;
   items: Array<{
-    price_data: {
-      currency: string;
-      product_data: {
-        name: string;
-      };
-      unit_amount: number;
-    };
+    id: number;
+    name: string;
+    price: number;
     quantity: number;
+    restaurant: string;
   }>;
   totalAmount: number;
   status: string;
   createdAt: string;
   paymentStatus: string;
+  customerDetails: {
+    name: string;
+    address: string;
+    phone: string;
+  };
 }
 
 interface Address {
@@ -70,7 +73,6 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
           console.log("Fetching orders for user:", user.userId);
           const response = await getUserOrders(user.userId);
           if (!response.error && response.result) {
-            // console.log("Orders fetched successfully:", response.result);
             setOrders(response.result);
           } else {
             console.error("Failed to fetch orders:", response);
@@ -112,6 +114,8 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
         return "bg-green-100 text-green-700";
       case "cancelled":
         return "bg-red-100 text-red-700";
+      case "out_for_delivery":
+        return "bg-blue-100 text-blue-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -218,9 +222,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                         <div className="flex justify-between items-center">
                           <div>
                             <h4 className="text-xs font-medium text-gray-900">
-                              {order.restaurantName
-                                ? order.restaurantName
-                                : "Restaurant"}
+                              {order.restaurantName}
                             </h4>
                             <p className="text-[10px] text-gray-500">
                               {formatDate(order.createdAt)}
@@ -231,9 +233,24 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                               {formatAmount(order.totalAmount)} AED
                             </p>
                             <div className="flex items-center gap-1">
-                              {order.paymentStatus === "paid" && (
+                              {order.status === "PROCESSING" && (
                                 <span className="text-[9px] text-green-600">
-                                  Paid
+                                  Order placed
+                                </span>
+                              )}
+                              {order.status === "COOKING" && (
+                                <span className="text-[9px] text-green-600">
+                                  Preparing
+                                </span>
+                              )}
+                              {order.status === "OUT_FOR_DELIVERY" && (
+                                <span className="text-[9px] text-green-600">
+                                  ETD: {order.estimatedDeliveryTime} mins
+                                </span>
+                              )}
+                              {order.status === "COMPLETED" && (
+                                <span className="text-[9px] text-green-600">
+                                  Delivered
                                 </span>
                               )}
                             </div>
@@ -246,11 +263,10 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                               className="flex justify-between items-center py-0.5"
                             >
                               <span className="text-[10px] text-gray-600">
-                                {item.quantity}x{" "}
-                                {item.price_data.product_data.name}
+                                {item.quantity}x {item.name}
                               </span>
                               <span className="text-[11px] text-gray-500">
-                                {formatAmount(item.price_data.unit_amount)} AED
+                                {item.price} AED
                               </span>
                             </div>
                           ))}
