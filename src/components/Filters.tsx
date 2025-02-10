@@ -37,8 +37,16 @@ export const Filters: React.FC = () => {
 
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setActiveRestaurant } = useRestaurant();
-  const { user, addresses, isAuthenticated, setAddresses } = useAuth();
-  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const {
+    user,
+    addresses,
+    isAuthenticated,
+    setAddresses,
+    isAddressModalOpen,
+    setIsAddressModalOpen,
+  } = useAuth();
+  const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
+  const [isAddressesExpanded, setIsAddressesExpanded] = useState(false);
   const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState<number>(0);
   const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
@@ -199,9 +207,7 @@ export const Filters: React.FC = () => {
         isOpen={isAddressModalOpen}
         onClose={() => {
           setIsAddressModalOpen(false);
-          console.log("making off");
         }}
-        onSave={handleSaveAddress}
       />
 
       {/* Filters Section */}

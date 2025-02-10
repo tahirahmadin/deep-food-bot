@@ -27,9 +27,20 @@ interface AuthContextType {
   handleLogout: () => void;
   addresses: Address[];
   setAddresses: (addresses: Address[]) => void;
-  addNewAddress: (newAddress: Address) => Promise<void>;
+  addNewAddress: (newAddress: {
+    name: string;
+    address: string;
+    mobile: string;
+    type: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  }) => Promise<void>;
   removeAddress: (index: number) => Promise<void>;
   isLoadingAddresses: boolean;
+  isAddressModalOpen: boolean;
+  setIsAddressModalOpen: (isOpen: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -43,9 +54,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   });
   const [addresses, setInternalAddresses] = useState<Address[]>([]);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
-  const setAddresses = (newAddresses: Address[]) => {
-    setInternalAddresses(newAddresses);
+  const setAddresses = async (newAddresses: Address[]) => {
+    if (user?.userId) {
+      const response = await updateUserAddresses(user.userId, newAddresses);
+      if (!response.error) {
+        setInternalAddresses(newAddresses);
+      }
+    }
   };
 
   const addNewAddress = async (newAddress: Address) => {
@@ -140,6 +157,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     addNewAddress,
     removeAddress,
     isLoadingAddresses,
+    isAddressModalOpen,
+    setIsAddressModalOpen,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -2,33 +2,13 @@ import React, { useState, useEffect } from "react";
 import { X, MapPin, Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-interface Address {
-  name: string;
-  address: string;
-  mobile: string;
-  type: string;
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
-}
-
-interface AddressDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  editAddress?: Address | null;
-}
-
-export const AddressModal: React.FC<AddressDrawerProps> = ({
-  isOpen,
-  onClose,
-  editAddress,
-}) => {
-  const { addNewAddress } = useAuth();
-  const [name, setName] = useState(editAddress?.name || "");
-  const [addressName, setAddressName] = useState(editAddress?.type || "");
-  const [address, setAddress] = useState(editAddress?.address || "");
-  const [mobile, setMobile] = useState(editAddress?.mobile || "");
+export const AddressModal: React.FC = () => {
+  const { addNewAddress, isAddressModalOpen, setIsAddressModalOpen } =
+    useAuth();
+  const [name, setName] = useState("");
+  const [addressName, setAddressName] = useState("");
+  const [address, setAddress] = useState("");
+  const [mobile, setMobile] = useState("");
   const [coordinates, setCoordinates] = useState<{
     lat: number;
     lng: number;
@@ -86,16 +66,6 @@ export const AddressModal: React.FC<AddressDrawerProps> = ({
     );
   };
 
-  useEffect(() => {
-    if (editAddress) {
-      setName(editAddress.name);
-      setAddress(editAddress.address);
-      setAddressName(editAddress.type || "");
-      setMobile(editAddress.mobile);
-      setCoordinates(editAddress.coordinates || null);
-    }
-  }, [editAddress]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newAddress = {
@@ -111,21 +81,19 @@ export const AddressModal: React.FC<AddressDrawerProps> = ({
     setAddress("");
     setMobile("");
     setCoordinates(null);
-    onClose();
+    setIsAddressModalOpen(false);
   };
 
   return (
     <div
       className={`fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-in-out transform ${
-        isOpen ? "translate-y-0" : "translate-y-full"
+        isAddressModalOpen ? "translate-y-0" : "translate-y-full"
       } bg-white shadow-xl w-full h-3/4 overflow-y-auto`}
     >
       <div className="px-4 py-2 flex justify-between items-center border-b">
-        <h2 className="text-lg font-semibold">
-          {editAddress ? "Edit Address" : "Add New Address"}
-        </h2>
+        <h2 className="text-lg font-semibold">Add New Address</h2>
         <button
-          onClick={onClose}
+          onClick={() => setIsAddressModalOpen(false)}
           className="p-2 hover:bg-gray-200 rounded-full"
         >
           <X className="w-5 h-5 text-gray-500" />
@@ -208,7 +176,7 @@ export const AddressModal: React.FC<AddressDrawerProps> = ({
         </div>
         <div className="p-4 border-t flex gap-2">
           <button
-            onClick={onClose}
+            onClick={() => setIsAddressModalOpen(false)}
             className="flex-1 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
           >
             Cancel

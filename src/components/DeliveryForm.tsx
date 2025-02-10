@@ -1,15 +1,7 @@
 import React from "react";
-import {
-  ShoppingBag,
-  Plus,
-  MapPin,
-  Building2,
-  Hotel,
-  Home,
-} from "lucide-react";
+import { ShoppingBag, Plus, Building2, Hotel, Home } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 import { useAuth } from "../context/AuthContext";
-import { AddressModal } from "./AddressModal";
 
 interface DeliveryFormProps {
   onSubmit: (e: React.FormEvent) => void;
@@ -17,8 +9,14 @@ interface DeliveryFormProps {
 
 export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
   const { state, dispatch } = useChatContext();
-  const { user, addresses, setAddresses, isLoadingAddresses } = useAuth();
-  const [isAddressModalOpen, setIsAddressModalOpen] = React.useState(false);
+  const {
+    user,
+    addresses,
+    setAddresses,
+    isLoadingAddresses,
+    isAddressModalOpen,
+    setIsAddressModalOpen,
+  } = useAuth();
   const { orderDetails } = state.checkout;
   const [selectedAddressIndex, setSelectedAddressIndex] = React.useState<
     number | null
@@ -52,7 +50,7 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
   }) => {
     if (user?.userId) {
       const updatedAddresses = [...addresses, newAddress];
-      setAddresses(updatedAddresses);
+      await setAddresses(updatedAddresses);
       setSelectedAddressIndex(updatedAddresses.length - 1);
       dispatch({
         type: "UPDATE_ORDER_DETAILS",
@@ -159,11 +157,6 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
           Continue to Payment ({total} AED)
         </button>
       </form>
-      <AddressModal
-        isOpen={isAddressModalOpen}
-        onClose={() => setIsAddressModalOpen(false)}
-        onSave={handleSaveAddress}
-      />
     </div>
   );
 };
