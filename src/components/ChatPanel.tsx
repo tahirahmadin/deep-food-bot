@@ -310,7 +310,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       restaurant={
                         state.selectedRestaurant ? state.selectedRestaurant : ""
                       }
-                      image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurantState.activeRestroId}-${item.id}.jpg`}
+                      image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurantState.activeRestroId}/${restaurantState.activeRestroId}-${item.id}.jpg`}
                       quantity={0}
                       isCustomisable={item.isCustomisable}
                       customisation={item.customisation}
