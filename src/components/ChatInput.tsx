@@ -89,7 +89,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={isLoading}
-          className="flex-1 bg-transparent focus:outline-none placeholder:text-gray-400 text-sm"
+          className="flex-1 bg-transparent focus:outline-none placeholder:text-gray-400 text-[16px]" // Ensure font size is 16px
         />
         <label className="cursor-pointer p-1 text-gray-400 hover:text-gray-600">
           <input
