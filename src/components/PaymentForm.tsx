@@ -217,13 +217,13 @@ const CheckoutForm: React.FC<{
       type: "ADD_MESSAGE",
       payload: {
         id: Date.now(),
-        text: JSON.stringify({
-          text: "🎉 Order Confirmed! Your delicious food is being prepared with care.",
-          items1: [],
-          items2: [],
-        }),
+        text: "🎉 Order Confirmed! Your delicious food is being prepared with care.",
         isBot: true,
-        time: new Date().toLocaleTimeString(),
+        time: new Date().toLocaleString("en-US", {
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
+        }),
         queryType: "CHECKOUT",
       },
     });
