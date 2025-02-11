@@ -167,7 +167,7 @@ export const CustomizationModal: React.FC = () => {
         name: item.name,
         price: calculateTotal(),
         quantity,
-        restaurant: item.restaurant,
+        restaurant: item.restaurant ? item.restaurant : "",
         customizations,
       },
     });
