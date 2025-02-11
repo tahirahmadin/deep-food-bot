@@ -52,7 +52,11 @@ export const DunkinOrderApp: React.FC = () => {
         id: Date.now(),
         text: "Image uploaded",
         isBot: false,
-        time: new Date().toLocaleTimeString(),
+        time: new Date().toLocaleString("en-US", {
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
+        }),
         imageUrl,
         queryType: QueryType.MENU_QUERY,
       },
@@ -88,7 +92,11 @@ export const DunkinOrderApp: React.FC = () => {
           id: Date.now() + 1,
           text: response.data.choices[0].message.content,
           isBot: true,
-          time: new Date().toLocaleTimeString(),
+          time: new Date().toLocaleString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          }),
           queryType: QueryType.MENU_QUERY,
         },
       });
@@ -99,7 +107,11 @@ export const DunkinOrderApp: React.FC = () => {
           id: Date.now() + 1,
           text: "Sorry, I couldn't analyze the image.",
           isBot: true,
-          time: new Date().toLocaleTimeString(),
+          time: new Date().toLocaleString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          }),
           queryType: QueryType.GENERAL,
         },
       });
@@ -277,7 +289,11 @@ export const DunkinOrderApp: React.FC = () => {
       id: Date.now(),
       text: input.trim(),
       isBot: false,
-      time: new Date().toLocaleTimeString(),
+      time: new Date().toLocaleString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      }),
       queryType,
     };
 
@@ -295,22 +311,26 @@ export const DunkinOrderApp: React.FC = () => {
       let suggestRestroText = "";
       let suggestRestroIds = [];
 
-      if (restaurantState.activeRestroId === null) {
-        // Call system prompt if no active restaurant ID
-        const systemPrompt = `You are a restaurant recommendation system. Analyze the following restaurant data: ${JSON.stringify(
-          restaurantState.restaurants
-        )}. Based on the user's query: ${input}, return a response in the format { "text": "", "restroIds": [] }, where "text" is a summary of the user's query and the relevant restaurants, and "restroIds" is an array of restaurant IDs (maximum 2) that match the user's query. Do not include more than 2 restaurant IDs. Do not include any additional text or explanations or any 'json tag in start'`;
+      const { activeRestroId, restaurants } = restaurantState;
+
+      if (!activeRestroId) {
+        // SYSTEM PROMPT: Get recommended restaurants based on user query
+        const systemPrompt = `
+          You are a restaurant recommendation system. 
+          Given the following restaurants: ${JSON.stringify(restaurants)}, 
+          analyze the user's query: "${input}" 
+          and return a JSON response: { "text": "", "restroIds": [] } 
+          where:
+            - "text" is a short, relevant response.
+            - "restroIds" is an array of up to 2 matching restaurant IDs.
+          STRICT FORMAT: No extra text, no explanations.
+        `;
 
         const response = await axios.post(
           OPENAI_API_URL,
           {
             model: "gpt-4o",
-            messages: [
-              {
-                role: "user",
-                content: systemPrompt,
-              },
-            ],
+            messages: [{ role: "user", content: systemPrompt }],
             max_tokens: 500,
           },
           {
@@ -321,11 +341,13 @@ export const DunkinOrderApp: React.FC = () => {
           }
         );
 
-        apiResponseText = response.data.choices[0].message.content;
-        suggestRestroText = JSON.parse(apiResponseText).text;
-        suggestRestroIds = JSON.parse(apiResponseText).restroIds;
+        const parsedResponse = JSON.parse(
+          response.data.choices[0].message.content
+        );
+        suggestRestroText = parsedResponse.text;
+        suggestRestroIds = parsedResponse.restroIds;
 
-        if (suggestRestroIds && suggestRestroIds.length > 0) {
+        if (suggestRestroIds.length > 0) {
           setRestaurants(suggestRestroIds);
           restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
           if (suggestRestroIds.length > 1) {
@@ -333,48 +355,59 @@ export const DunkinOrderApp: React.FC = () => {
           }
         }
       } else {
-        // If active restaurant ID is available, directly fetch its menu
-        restaurant1Menu = await getMenuItemsByFile(
-          restaurantState.activeRestroId
-        );
+        // Fetch active restaurant menu
+        activeMenu = await getMenuItemsByFile(activeRestroId);
       }
 
-      if (restaurantState.activeRestroId != null) {
-        activeMenu = await getMenuItemsByFile(restaurantState.activeRestroId);
-      }
-      let onlyVeg = isVegOnly ? " Give only VEGETARIAN options " : "";
-      let sufficientFor =
-        numberOfPeople > 1
-          ? ` Show options sufficient for ${numberOfPeople} people`
-          : "";
-      let instructionString = onlyVeg + sufficientFor;
-      // Construct the menu prompt
-      const menuPrompt =
-        restaurantState.activeRestroId != null
-          ? `You are a menu recommendation system. Analyze the following menu items from restaurants: ${JSON.stringify(
-              activeMenu
-            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number }]}, where "text" is a creative information related to user query in ${
-              selectedStyle.name
-            } style and the relevant menu items - ${instructionString}, and "items1" is array of menu items ("id") that match the user's query. Include a maximum of 3 items from menu data - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. Do not add 'json tag in start'. If no matching item is available then return proper not available text with empty item arrays. Return in strict format always.`
-          : `You are a menu recommendation system. Analyze the following menu items from 2 restaurants: ${JSON.stringify(
-              restaurant1Menu
-            )} and ${JSON.stringify(
-              restaurant2Menu
-            )}. Based on the user's query: ${input}, return a response in the format { "text": "", "items1": [{ "id": number, "name": string }],"items2": [{ "id": number, "name": string }]}, where "text" is a creative information related to user query in ${
-              selectedStyle.name
-            } style and the relevant menu items - ${instructionString}, and "items1" and "item2" are array of menu items ("id", "name") that match the user's query. Include a maximum of 3 items from each relevent restaurant - but be flexible with the item count based on the user's requirements. Do not include any additional text or explanations or format. If 1 menu context then return in items1 only. if 2 menu context passed then return items in both items1, items2 array. Do not add 'json tag in start', If no matching item is available then return proper not available text with empty item arrays. Return in strict format always.`;
+      // Build instruction string for menu filtering
+      let instructionString = "";
+      if (isVegOnly) instructionString += " Provide only VEGETARIAN options.";
+      if (numberOfPeople > 1)
+        instructionString += ` Show portions sufficient for ${numberOfPeople} people.`;
 
-      if (suggestRestroIds?.length > 0 || restaurantState.activeRestroId) {
-        const response2 = await axios.post(
+      // MENU PROMPT: Fetch menu items based on user query
+      const menuPrompt = `
+      You are a menu recommendation system.
+      Given the menu items from ${
+        activeRestroId ? "a restaurant" : "two restaurants"
+      }:
+      ${
+        activeRestroId
+          ? JSON.stringify(activeMenu)
+          : JSON.stringify(restaurant1Menu) +
+            " and " +
+            JSON.stringify(restaurant2Menu)
+      },
+      analyze the user's query: "${input}"
+      and return a JSON response: 
+      ${
+        activeRestroId
+          ? `{ "text": "", "items1": [{ "id": number, "name": string }] }`
+          : `{ "text": "", "items1": [{ "id": number, "name": string }], "items2": [{ "id": number, "name": string }] }`
+      } 
+      where:
+        - "text" provides a concise and creative response in ${
+          selectedStyle.name
+        } style.
+        - ${
+          activeRestroId
+            ? `"items1" contains up to 3 recommended items.`
+            : `"items1" and "items2" contain up to 3 relevant items each from their respective restaurant menus.`
+        }
+        - Adjust the number of items based on user requirements.
+        - If no matching items are found, return a valid response with empty arrays.
+      STRICT FORMAT RULES:
+        - DO NOT include any markdown formatting.
+        - DO NOT include explanations or additional text before or after the JSON.
+        - Only return a valid JSON object, nothing else.
+    `;
+
+      if (suggestRestroIds.length > 0 || activeRestroId) {
+        const menuResponse = await axios.post(
           OPENAI_API_URL,
           {
             model: "gpt-4o",
-            messages: [
-              {
-                role: "user",
-                content: menuPrompt,
-              },
-            ],
+            messages: [{ role: "user", content: menuPrompt }],
             max_tokens: 1000,
           },
           {
@@ -385,19 +418,30 @@ export const DunkinOrderApp: React.FC = () => {
           }
         );
 
-        const apiResponseText2 = response2.data.choices[0].message.content;
-        const botMessage = {
-          id: Date.now() + 1,
-          text: apiResponseText2,
-          restroIds: restaurantState.activeRestroId
-            ? [restaurantState.activeRestroId]
-            : suggestRestroIds,
-          isBot: true,
-          time: new Date().toLocaleTimeString(),
-          queryType,
-        };
+        const parsedMenuResponse = JSON.parse(
+          menuResponse.data.choices[0].message.content
+        );
+        console.log("parsedMenuResponse");
+        console.log(parsedMenuResponse);
+        dispatch({
+          type: "ADD_MESSAGE",
+          payload: {
+            id: Date.now() + 1,
+            text: parsedMenuResponse.text,
+            llm: {
+              output: parsedMenuResponse,
+              restroIds: activeRestroId ? [activeRestroId] : suggestRestroIds,
+            },
 
-        dispatch({ type: "ADD_MESSAGE", payload: botMessage });
+            isBot: true,
+            time: new Date().toLocaleString("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+              hour12: true,
+            }),
+            queryType,
+          },
+        });
       } else {
         dispatch({
           type: "ADD_MESSAGE",
@@ -405,19 +449,28 @@ export const DunkinOrderApp: React.FC = () => {
             id: Date.now() + 1,
             text: suggestRestroText,
             isBot: true,
-            time: new Date().toLocaleTimeString(),
+            time: new Date().toLocaleString("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+              hour12: true,
+            }),
             queryType: QueryType.GENERAL,
           },
         });
       }
     } catch (error) {
+      console.error("Error processing AI response:", error);
       dispatch({
         type: "ADD_MESSAGE",
         payload: {
           id: Date.now() + 1,
           text: "Sorry, I had trouble understanding your question. Please try again.",
           isBot: true,
-          time: new Date().toLocaleTimeString(),
+          time: new Date().toLocaleString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          }),
           queryType: QueryType.GENERAL,
         },
       });

@@ -1,5 +1,5 @@
 import React from "react";
-import { Message as MessageType, QueryType } from "../types";
+
 import { AlertTriangle } from "lucide-react";
 import { MenuList } from "./MenuList";
 import { DeliveryForm } from "./DeliveryForm";
@@ -9,6 +9,7 @@ import { useRestaurant } from "../context/RestaurantContext";
 import { useFiltersContext } from "../context/FiltersContext";
 import * as menuUtils from "../utils/menuUtils";
 import { useEffect } from "react";
+import { Message as MessageType, QueryType } from "../types";
 
 interface MessageProps {
   message: MessageType;
@@ -67,18 +68,24 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
           />
         )}
 
-        {message.isBot && message.structuredText ? (
+        {message.isBot && message.llm ? (
           <div>
-            <p className="text-gray-600 text-[14px]">
-              {message.structuredText?.text}
-            </p>
-            {message.structuredText?.items1?.length > 0 && (
-              <div className="flex items-center gap-1 mt-2 mb-3">
+            <div className="pr-3 flex-shrink-0 flex">
+              <img
+                src={selectedStyle.image}
+                alt={selectedStyle.name}
+                className="w-8 h-8 rounded-full object-cover border-2 border-secondary"
+              />{" "}
+              <p className="text-gray-600 text-[13px] pl-2">{message.text}</p>
+            </div>
+
+            {message.llm.output.items1?.length > 0 && (
+              <div className="flex items-center gap-1 mt-1">
                 <div className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
                   <span>
                     {menuUtils.getRestaurantNameById(
                       restaurantState.restaurants,
-                      restaurantState.selectedRestroIds[0]
+                      message.llm.restroIds[0]
                     )}
                   </span>
                 </div>
@@ -95,17 +102,16 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
               </div>
             )}
 
-            {message.structuredText?.items1?.length > 0 && (
+            {message.llm.output.items1.length > 0 && (
               <div className="mt-2 pl-3 flex items-center gap-2">
                 <MenuList
                   messageId={message.id}
-                  items={message.structuredText.items1}
-                  restroId={restaurantState.selectedRestroIds[0]}
+                  items={message.llm.output.items1}
+                  restroId={message.llm.restroIds[0]}
                 />
                 <label
                   className={`inline-flex items-center gap-2 cursor-pointer ${
-                    restaurantState.activeRestroId ===
-                    restaurantState.selectedRestroIds[0]
+                    restaurantState.activeRestroId === message.llm.restroIds[0]
                       ? "text-primary"
                       : "text-gray-700"
                   }`}
@@ -115,24 +121,24 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                     name="restaurantSelection" // Ensure consistent name for radio group
                     checked={
                       restaurantState.activeRestroId ===
-                      restaurantState.selectedRestroIds[0]
+                      message.llm?.restroIds[0]
                     }
                     onChange={() =>
-                      restaurantState.selectedRestroIds[0] &&
-                      handleSelectRestro(restaurantState.selectedRestroIds[0])
+                      message.llm?.restroIds[0] &&
+                      handleSelectRestro(message.llm?.restroIds[0])
                     }
                     className="form-radio h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                   />
                 </label>
               </div>
             )}
-            {message.structuredText?.items2?.length > 0 && (
-              <div className="flex items-center gap-1 mt-2 mb-3">
+            {message.llm.output.items2?.length > 0 && (
+              <div className="flex items-center gap-1 mt-2">
                 <div className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
                   <span>
                     {menuUtils.getRestaurantNameById(
                       restaurantState.restaurants,
-                      restaurantState.selectedRestroIds[1]
+                      message.llm.restroIds[1]
                     )}
                   </span>
                 </div>
@@ -149,17 +155,16 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
               </div>
             )}
 
-            {message.structuredText?.items2?.length > 0 && (
+            {message.llm.output.items2?.length > 0 && (
               <div className="mt-2 pl-3 flex items-center gap-2">
                 <MenuList
                   messageId={message.id}
-                  items={message.structuredText.items2}
-                  restroId={restaurantState.selectedRestroIds[1]}
+                  items={message.llm.output.items2}
+                  restroId={message.llm.restroIds[1]}
                 />
                 <label
                   className={`inline-flex items-center gap-2 cursor-pointer ${
-                    restaurantState.activeRestroId ===
-                    restaurantState.selectedRestroIds[1]
+                    restaurantState.activeRestroId === message.llm.restroIds[1]
                       ? "text-primary"
                       : "text-gray-700"
                   }`}
@@ -169,11 +174,11 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                     name="restaurantSelection" // Ensure consistent name for radio group
                     checked={
                       restaurantState.activeRestroId ===
-                      restaurantState.selectedRestroIds[1]
+                      message.llm?.restroIds[1]
                     }
                     onChange={() =>
-                      restaurantState.selectedRestroIds[1] &&
-                      handleSelectRestro(restaurantState.selectedRestroIds[1])
+                      message.llm?.restroIds[1] &&
+                      handleSelectRestro(message.llm?.restroIds[1])
                     }
                     className="form-radio h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                   />
@@ -185,8 +190,8 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
           <div
             className={
               message.isBot
-                ? "text-gray-800 text-[14px]"
-                : "text-white text-[14px]"
+                ? "text-gray-800 text-[13px]"
+                : "text-white text-[13px]"
             }
           >
             {message.text}
@@ -199,12 +204,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
   const handleSelectRestro = (restroId: number) => {
     // If clicking on already active restaurant, clear selection
     if (restaurantState.activeRestroId === restroId) {
-      // Clear active restaurant and selected restaurant name
-      // Clear active restaurant only
-      // setActiveRestaurant(null);
     } else {
-      // Set new active restaurant and update selected restaurant name
-      // Set new active restaurant only
       setActiveRestaurant(restroId);
       const restaurantName = menuUtils.getRestaurantNameById(
         restaurantState.restaurants,
@@ -245,7 +245,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
     <div
       className={`mb-4 flex ${message.isBot ? "justify-start" : "justify-end"}`}
     >
-      {message.isBot && (
+      {/* {message.isBot && (
         <div className="mr-1 flex-shrink-0">
           <img
             src={selectedStyle.image}
@@ -253,7 +253,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
             className="w-8 h-8 rounded-full object-cover border-2 border-primary"
           />
         </div>
-      )}
+      )} */}
       <div
         className={`max-w-[90%] rounded-2xl p-2 ${
           message.isBot

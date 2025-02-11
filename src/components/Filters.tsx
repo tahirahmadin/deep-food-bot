@@ -3,24 +3,18 @@ import {
   MessageSquare,
   Menu,
   X,
-  Globe,
   Store,
-  Users,
   Leaf,
   Zap,
   MapPin,
   ChevronDown,
   Plus,
   Home,
-  Building2,
-  Hotel,
   Minus,
 } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
-import { getUserDetails, updateUserAddresses } from "../actions/serverActions";
-import { AddressModal } from "./AddressModal";
 import { useFiltersContext } from "../context/FiltersContext";
 
 export const Filters: React.FC = () => {
@@ -38,15 +32,11 @@ export const Filters: React.FC = () => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setActiveRestaurant } = useRestaurant();
   const {
-    user,
     addresses,
     isAuthenticated,
-    setAddresses,
     isAddressModalOpen,
     setIsAddressModalOpen,
   } = useAuth();
-  const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
-  const [isAddressesExpanded, setIsAddressesExpanded] = useState(false);
   const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState<number>(0);
   const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
@@ -75,23 +65,6 @@ export const Filters: React.FC = () => {
         "https://img.delicious.com.au/D-EUAdrh/w759-h506-cfill/del/2017/06/gordon-ramsay-47340-2.jpg",
     },
   ];
-
-  const handleSaveAddress = async (newAddress: {
-    name: string;
-    address: string;
-    mobile: string;
-    type: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
-  }) => {
-    if (user?.userId) {
-      const updatedAddresses = [...addresses, newAddress];
-      await setAddresses(updatedAddresses);
-      setSelectedAddressIndex(updatedAddresses.length - 1);
-    }
-  };
 
   const handleClearRestaurant = () => {
     dispatch({ type: "SET_SELECTED_RESTAURANT", payload: null });
@@ -202,13 +175,6 @@ export const Filters: React.FC = () => {
           )}
         </div>
       </div>
-
-      <AddressModal
-        isOpen={isAddressModalOpen}
-        onClose={() => {
-          setIsAddressModalOpen(false);
-        }}
-      />
 
       {/* Filters Section */}
       <div className="flex items-center gap-2">

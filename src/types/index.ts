@@ -21,17 +21,29 @@ type StructuredText = {
   restroIds?: number[];
 };
 
+interface LLMType {
+  restroIds: number[];
+  output: OutputType;
+}
+
+type OutputType = {
+  text: string;
+  items1: number[];
+  items2: number[];
+  restroIds: number[];
+};
+
 export interface Message {
   id: number;
-  text: string; // Made optional
+  text: string;
+  llm?: LLMType;
   isBot: boolean;
   time: string;
-  restroIds: number[];
+  // restroIds: number[];
   image?: string;
-  mealCards?: MenuCard[];
   queryType: QueryType;
   imageUrl?: any;
-  structuredText?: StructuredText; // Optional for non-MENU_QUERY types
+  mealCards?: MenuCard[];
   checkout?: {
     step: "details" | "payment" | "confirmation";
     total?: string;

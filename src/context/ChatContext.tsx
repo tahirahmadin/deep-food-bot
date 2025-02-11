@@ -7,12 +7,25 @@ export enum QueryType {
   CHECKOUT = "CHECKOUT",
   BROWSE = "BROWSE",
 }
+interface LLMType {
+  restroIds: number[];
+  output: OutputType;
+}
+
+type OutputType = {
+  text: string;
+  items1: number[];
+  items2: number[];
+  restroIds: number[];
+};
 
 interface Message {
   id: number;
   text: string;
+  llm?: LLMType;
   isBot: boolean;
   time: string;
+  imageUrl?: string;
   queryType: QueryType;
 }
 
@@ -212,14 +225,14 @@ const initialState: ChatState = {
   messages: [
     {
       id: 1,
-      text: JSON.stringify({
-        text: "Hi! Cozy weather in Dubai calls for something delicious. Let me know what you're craving?",
-        items1: [],
-        items2: [],
-      }),
+      text: "Hi! Cozy weather in Dubai calls for something delicious. Let me know what you're craving?",
 
       isBot: true,
-      time: new Date().toLocaleTimeString(),
+      time: new Date().toLocaleString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      }),
       queryType: QueryType.GENERAL,
     },
   ],

@@ -14,9 +14,6 @@ export const getMenuByRestaurantId = async (
     // Fetch from API if not in context
     const menuItems = await getRestaurantMenu(restaurantId);
 
-    console.log("menuItems");
-    console.log(menuItems);
-
     // Store in context
     dispatch({
       type: "SET_MENU",

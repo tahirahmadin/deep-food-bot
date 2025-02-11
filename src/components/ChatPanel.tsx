@@ -94,39 +94,73 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   }, [state.messages]);
 
   // Use cleanMessages without modification
+  // const cleanMessages = useMemo(() => {
+  //   if (state.messages?.length > 0) {
+  //     let result = state.messages.map((message) => {
+  //       if (message.isBot && message.text) {
+  //         try {
+  //           // Parse the text field into JSON
+  //           const parsedText = JSON.parse(message.text);
+  //           console.log("parsedText");
+  //           console.log(parsedText);
+  //           // Validate the JSON structure
+  //           if (
+  //             parsedText &&
+  //             typeof parsedText === "object" &&
+  //             "text" in parsedText &&
+  //             "items1" in parsedText
+  //           ) {
+  //             // Restructure the message object
+  //             return {
+  //               id: message.id,
+  //               isBot: message.isBot,
+  //               time: message.time,
+  //               restroIds: message.restroIds,
+  //               text: message.text,
+  //               queryType: message.queryType,
+  //               structuredText: {
+  //                 text: parsedText.text,
+  //                 items1: parsedText.items1,
+  //                 items2: parsedText.items2,
+  //               },
+  //             };
+  //           }
+  //         } catch (error) {
+  //           console.log("Failed to parse message as JSON:", error);
+  //           return message;
+  //         }
+  //         // If JSON parsing fails or validation fails, return the original message
+  //         return message;
+  //       } else {
+  //         return message;
+  //       }
+  //     });
+
+  //     return result;
+  //   } else {
+  //     return [];
+  //   }
+  // }, [state.messages]);
+
   const cleanMessages = useMemo(() => {
     if (state.messages?.length > 0) {
-      console.log("messages");
-      console.log(state.messages);
       let result = state.messages.map((message) => {
         if (message.isBot && message.text) {
           try {
             // Parse the text field into JSON
-            const parsedText = JSON.parse(message.text);
-            console.log("parsedText");
-            console.log(parsedText);
-            // Validate the JSON structure
-            if (
-              parsedText &&
-              typeof parsedText === "object" &&
-              "text" in parsedText &&
-              "items1" in parsedText
-            ) {
-              // Restructure the message object
-              return {
-                id: message.id,
-                isBot: message.isBot,
-                time: message.time,
-                restroIds: message.restroIds,
-                text: message.text,
-                queryType: message.queryType,
-                structuredText: {
-                  text: parsedText.text,
-                  items1: parsedText.items1,
-                  items2: parsedText.items2,
-                },
-              };
-            }
+            return {
+              id: message.id,
+              isBot: message.isBot,
+              time: message.time,
+              restroIds: message.restroIds,
+              text: message.text,
+              queryType: message.queryType,
+              structuredText: {
+                text: message.text.text,
+                items1: message.text.items1,
+                items2: message.text.items2,
+              },
+            };
           } catch (error) {
             console.log("Failed to parse message as JSON:", error);
             return message;
@@ -176,7 +210,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         }`}
         ref={chatContainerRef}
       >
-        {cleanMessages.map((message) => (
+        {console.log("messages")}
+        {console.log(state.messages)}
+        {console.log(cleanMessages)}
+        {state.messages.map((message) => (
           <Message key={message.id} message={message} onRetry={() => {}} />
         ))}
 

@@ -2,17 +2,6 @@ import React, { useState, useEffect } from "react";
 import { X, MapPin, Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-interface Address {
-  name: string;
-  address: string;
-  mobile: string;
-  type: string;
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
-}
-
 export const AddressModal: React.FC = () => {
   const {
     addNewAddress,
