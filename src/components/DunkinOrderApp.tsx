@@ -22,7 +22,8 @@ export const DunkinOrderApp: React.FC = () => {
   const { toast, hideToast } = useToast();
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setRestaurants } = useRestaurant();
-  const { user, setUser, isAuthenticated } = useAuth();
+  const { user, setUser, isAuthenticated, setIsAddressModalOpen, addresses } =
+    useAuth();
   const { selectedStyle, isVegOnly, isFastDelivery, numberOfPeople } =
     useFiltersContext();
   const [input, setInput] = useState("");
@@ -611,6 +612,7 @@ export const DunkinOrderApp: React.FC = () => {
             onClose={hideToast}
           />
         )}
+
         <div className="fixed top-0 left-0 right-0 z-[50] bg-[#FFF5F2] max-w-md mx-auto">
           <Header
             onOpenPanel={() => setIsPanelOpen(true)}
@@ -712,7 +714,24 @@ export const DunkinOrderApp: React.FC = () => {
                 <button
                   onClick={() => {
                     setIsCartOpen(false);
-                    dispatch({ type: "SET_CHECKOUT_STEP", payload: "details" });
+                    // Set order details from the first address
+                    if (addresses.length > 0) {
+                      dispatch({
+                        type: "UPDATE_ORDER_DETAILS",
+                        payload: {
+                          name: addresses[0].name,
+                          address: addresses[0].address,
+                          phone: addresses[0].mobile,
+                        },
+                      });
+                      // Go directly to payment
+                      dispatch({
+                        type: "SET_CHECKOUT_STEP",
+                        payload: "payment",
+                      });
+                    } else {
+                      setIsAddressModalOpen(true);
+                    }
                   }}
                   className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
                 >

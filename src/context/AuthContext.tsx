@@ -3,9 +3,32 @@ import { useEffect } from "react";
 import {
   loginUserFromBackendServer,
   getUserDetails,
+  getUserOrders,
   updateUserAddresses,
 } from "../actions/serverActions";
 
+interface Order {
+  _id: string;
+  orderId: string;
+  customerDetails: {
+    name: string;
+    address: string;
+    phone: string;
+  };
+  items: Array<{
+    id: number;
+    name: string;
+    price: number;
+    quantity: number;
+    restaurant: string;
+  }>;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+  paymentStatus: string;
+  restaurantName: string;
+  estimatedDeliveryTime: number;
+}
 interface User {
   email: string;
   name: string;
@@ -43,6 +66,10 @@ interface AuthContextType {
   setIsAddressModalOpen: (isOpen: boolean) => void;
   editingAddress: ({ index: number } & Address) | null;
   setEditingAddress: (address: ({ index: number } & Address) | null) => void;
+  orders: Order[];
+  setOrders: (orders: Order[]) => void;
+  isLoadingOrders: boolean;
+  refreshOrders: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -60,6 +87,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [editingAddress, setEditingAddress] = useState<
     ({ index: number } & Address) | null
   >(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
 
   const setAddresses = async (newAddresses: Address[]) => {
     if (user?.userId) {
@@ -70,29 +99,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       return false;
     }
-    return false;
-  };
-
-  const addNewAddress = async (newAddress: Address): Promise<boolean> => {
-    if (user?.userId) {
-      const updatedAddresses = [...addresses, newAddress];
-      try {
-        console.log("Adding new address:", newAddress);
-        const response = await updateUserAddresses(
-          user.userId,
-          updatedAddresses
-        );
-        if (!response.error) {
-          setInternalAddresses(updatedAddresses);
-          return true;
-        }
-        throw new Error("Failed to update addresses");
-      } catch (error) {
-        console.error("Error saving address:", error);
-        return false;
-      }
-    }
-    console.error("No user ID available");
     return false;
   };
 
@@ -121,19 +127,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const checkAndRefreshUser = async () => {
       const savedUser = localStorage.getItem("user");
-      if (savedUser && !isLoadingAddresses) {
+      if (savedUser) {
         try {
           setIsLoadingAddresses(true);
           const userData = JSON.parse(savedUser);
           setInternalUser(userData);
 
-          // Always fetch fresh user details including addresses
           const userDetails = await getUserDetails(userData.userId);
           if (!userDetails.error && userDetails.result?.addresses?.length > 0) {
             setInternalAddresses(userDetails.result.addresses);
           } else {
             setIsAddressModalOpen(true);
           }
+
+          // Fetch initial orders
+          await refreshOrders();
         } catch (error) {
           console.error("Error refreshing user data:", error);
         } finally {
@@ -157,7 +165,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleLogout = () => {
     setUser(null);
     setInternalAddresses([]);
+    setOrders([]);
     localStorage.removeItem("user");
+  };
+
+  const refreshOrders = async () => {
+    if (user?.userId) {
+      setIsLoadingOrders(true);
+      try {
+        const response = await getUserOrders(user.userId);
+        if (!response.error && response.result) {
+          setOrders(response.result);
+        }
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      } finally {
+        setIsLoadingOrders(false);
+      }
+    }
   };
 
   const value = {
@@ -167,13 +192,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     handleLogout,
     addresses,
     setAddresses,
-    addNewAddress,
+    setInternalAddresses,
     removeAddress,
     isLoadingAddresses,
     isAddressModalOpen,
     setIsAddressModalOpen,
     editingAddress,
     setEditingAddress,
+    orders,
+    setOrders,
+    isLoadingOrders,
+    refreshOrders,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

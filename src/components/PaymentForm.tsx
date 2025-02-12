@@ -62,6 +62,7 @@ const CheckoutForm: React.FC<{
   const stripe = useStripe();
   const elements = useElements();
   const { dispatch, state } = useChatContext();
+  const { refreshOrders } = useAuth();
   const { state: restaurantState } = useRestaurant();
   const { user } = useAuth();
   const { connectWallet, transferUSDT, connected, publicKey } = useWallet();
@@ -134,26 +135,9 @@ const CheckoutForm: React.FC<{
         // Show success animation
         setShowSuccessAnimation(true);
 
-        // Wait a bit for the order to be processed
+        // Wait for the order to be processed and refresh orders
         await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Fetch updated orders
-        if (user?.userId) {
-          let retries = 3;
-          while (retries > 0) {
-            const ordersResponse = await getUserOrders(user.userId);
-            if (!ordersResponse.error && ordersResponse.result?.length > 0) {
-              const latestOrder = ordersResponse.result[0];
-              const currentTotal = parseFloat(total) * 100;
-
-              if (parseFloat(latestOrder.totalAmount) === currentTotal) {
-                break;
-              }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            retries--;
-          }
-        }
+        await refreshOrders();
 
         setIsSuccess(true);
         handlePaymentSuccess();

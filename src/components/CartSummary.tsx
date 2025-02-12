@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 export const CartSummary: React.FC = () => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState } = useRestaurant();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, addresses } = useAuth();
   const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
   const [menuItems, setMenuItems] = React.useState<any[]>([]);
 
@@ -74,17 +74,35 @@ export const CartSummary: React.FC = () => {
       return;
     }
 
+    if (addresses.length === 0) {
+      alert("Please add a delivery address first");
+      setIsExpanded(false);
+      setIsAddressModalOpen(true);
+      return;
+    }
+
     // Switch to chat mode if currently in browse mode
     if (state.mode === "browse") {
       dispatch({ type: "SET_MODE", payload: "chat" });
     }
 
-    dispatch({ type: "SET_CHECKOUT_STEP", payload: "details" });
+    // Set order details from the first address
+    dispatch({
+      type: "UPDATE_ORDER_DETAILS",
+      payload: {
+        name: addresses[0].name,
+        address: addresses[0].address,
+        phone: addresses[0].mobile,
+      },
+    });
+
+    // Go directly to payment step
+    dispatch({ type: "SET_CHECKOUT_STEP", payload: "payment" });
     dispatch({
       type: "ADD_MESSAGE",
       payload: {
         id: Date.now(),
-        text: "Please provide your delivery details to proceed with the order.",
+        text: "Please proceed with payment to complete your order.",
         isBot: true,
         time: new Date().toLocaleTimeString("en-US", {
           hour: "numeric",

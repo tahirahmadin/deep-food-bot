@@ -40,6 +40,7 @@ export const Filters: React.FC = () => {
   const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState<number>(0);
   const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
+  const { setAddresses } = useAuth();
 
   // Set initial selected address to first address if available
   useEffect(() => {
@@ -47,6 +48,22 @@ export const Filters: React.FC = () => {
       setSelectedAddressIndex(0);
     }
   }, [addresses]);
+
+  const handleAddressSelect = async (index: number) => {
+    if (index === selectedAddressIndex) return;
+
+    // Move selected address to the front of the array
+    const newAddresses = [...addresses];
+    const [selectedAddress] = newAddresses.splice(index, 1);
+    newAddresses.unshift(selectedAddress);
+
+    // Update addresses in backend and state
+    const success = await setAddresses(newAddresses);
+    if (success) {
+      setSelectedAddressIndex(0);
+      setIsAddressDropdownOpen(false);
+    }
+  };
 
   const conversationStyles = [
     {
@@ -103,10 +120,7 @@ export const Filters: React.FC = () => {
               {addresses.map((addr, index) => (
                 <button
                   key={index}
-                  onClick={() => {
-                    setSelectedAddressIndex(index);
-                    setIsAddressDropdownOpen(false);
-                  }}
+                  onClick={() => handleAddressSelect(index)}
                   className={`flex items-start gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors ${
                     selectedAddressIndex === index ? "bg-orange-50" : ""
                   }`}

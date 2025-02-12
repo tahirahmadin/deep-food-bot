@@ -31,6 +31,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
     isAuthenticated,
     handleLogout: authLogout,
     setAddresses,
+    setInternalAddresses,
   } = useAuth();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -66,10 +67,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
         });
 
         // Get user details to ensure we have latest data
-        const userDetails = await getUserDetails(loginResponse.result._id);
-        if (!userDetails.error && userDetails.result?.addresses?.length > 0) {
-          await setAddresses(userDetails.result.addresses);
-        } else if (!loginResponse.result.addresses?.length) {
+        if (loginResponse.result?.addresses?.length > 0) {
+          await setInternalAddresses(loginResponse.result.addresses);
+        } else {
           setIsAddressModalOpen(true);
         }
       } catch (error) {

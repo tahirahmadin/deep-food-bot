@@ -11,30 +11,6 @@ import {
   MapPin,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { getUserOrders } from "../actions/serverActions";
-
-interface Order {
-  _id: string;
-  orderId: string;
-  customerDetails: {
-    name: string;
-    address: string;
-    phone: string;
-  };
-  items: Array<{
-    id: number;
-    name: string;
-    price: number;
-    quantity: number;
-    restaurant: string;
-  }>;
-  totalAmount: number;
-  status: string;
-  createdAt: string;
-  paymentStatus: string;
-  restaurantName: string;
-  estimatedDeliveryTime: number;
-}
 
 interface Address {
   id: string;
@@ -58,40 +34,18 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
     isLoadingAddresses,
     setIsAddressModalOpen,
     setEditingAddress,
+    orders,
+    isLoadingOrders,
+    refreshOrders,
   } = useAuth();
   const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
   const [isAddressesExpanded, setIsAddressesExpanded] = useState(false);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const latestAddress = addresses[addresses.length - 1];
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (isAuthenticated && user?.userId) {
-        setIsLoading(true);
-        setError(null);
-        try {
-          console.log("Fetching orders for user:", user.userId);
-          const response = await getUserOrders(user.userId);
-          if (!response.error && response.result) {
-            // console.log("Orders fetched successfully:", response.result);
-            setOrders(response.result);
-          } else {
-            console.error("Failed to fetch orders:", response);
-            setError("Failed to fetch orders");
-          }
-        } catch (err) {
-          console.error("Error fetching orders:", err);
-          setError("An error occurred while fetching orders");
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchOrders();
+    refreshOrders();
   }, [isAuthenticated, user?.userId, retryCount]);
 
   const handleRetry = () => {
@@ -191,7 +145,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
 
           {isOrdersExpanded && (
             <div className="mt-4">
-              {isLoading ? (
+              {isLoadingOrders ? (
                 <div className="flex justify-center items-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>

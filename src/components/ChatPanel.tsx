@@ -14,7 +14,10 @@ import { LogIn } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import { loginUserFromBackendServer } from "../actions/serverActions";
+import {
+  getUserDetails,
+  loginUserFromBackendServer,
+} from "../actions/serverActions";
 
 interface ChatPanelProps {
   input: string;
@@ -48,6 +51,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     isAuthenticated,
     setUser,
     setAddresses,
+    setInternalAddresses,
   } = useAuth();
   const [isFirstLogin, setIsFirstLogin] = useState(true);
 
@@ -79,13 +83,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         });
 
         // Get user details to ensure we have latest data
-        const userDetails = await getUserDetails(loginResponse.result._id);
-        if (!userDetails.error && userDetails.result?.addresses?.length > 0) {
-          await setAddresses(userDetails.result.addresses);
-        } else if (!loginResponse.result.addresses?.length) {
+        if (loginResponse.result?.addresses?.length > 0) {
+          await setInternalAddresses(loginResponse.result.addresses);
+        } else {
           setIsAddressModalOpen(true);
         }
-
         setIsFirstLogin(false);
       } catch (error) {
         console.error("Login error:", error);
@@ -155,91 +157,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       )
       .join("\n");
   }, [state.messages]);
-
-  // Use cleanMessages without modification
-  // const cleanMessages = useMemo(() => {
-  //   if (state.messages?.length > 0) {
-  //     let result = state.messages.map((message) => {
-  //       if (message.isBot && message.text) {
-  //         try {
-  //           // Parse the text field into JSON
-  //           const parsedText = JSON.parse(message.text);
-  //           console.log("parsedText");
-  //           console.log(parsedText);
-  //           // Validate the JSON structure
-  //           if (
-  //             parsedText &&
-  //             typeof parsedText === "object" &&
-  //             "text" in parsedText &&
-  //             "items1" in parsedText
-  //           ) {
-  //             // Restructure the message object
-  //             return {
-  //               id: message.id,
-  //               isBot: message.isBot,
-  //               time: message.time,
-  //               restroIds: message.restroIds,
-  //               text: message.text,
-  //               queryType: message.queryType,
-  //               structuredText: {
-  //                 text: parsedText.text,
-  //                 items1: parsedText.items1,
-  //                 items2: parsedText.items2,
-  //               },
-  //             };
-  //           }
-  //         } catch (error) {
-  //           console.log("Failed to parse message as JSON:", error);
-  //           return message;
-  //         }
-  //         // If JSON parsing fails or validation fails, return the original message
-  //         return message;
-  //       } else {
-  //         return message;
-  //       }
-  //     });
-
-  //     return result;
-  //   } else {
-  //     return [];
-  //   }
-  // }, [state.messages]);
-
-  // const cleanMessages = useMemo(() => {
-  //   if (state.messages?.length > 0) {
-  //     let result = state.messages.map((message) => {
-  //       if (message.isBot && message.text) {
-  //         try {
-  //           // Parse the text field into JSON
-  //           return {
-  //             id: message.id,
-  //             isBot: message.isBot,
-  //             time: message.time,
-  //             restroIds: message.restroIds,
-  //             text: message.text,
-  //             queryType: message.queryType,
-  //             structuredText: {
-  //               text: message.text.text,
-  //               items1: message.text.items1,
-  //               items2: message.text.items2,
-  //             },
-  //           };
-  //         } catch (error) {
-  //           console.log("Failed to parse message as JSON:", error);
-  //           return message;
-  //         }
-  //         // If JSON parsing fails or validation fails, return the original message
-  //         return message;
-  //       } else {
-  //         return message;
-  //       }
-  //     });
-
-  //     return result;
-  //   } else {
-  //     return [];
-  //   }
-  // }, [state.messages]);
 
   // Handle submit and pass serialized memory
   const handleSubmit = (e: React.FormEvent) => {
@@ -314,6 +231,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             </div>
           </div>
         )}
+        {console.log(addresses)}
         {isAuthenticated && addresses.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">
             <div className="bg-white p-6 rounded-xl shadow-lg max-w-sm w-full mx-4 text-center">

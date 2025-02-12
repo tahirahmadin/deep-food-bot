@@ -131,8 +131,9 @@ export const AddressModal: React.FC = () => {
       }
       setEditingAddress(null);
     } else {
-      // Add new address
-      const success = await addNewAddress(newAddress);
+      // Add new address at the beginning of the array
+      const updatedAddresses = [newAddress, ...addresses];
+      const success = await setAddresses(updatedAddresses);
       if (success) {
         showToast("Address saved successfully");
       } else {
@@ -152,9 +153,9 @@ export const AddressModal: React.FC = () => {
     <div
       className={`fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-in-out transform ${
         isAddressModalOpen ? "translate-y-0" : "translate-y-full"
-      } bg-white shadow-xl w-full h-3/4 overflow-y-auto`}
+      } bg-white shadow-xl w-full h-[auto] overflow-y-auto`}
     >
-      <div className="px-4 py-2 flex justify-between items-center border-b">
+      <div className="px-4 py-1 flex justify-between items-center border-b">
         <h2 className="text-lg font-semibold">
           {editingAddress ? "Edit Address" : "Add New Address"}
           {!isAuthenticated && (
