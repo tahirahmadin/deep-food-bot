@@ -10,6 +10,7 @@ import {
 import { useChatContext, QueryType } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
+import { getUserDetails } from "../actions/serverActions";
 import { loginUserFromBackendServer } from "../actions/serverActions";
 import { useGoogleLogin, googleLogout } from "@react-oauth/google";
 import axios from "axios";
@@ -26,8 +27,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
   const {
     user,
     setUser,
+    setIsAddressModalOpen,
     isAuthenticated,
     handleLogout: authLogout,
+    setAddresses,
   } = useAuth();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -45,8 +48,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
           }
         );
 
-        // Call backend server login
-        const loginResponse = await loginUserFromBackendServer(
+        let loginResponse = await loginUserFromBackendServer(
           "GMAIL",
           userInfo.data.email
         );
@@ -55,12 +57,21 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
           throw new Error("Backend login failed");
         }
 
+        // Set user data
         setUser({
           email: userInfo.data.email,
           name: userInfo.data.name,
           picture: userInfo.data.picture,
-          userId: loginResponse.result._id, // Store userId from backend response
+          userId: loginResponse.result._id,
         });
+
+        // Get user details to ensure we have latest data
+        const userDetails = await getUserDetails(loginResponse.result._id);
+        if (!userDetails.error && userDetails.result?.addresses?.length > 0) {
+          await setAddresses(userDetails.result.addresses);
+        } else if (!loginResponse.result.addresses?.length) {
+          setIsAddressModalOpen(true);
+        }
       } catch (error) {
         console.error("Error fetching user info:", error);
         setLoginError(error instanceof Error ? error.message : "Login failed");

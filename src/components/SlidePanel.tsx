@@ -123,17 +123,18 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  console.log(orders);
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/20 backdrop-blur-sm transition-opacity ${
+        className={`fixed inset-0 bg-black/20 backdrop-blur-sm transition-opacity z-[100] ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
       />
 
       <div
-        className={`fixed right-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
+        className={`fixed right-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-[100] ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -280,7 +281,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                                 {item.quantity}x {item.name}
                               </span>
                               <span className="text-[11px] text-gray-500">
-                                {item.price.toFixed(2)} AED
+                                {item.price} AED
                               </span>
                             </div>
                           ))}

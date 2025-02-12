@@ -42,8 +42,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   const [allMenuItems, setAllMenuItems] = useState<MenuItemFront[]>([]);
   const { state: restaurantState, dispatch: restaurantDispatch } =
     useRestaurant();
-  const { addresses, setIsAddressModalOpen, isAuthenticated, setUser } =
-    useAuth();
+  const {
+    addresses,
+    setIsAddressModalOpen,
+    isAuthenticated,
+    setUser,
+    setAddresses,
+  } = useAuth();
   const [isFirstLogin, setIsFirstLogin] = useState(true);
 
   const login = useGoogleLogin({
@@ -56,7 +61,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           }
         );
 
-        const loginResponse = await loginUserFromBackendServer(
+        let loginResponse = await loginUserFromBackendServer(
           "GMAIL",
           userInfo.data.email
         );
@@ -65,17 +70,22 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           throw new Error("Backend login failed");
         }
 
+        // Set user data
         setUser({
           email: userInfo.data.email,
           name: userInfo.data.name,
           picture: userInfo.data.picture,
           userId: loginResponse.result._id,
         });
-        // Get user details to check for addresses
+
+        // Get user details to ensure we have latest data
         const userDetails = await getUserDetails(loginResponse.result._id);
-        if (!userDetails.error && userDetails.result?.addresses?.length === 0) {
+        if (!userDetails.error && userDetails.result?.addresses?.length > 0) {
+          await setAddresses(userDetails.result.addresses);
+        } else if (!loginResponse.result.addresses?.length) {
           setIsAddressModalOpen(true);
         }
+
         setIsFirstLogin(false);
       } catch (error) {
         console.error("Login error:", error);

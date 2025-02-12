@@ -602,7 +602,7 @@ export const DunkinOrderApp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[100vh] h-[100vh] relative flex items-center justify-center bg-gray-50">
+    <div className="min-h-[100vh] h-[100vh] relative flex items-center justify-center bg-gray-50 overflow-hidden">
       <div className="relative bg-[#FFF5F2] w-full h-full max-w-md">
         {toast.visible && (
           <Toast
@@ -611,7 +611,7 @@ export const DunkinOrderApp: React.FC = () => {
             onClose={hideToast}
           />
         )}
-        <div className="fixed top-0 left-0 right-0 z-20 bg-[#FFF5F2] max-w-md mx-auto">
+        <div className="fixed top-0 left-0 right-0 z-[50] bg-[#FFF5F2] max-w-md mx-auto">
           <Header
             onOpenPanel={() => setIsPanelOpen(true)}
             onCartClick={() => setIsCartOpen(!isCartOpen)}
@@ -619,7 +619,7 @@ export const DunkinOrderApp: React.FC = () => {
           <Filters />
         </div>
 
-        <div className="h-full pt-[140px] pb-20">
+        <div className="h-full pt-[160px] pb-15">
           <ChatPanel
             input={input}
             setInput={setInput}

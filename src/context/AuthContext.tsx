@@ -66,14 +66,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await updateUserAddresses(user.userId, newAddresses);
       if (!response.error) {
         setInternalAddresses(newAddresses);
+        return true;
       }
+      return false;
     }
+    return false;
   };
 
   const addNewAddress = async (newAddress: Address): Promise<boolean> => {
     if (user?.userId) {
       const updatedAddresses = [...addresses, newAddress];
       try {
+        console.log("Adding new address:", newAddress);
         const response = await updateUserAddresses(
           user.userId,
           updatedAddresses
@@ -117,32 +121,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const checkAndRefreshUser = async () => {
       const savedUser = localStorage.getItem("user");
-      if (savedUser) {
+      if (savedUser && !isLoadingAddresses) {
         try {
           setIsLoadingAddresses(true);
           const userData = JSON.parse(savedUser);
-          const loginResponse = await loginUserFromBackendServer(
-            "GMAIL",
-            userData.email
-          );
+          setInternalUser(userData);
 
-          if (!loginResponse.error && loginResponse.result) {
-            const updatedUser = {
-              ...userData,
-              userId: loginResponse.result._id,
-            };
-            setUser(updatedUser);
-
-            console.log("Fetching user details for:", loginResponse.result._id);
-            const userDetails = await getUserDetails(loginResponse.result._id);
-            if (
-              !userDetails.error &&
-              userDetails.result?.addresses?.length > 0
-            ) {
-              setInternalAddresses(userDetails.result.addresses);
-            }
+          // Always fetch fresh user details including addresses
+          const userDetails = await getUserDetails(userData.userId);
+          if (!userDetails.error && userDetails.result?.addresses?.length > 0) {
+            setInternalAddresses(userDetails.result.addresses);
           } else {
-            console.error("Failed to refresh user data");
+            setIsAddressModalOpen(true);
           }
         } catch (error) {
           console.error("Error refreshing user data:", error);
@@ -153,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     checkAndRefreshUser();
-  }, []);
+  }, []); // Empty dependency array since this should only run once on mount
 
   const setUser = (newUser: User | null) => {
     setInternalUser(newUser);
@@ -166,7 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleLogout = () => {
     setUser(null);
-    setAddresses([]);
+    setInternalAddresses([]);
     localStorage.removeItem("user");
   };
 
@@ -188,7 +178,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
