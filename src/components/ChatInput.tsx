@@ -1,5 +1,5 @@
 // src/components/ChatInput.tsx
-import React from "react";
+import React, { useRef } from "react";
 import { Send, ImageIcon, Leaf, Clock as Timer, Zap, Tag } from "lucide-react";
 
 interface ChatInputProps {
@@ -23,6 +23,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   placeholder = "Type a message...",
   showQuickActions = true,
 }) => {
+  const formRef = useRef<HTMLFormElement>(null);
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -31,8 +33,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   const handleQuickAction = (message: string) => {
     setInput(message);
-    const event = new Event("submit") as unknown as React.FormEvent;
-    onSubmit(event);
+    if (formRef.current) {
+      formRef.current.dispatchEvent(
+        new Event("submit", { cancelable: true, bubbles: true })
+      );
+    }
   };
 
   return (
@@ -59,7 +64,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             </button>
 
             <button
-              onClick={() => handleQuickAction("What are today's best offers?")}
+              onClick={() =>
+                handleQuickAction("What are most exciting options today?")
+              }
               className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
             >
               <Tag className="w-3.5 h-3.5" />
@@ -80,6 +87,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       </div>
 
       <form
+        ref={formRef}
         onSubmit={onSubmit}
         className="flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2"
       >
