@@ -44,7 +44,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div
-      className={`p-2 border-t border-white/200 bg-white/50 backdrop-blur-sm sticky bottom-0 ${className}`}
+      className={`p-2 border-t border-white/200 bg-white/50 backdrop-blur-sm fixed bottom-0 left-0 right-0 ${className}`}
     >
       <div className="w-full">
         {showQuickActions && !input && (

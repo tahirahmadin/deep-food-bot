@@ -611,22 +611,26 @@ export const DunkinOrderApp: React.FC = () => {
             onClose={hideToast}
           />
         )}
-        <Header
-          onOpenPanel={() => setIsPanelOpen(true)}
-          onCartClick={() => setIsCartOpen(!isCartOpen)}
-        />
-        <Filters />
+        <div className="flex-none">
+          <Header
+            onOpenPanel={() => setIsPanelOpen(true)}
+            onCartClick={() => setIsCartOpen(!isCartOpen)}
+          />
+          <Filters />
+        </div>
 
-        <ChatPanel
-          input={input}
-          setInput={setInput}
-          onSubmit={handleSubmit}
-          placeholder={getInputPlaceholder()}
-          onImageUpload={handleImageUpload}
-          isImageAnalyzing={isImageAnalyzing}
-          isLoading={state.isLoading}
-          queryType={state.currentQueryType}
-        />
+        <div className="flex-1 min-h-0 relative">
+          <ChatPanel
+            input={input}
+            setInput={setInput}
+            onSubmit={handleSubmit}
+            placeholder={getInputPlaceholder()}
+            onImageUpload={handleImageUpload}
+            isImageAnalyzing={isImageAnalyzing}
+            isLoading={state.isLoading}
+            queryType={state.currentQueryType}
+          />
+        </div>
         <CartSummary />
       </div>
 
