@@ -34,12 +34,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const handleQuickAction = (message: string) => {
-    setInput(message);
-    if (formRef.current) {
-      formRef.current.dispatchEvent(
-        new Event("submit", { cancelable: true, bubbles: true })
-      );
-    }
+    setInput(message); // Set the input value
+
+    // Use setTimeout to ensure the input value is set before submitting
+    setTimeout(() => {
+      if (formRef.current) {
+        const syntheticEvent = new SubmitEvent("submit", {
+          bubbles: true,
+          cancelable: true,
+        });
+
+        formRef.current.dispatchEvent(syntheticEvent);
+      }
+    }, 0);
   };
 
   return (

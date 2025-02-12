@@ -179,35 +179,39 @@ export const CustomizationModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center">
-      <div className="bg-white w-full max-w-lg rounded-t-xl sm:rounded-xl max-h-[80vh] overflow-y-auto">
+      <div className="bg-white w-full max-w-md rounded-t-xl sm:rounded-xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-white border-b p-4">
+        <div className="sticky top-0 z-10 bg-white border-b px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">{item.name}</h2>
-              <p className="text-sm text-gray-500">{item.price} AED</p>
+              <h2 className="text-base font-semibold text-gray-800">
+                {item.name}
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">{item.price} AED</p>
             </div>
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* Customization Options */}
-        <div className="p-4 space-y-6">
+        <div className="p-3 space-y-4">
           {item.customisation?.categories.map((category) => (
-            <div key={category._id} className="space-y-3">
+            <div key={category._id} className="space-y-2">
               <div className="flex justify-between items-center">
-                <h3 className="font-medium">
+                <h3 className="text-sm font-medium text-gray-800">
                   {category.categoryName}
                   {category.minQuantity > 0 && (
-                    <span className="text-xs text-red-500 ml-1">*Required</span>
+                    <span className="text-[10px] text-red-500 ml-1">
+                      *Required
+                    </span>
                   )}
                 </h3>
-                <span className="text-xs text-gray-500">
+                <span className="text-[10px] text-gray-500">
                   Select{" "}
                   {category.minQuantity === category.maxQuantity
                     ? category.minQuantity
@@ -215,7 +219,7 @@ export const CustomizationModal: React.FC = () => {
                 </span>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {category.items.map((option) => (
                   <label
                     key={option._id}
@@ -237,16 +241,18 @@ export const CustomizationModal: React.FC = () => {
                         onChange={() => handleOptionSelect(category, option)}
                         className="text-primary focus:ring-primary"
                       />
-                      <span className="font-medium">{option.name}</span>
+                      <span className="text-xs font-medium text-gray-800">
+                        {option.name}
+                      </span>
                     </div>
                     {option.price > 0 && (
-                      <span className="text-sm text-gray-600">
+                      <span className="text-xs text-gray-500">
                         +{option.price.toFixed(2)} AED
                       </span>
                     )}
                   </label>
                 ))}
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-[10px] text-gray-400">
                   {(selectedOptions[category.categoryName] || []).length} of{" "}
                   {category.maxQuantity} selected
                 </p>
@@ -256,33 +262,33 @@ export const CustomizationModal: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white border-t p-4">
+        <div className="sticky bottom-0 bg-white border-t px-4 py-3">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100"
               >
-                <Minus className="w-4 h-4" />
+                <Minus className="w-3.5 h-3.5" />
               </button>
-              <span className="text-xl font-semibold">{quantity}</span>
+              <span className="text-base font-semibold">{quantity}</span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total</p>
-              <p className="text-xl font-bold text-primary">
+              <p className="text-xs text-gray-500">Total</p>
+              <p className="text-base font-bold text-primary">
                 {calculateTotal()} AED
               </p>
             </div>
           </div>
           <button
             onClick={handleAddToCart}
-            className="w-full py-3 bg-primary text-white rounded-xl hover:bg-primary-600 transition-colors"
+            className="w-full py-2.5 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
           >
             Add to Cart
           </button>
