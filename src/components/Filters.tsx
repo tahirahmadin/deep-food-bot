@@ -77,7 +77,7 @@ export const Filters: React.FC = () => {
         "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop",
     },
     {
-      name: "Godden Ramsay",
+      name: "Gordon Ramsay",
       image:
         "https://img.delicious.com.au/D-EUAdrh/w759-h506-cfill/del/2017/06/gordon-ramsay-47340-2.jpg",
     },
