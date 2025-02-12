@@ -251,7 +251,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   return (
     <>
       <div
-        className={`flex-1 overflow-y-auto p-2 bg-white/30 backdrop-blur-sm scroll-smooth relative ${
+        className={`flex-1 overflow-y-auto p-2 bg-white/30 backdrop-blur-sm scroll-smooth relative h-0 ${
           state.mode === "browse" ? "hidden" : ""
         }`}
         ref={chatContainerRef}
@@ -371,7 +371,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       </div>
 
       {state.mode === "browse" && (
-        <div className="flex-1 flex bg-white/30 backdrop-blur-sm overflow-y-auto">
+        <div className="flex-1 flex bg-white/30 backdrop-blur-sm overflow-y-auto h-0">
           {!restaurantState.activeRestroId ? (
             // Restaurant List View
             <div className="flex-1 p-4">

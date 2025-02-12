@@ -44,11 +44,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div
-      className={`p-2 border-t border-white/200 bg-white/50 backdrop-blur-sm ${className}`}
+      className={`p-2 border-t border-white/200 bg-white/50 backdrop-blur-sm sticky bottom-0 ${className}`}
     >
       <div className="w-full">
         {showQuickActions && !input && (
-          <div className="grid grid-cols-2 gap-2 mb-2">
+          <div className="grid grid-cols-2 gap-2 mb-2 max-h-[120px] overflow-y-auto">
             <button
               onClick={() => handleQuickAction("Show me lunch combos")}
               className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"

@@ -602,8 +602,8 @@ export const DunkinOrderApp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[100vh] relative flex items-center justify-center bg-gray-50">
-      <div className="relative bg-[#FFF5F2] w-full h-[100vh] max-w-md overflow-hidden flex flex-col">
+    <div className="min-h-[100vh] h-[100vh] relative flex items-center justify-center bg-gray-50">
+      <div className="relative bg-[#FFF5F2] w-full h-full max-w-md flex flex-col">
         {toast.visible && (
           <Toast
             message={toast.message}
