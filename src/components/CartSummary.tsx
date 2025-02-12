@@ -3,11 +3,13 @@ import { ShoppingBag, Plus, Minus, X } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { getMenuByRestaurantId } from "../utils/menuUtils";
+import { useAuth } from "../context/AuthContext";
 
 export const CartSummary: React.FC = () => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState } = useRestaurant();
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const { isAuthenticated } = useAuth();
+  const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
   const [menuItems, setMenuItems] = React.useState<any[]>([]);
 
   const { dispatch: restaurantDispatch } = useRestaurant();
@@ -60,6 +62,18 @@ export const CartSummary: React.FC = () => {
   };
 
   const handleCheckout = () => {
+    if (!isAuthenticated) {
+      // Close cart and trigger sign in
+      setIsExpanded(false);
+      login();
+      return;
+    }
+
+    if (state.cart.length === 0) {
+      alert("Your cart is empty");
+      return;
+    }
+
     // Switch to chat mode if currently in browse mode
     if (state.mode === "browse") {
       dispatch({ type: "SET_MODE", payload: "chat" });

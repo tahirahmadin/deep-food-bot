@@ -3,6 +3,8 @@ import { ChatProvider } from "./context/ChatContext";
 import { WalletProvider } from "./context/WalletContext";
 import { RestaurantProvider } from "./context/RestaurantContext";
 import { AuthProvider } from "./context/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
+import { Toast } from "./components/Toast";
 import { DunkinOrderApp } from "./components/DunkinOrderApp";
 import { CustomizationModal } from "./components/CustumizationModal";
 import { AddressModal } from "./components/AddressModal";
@@ -20,19 +22,21 @@ export default function App() {
       }
     >
       <AuthProvider>
-        <WalletProvider>
-          <RestaurantProvider>
-            <FiltersProvider>
-              <ChatProvider>
-                <>
-                  <DunkinOrderApp />
-                  <CustomizationModal />
-                  <AddressModal />
-                </>
-              </ChatProvider>
-            </FiltersProvider>
-          </RestaurantProvider>
-        </WalletProvider>
+        <ToastProvider>
+          <WalletProvider>
+            <RestaurantProvider>
+              <FiltersProvider>
+                <ChatProvider>
+                  <>
+                    <DunkinOrderApp />
+                    <CustomizationModal />
+                    <AddressModal />
+                  </>
+                </ChatProvider>
+              </FiltersProvider>
+            </RestaurantProvider>
+          </WalletProvider>
+        </ToastProvider>
       </AuthProvider>
     </GoogleOAuthProvider>
   );

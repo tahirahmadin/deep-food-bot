@@ -100,8 +100,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
   const handleLoginClick = () => {
     setLoginError(null);
     setIsLoggingIn(true);
+    // After successful login, check if address needs to be added
     try {
-      login();
+      login().then(() => {
+        // Check if user needs to add address after login
+        if (addresses.length === 0) {
+          setIsAddressModalOpen(true);
+        }
+      });
     } catch (error) {
       console.error("Login error:", error);
       setLoginError("Failed to initialize login");

@@ -10,6 +10,7 @@ interface DeliveryFormProps {
 export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
   const { state, dispatch } = useChatContext();
   const {
+    isAuthenticated,
     user,
     addresses,
     setAddresses,
@@ -65,6 +66,25 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check authentication first
+    if (!isAuthenticated) {
+      login();
+      return;
+    }
+
+    // Validate address selection
+    if (addresses.length === 0) {
+      alert("Please add a delivery address to continue");
+      setIsAddressModalOpen(true);
+      return;
+    }
+
+    if (selectedAddressIndex === null) {
+      alert("Please select a delivery address");
+      return;
+    }
+
     dispatch({ type: "SET_CHECKOUT_STEP", payload: "payment" });
     onSubmit(e);
   };

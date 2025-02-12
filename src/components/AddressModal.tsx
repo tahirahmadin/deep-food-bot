@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, MapPin, Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 
 export const AddressModal: React.FC = () => {
   const {
@@ -11,6 +12,7 @@ export const AddressModal: React.FC = () => {
     setEditingAddress,
     addresses,
     setAddresses,
+    isAuthenticated,
   } = useAuth();
   const [name, setName] = useState("");
   const [addressName, setAddressName] = useState("");
@@ -22,6 +24,7 @@ export const AddressModal: React.FC = () => {
   } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (editingAddress) {
@@ -39,6 +42,16 @@ export const AddressModal: React.FC = () => {
       setCoordinates(null);
     }
   }, [editingAddress]);
+
+  const handleClose = () => {
+    setIsAddressModalOpen(false);
+    setEditingAddress(null);
+    setName("");
+    setAddressName("");
+    setAddress("");
+    setMobile("");
+    setCoordinates(null);
+  };
 
   const getCurrentLocation = () => {
     setIsLoadingLocation(true);
@@ -92,6 +105,11 @@ export const AddressModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      alert("Please sign in first to save your address.");
+      return;
+    }
+
     const newAddress = {
       name,
       address,
@@ -100,16 +118,26 @@ export const AddressModal: React.FC = () => {
       coordinates: coordinates || undefined,
     };
 
-    if (editingAddress) {
+    if (editingAddress && addresses) {
       // Update existing address
       const updatedAddresses = addresses.map((addr, index) =>
         index === editingAddress.index ? newAddress : addr
       );
-      await setAddresses(updatedAddresses);
+      const success = await setAddresses(updatedAddresses);
+      if (success) {
+        showToast("Address updated successfully");
+      } else {
+        showToast("Failed to update address", "error");
+      }
       setEditingAddress(null);
     } else {
       // Add new address
-      await addNewAddress(newAddress);
+      const success = await addNewAddress(newAddress);
+      if (success) {
+        showToast("Address saved successfully");
+      } else {
+        showToast("Failed to save address", "error");
+      }
     }
 
     setName("");
@@ -129,12 +157,14 @@ export const AddressModal: React.FC = () => {
       <div className="px-4 py-2 flex justify-between items-center border-b">
         <h2 className="text-lg font-semibold">
           {editingAddress ? "Edit Address" : "Add New Address"}
+          {!isAuthenticated && (
+            <span className="text-xs text-red-500 block mt-1">
+              Sign in required to save address
+            </span>
+          )}
         </h2>
         <button
-          onClick={() => {
-            setIsAddressModalOpen(false);
-            setEditingAddress(null);
-          }}
+          onClick={handleClose}
           className="p-2 hover:bg-gray-200 rounded-full"
         >
           <X className="w-5 h-5 text-gray-500" />
@@ -217,10 +247,8 @@ export const AddressModal: React.FC = () => {
         </div>
         <div className="p-4 border-t flex gap-2">
           <button
-            onClick={() => {
-              setIsAddressModalOpen(false);
-              setEditingAddress(null);
-            }}
+            type="button"
+            onClick={handleClose}
             className="flex-1 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
           >
             Cancel

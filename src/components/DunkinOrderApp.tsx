@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useChatContext } from "../context/ChatContext";
 import { ChatService } from "../services/chatService";
 import { Header } from "./Header";
+import { useToast } from "../context/ToastContext";
+import { Toast } from "./Toast";
 import { Filters } from "./Filters";
 import { ChatPanel } from "./ChatPanel";
 import { SlidePanel } from "./SlidePanel";
@@ -17,6 +19,7 @@ import { useFiltersContext } from "../context/FiltersContext";
 import { getMenuByRestaurantId } from "../utils/menuUtils";
 
 export const DunkinOrderApp: React.FC = () => {
+  const { toast, hideToast } = useToast();
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setRestaurants } = useRestaurant();
   const { user, setUser, isAuthenticated } = useAuth();
@@ -601,6 +604,13 @@ export const DunkinOrderApp: React.FC = () => {
   return (
     <div className="min-h-[100vh] relative flex items-center justify-center bg-gray-50">
       <div className="relative bg-[#FFF5F2] w-full h-[100vh] max-w-md overflow-hidden flex flex-col">
+        {toast.visible && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={hideToast}
+          />
+        )}
         <Header
           onOpenPanel={() => setIsPanelOpen(true)}
           onCartClick={() => setIsCartOpen(!isCartOpen)}

@@ -1,6 +1,7 @@
 // src/components/ChatInput.tsx
 import React, { useRef } from "react";
 import { Send, ImageIcon, Leaf, Clock as Timer, Zap, Tag } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 interface ChatInputProps {
   input: string;
@@ -23,6 +24,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   placeholder = "Type a message...",
   showQuickActions = true,
 }) => {
+  const { addresses } = useAuth();
   const formRef = useRef<HTMLFormElement>(null);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,14 +91,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       <form
         ref={formRef}
         onSubmit={onSubmit}
-        className="flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2"
+        className={`flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2 ${
+          addresses.length === 0 ? "opacity-50 pointer-events-none" : ""
+        }`}
       >
         <input
           type="text"
           placeholder="Ask here..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          disabled={isLoading}
+          disabled={isLoading || addresses.length === 0}
           className="flex-1 bg-transparent focus:outline-none placeholder:text-gray-400 text-[16px]" // Ensure font size is 16px
         />
         <label className="cursor-pointer p-1 text-gray-400 hover:text-gray-600">
@@ -104,11 +108,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
+            disabled={addresses.length === 0}
             className="hidden"
           />
           <ImageIcon className="w-5 h-5" />
         </label>
-        <button type="submit" className="p-1 text-gray-400 hover:text-gray-600">
+        <button
+          type="submit"
+          className="p-1 text-gray-400 hover:text-gray-600"
+          disabled={addresses.length === 0}
+        >
           <Send className="w-5 h-5" />
         </button>
       </form>

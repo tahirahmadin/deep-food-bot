@@ -10,7 +10,7 @@ interface User {
   email: string;
   name: string;
   picture: string;
-  userId?: string; // Add userId to User interface
+  userId?: string;
 }
 
 interface Address {
@@ -36,8 +36,8 @@ interface AuthContextType {
       lat: number;
       lng: number;
     };
-  }) => Promise<void>;
-  removeAddress: (index: number) => Promise<void>;
+  }) => Promise<boolean>;
+  removeAddress: (index: number) => Promise<boolean>;
   isLoadingAddresses: boolean;
   isAddressModalOpen: boolean;
   setIsAddressModalOpen: (isOpen: boolean) => void;
@@ -70,27 +70,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const addNewAddress = async (newAddress: Address) => {
+  const addNewAddress = async (newAddress: Address): Promise<boolean> => {
     if (user?.userId) {
       const updatedAddresses = [...addresses, newAddress];
-      const response = await updateUserAddresses(user.userId, updatedAddresses);
-      if (!response.error) {
-        setInternalAddresses(updatedAddresses);
+      try {
+        const response = await updateUserAddresses(
+          user.userId,
+          updatedAddresses
+        );
+        if (!response.error) {
+          setInternalAddresses(updatedAddresses);
+          return true;
+        }
+        throw new Error("Failed to update addresses");
+      } catch (error) {
+        console.error("Error saving address:", error);
+        return false;
       }
     }
+    console.error("No user ID available");
+    return false;
   };
 
-  const removeAddress = async (index: number) => {
+  const removeAddress = async (index: number): Promise<boolean> => {
     if (user?.userId) {
       const updatedAddresses = addresses.filter((_, i) => i !== index);
-      const response = await updateUserAddresses(user.userId, updatedAddresses);
-      if (!response.error) {
-        setInternalAddresses(updatedAddresses);
+      try {
+        const response = await updateUserAddresses(
+          user.userId,
+          updatedAddresses
+        );
+        if (!response.error) {
+          setInternalAddresses(updatedAddresses);
+          return true;
+        }
+        throw new Error("Failed to remove address");
+      } catch (error) {
+        console.error("Error removing address:", error);
+        return false;
       }
     }
+    console.error("No user ID available");
+    return false;
   };
 
-  // Load user data and addresses on mount
   useEffect(() => {
     const checkAndRefreshUser = async () => {
       const savedUser = localStorage.getItem("user");
@@ -98,14 +121,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
           setIsLoadingAddresses(true);
           const userData = JSON.parse(savedUser);
-          // Call backend login to get latest _id
           const loginResponse = await loginUserFromBackendServer(
             "GMAIL",
             userData.email
           );
 
           if (!loginResponse.error && loginResponse.result) {
-            // Update user with latest data from backend
             const updatedUser = {
               ...userData,
               userId: loginResponse.result._id,
@@ -113,7 +134,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setUser(updatedUser);
 
             console.log("Fetching user details for:", loginResponse.result._id);
-            // Fetch user details including addresses
             const userDetails = await getUserDetails(loginResponse.result._id);
             if (
               !userDetails.error &&
@@ -123,8 +143,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             }
           } else {
             console.error("Failed to refresh user data");
-            // Optionally handle login failure
-            // handleLogout();
           }
         } catch (error) {
           console.error("Error refreshing user data:", error);
@@ -135,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     checkAndRefreshUser();
-  }, []); // Run once on mount
+  }, []);
 
   const setUser = (newUser: User | null) => {
     setInternalUser(newUser);
