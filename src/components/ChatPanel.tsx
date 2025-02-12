@@ -231,7 +231,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             </div>
           </div>
         )}
-        {console.log(addresses)}
+
         {isAuthenticated && addresses.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">
             <div className="bg-white p-6 rounded-xl shadow-lg max-w-sm w-full mx-4 text-center">

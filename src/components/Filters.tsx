@@ -16,6 +16,7 @@ import { useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
+import { RestaurantChangeModal } from "./RestaurantChangeModal";
 
 export const Filters: React.FC = () => {
   const {
@@ -40,6 +41,8 @@ export const Filters: React.FC = () => {
   const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState<number>(0);
   const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
+  const [isChangeRestaurantModalOpen, setIsChangeRestaurantModalOpen] =
+    useState(false);
   const { setAddresses } = useAuth();
 
   // Set initial selected address to first address if available
@@ -77,15 +80,30 @@ export const Filters: React.FC = () => {
         "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop",
     },
     {
-      name: "Gordon Ramsay",
+      name: "Godden Ramsay",
       image:
         "https://img.delicious.com.au/D-EUAdrh/w759-h506-cfill/del/2017/06/gordon-ramsay-47340-2.jpg",
     },
   ];
 
   const handleClearRestaurant = () => {
+    if (restaurantState.activeRestroId) {
+      // If there are items in the cart, show confirmation
+      if (state.cart.length > 0) {
+        setIsChangeRestaurantModalOpen(true);
+      } else {
+        // If cart is empty, just clear restaurant selection
+        dispatch({ type: "SET_SELECTED_RESTAURANT", payload: null });
+        setActiveRestaurant(null);
+      }
+    }
+  };
+
+  const handleConfirmRestaurantChange = () => {
+    dispatch({ type: "CLEAR_CART" });
     dispatch({ type: "SET_SELECTED_RESTAURANT", payload: null });
     setActiveRestaurant(null);
+    setIsChangeRestaurantModalOpen(false);
   };
 
   return (
@@ -239,6 +257,12 @@ export const Filters: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <RestaurantChangeModal
+        isOpen={isChangeRestaurantModalOpen}
+        onClose={() => setIsChangeRestaurantModalOpen(false)}
+        onConfirm={handleConfirmRestaurantChange}
+      />
 
       {/* Navigation Section */}
       <div className="flex justify-between items-center gap-4 mt-2 border-t border-gray-100 pt-2">

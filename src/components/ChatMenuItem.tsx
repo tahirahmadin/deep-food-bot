@@ -1,6 +1,7 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
+import { CartChangeModal } from "./CartChangeModal";
 import { useRestaurant } from "../context/RestaurantContext";
 import * as menuUtils from "../utils/menuUtils";
 
@@ -29,18 +30,22 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
 }) => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setActiveRestaurant } = useRestaurant();
+  const [isCartChangeModalOpen, setIsCartChangeModalOpen] =
+    React.useState(false);
+  const [restaurantName, setRestaurantName] = React.useState("");
 
   // Check if item is in cart
   const cartItem = state.cart.find((item) => item.id === id);
   const isInCart = Boolean(cartItem);
 
-  // Get restaurant name from restaurant state
-  const getRestaurantName = () => {
-    const restaurant = restaurantState.restaurants.find(
-      (r) => r.id === restroId
+  // Get and set restaurant name when component mounts or restroId changes
+  React.useEffect(() => {
+    const name = menuUtils.getRestaurantNameById(
+      restaurantState.restaurants,
+      restroId
     );
-    return restaurant?.name || "Unknown Restaurant";
-  };
+    setRestaurantName(name);
+  }, [restroId, restaurantState.restaurants]);
 
   const handleSelectRestro = (restroId: number) => {
     // If clicking on already active restaurant, clear selection
@@ -61,29 +66,13 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
   };
 
   const handleAddToCart = () => {
-    const restaurantName = menuUtils.getRestaurantNameById(
-      restaurantState.restaurants,
-      restroId
-    );
-
     // Check if cart has items from a different restaurant
     const cartRestaurant = state.cart[0]?.restaurant;
 
     // If cart is not empty and has items from a different restaurant
     if (cartRestaurant && cartRestaurant !== restaurantName) {
-      if (
-        window.confirm(
-          `Your cart contains items from ${cartRestaurant}. Would you like to clear your cart and add items from ${restaurantName} instead?`
-        )
-      ) {
-        dispatch({ type: "CLEAR_CART" });
-        // Update selected restaurant
-        dispatch({ type: "SET_SELECTED_RESTAURANT", payload: restaurantName });
-        // Then proceed with adding the new item
-      } else {
-        // User declined to clear cart, so don't add the item
-        return;
-      }
+      setIsCartChangeModalOpen(true);
+      return;
     }
 
     if (isCustomisable && customisation) {
@@ -112,36 +101,56 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
     handleSelectRestro(restroId);
   };
 
-  console.log("restaurantName");
-  console.log(state.selectedRestaurant);
-  console.log(restaurantState.activeRestroId);
-  return (
-    <div className="bg-[#F9FAFB] rounded-lg shadow-sm overflow-hidden flex flex-col w-[80px]">
-      <div className=" w-full relative">
-        <img
-          src={image || "https://via.placeholder.com/100"}
-          alt={name}
-          className="w-full h-[55px] object-cover"
-        />
-        <button
-          onClick={handleAddToCart}
-          className={`absolute bottom-1 right-1 p-1 rounded-full transition-all ${
-            isInCart
-              ? "bg-primary text-white hover:bg-primary-600 shadow-sm"
-              : "bg-white text-primary hover:bg-primary-50"
-          }`}
-        >
-          <Plus className="w-3 h-3" />
-        </button>
-      </div>
+  const handleCartChange = () => {
+    dispatch({ type: "CLEAR_CART" });
+    dispatch({ type: "SET_SELECTED_RESTAURANT", payload: restaurantName });
+    dispatch({
+      type: "ADD_TO_CART",
+      payload: { id, name, price, quantity: 1, restaurant: restaurantName },
+    });
+    handleSelectRestro(restroId);
+    setIsCartChangeModalOpen(false);
+  };
 
-      {/* Content Container */}
-      <div className="p-1.5 flex flex-col">
-        <h3 className="text-[9px] font-medium text-gray-800 line-clamp-2 min-h-[1.5rem]">
-          {name}
-        </h3>
-        <p className="text-primary font-bold text-[8px]">{price} AED</p>
+  const handleCloseModal = () => {
+    setIsCartChangeModalOpen(false);
+  };
+  return (
+    <>
+      <div className="bg-[#F9FAFB] rounded-lg shadow-sm overflow-hidden flex flex-col w-[80px]">
+        <div className=" w-full relative">
+          <img
+            src={image || "https://via.placeholder.com/100"}
+            alt={name}
+            className="w-full h-[55px] object-cover"
+          />
+          <button
+            onClick={handleAddToCart}
+            className={`absolute bottom-1 right-1 p-1 rounded-full transition-all ${
+              isInCart
+                ? "bg-primary text-white hover:bg-primary-600 shadow-sm"
+                : "bg-white text-primary hover:bg-primary-50"
+            }`}
+          >
+            <Plus className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Content Container */}
+        <div className="p-1.5 flex flex-col">
+          <h3 className="text-[9px] font-medium text-gray-800 line-clamp-2 min-h-[1.5rem]">
+            {name}
+          </h3>
+          <p className="text-primary font-bold text-[8px]">{price} AED</p>
+        </div>
       </div>
-    </div>
+      <CartChangeModal
+        isOpen={isCartChangeModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleCartChange}
+        currentRestaurant={state.cart[0]?.restaurant || ""}
+        newRestaurant={restaurantName}
+      />
+    </>
   );
 };

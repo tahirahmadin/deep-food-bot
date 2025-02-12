@@ -77,7 +77,6 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  console.log(orders);
   return (
     <>
       <div
