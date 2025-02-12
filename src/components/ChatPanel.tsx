@@ -144,41 +144,41 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   //   }
   // }, [state.messages]);
 
-  const cleanMessages = useMemo(() => {
-    if (state.messages?.length > 0) {
-      let result = state.messages.map((message) => {
-        if (message.isBot && message.text) {
-          try {
-            // Parse the text field into JSON
-            return {
-              id: message.id,
-              isBot: message.isBot,
-              time: message.time,
-              restroIds: message.restroIds,
-              text: message.text,
-              queryType: message.queryType,
-              structuredText: {
-                text: message.text.text,
-                items1: message.text.items1,
-                items2: message.text.items2,
-              },
-            };
-          } catch (error) {
-            console.log("Failed to parse message as JSON:", error);
-            return message;
-          }
-          // If JSON parsing fails or validation fails, return the original message
-          return message;
-        } else {
-          return message;
-        }
-      });
+  // const cleanMessages = useMemo(() => {
+  //   if (state.messages?.length > 0) {
+  //     let result = state.messages.map((message) => {
+  //       if (message.isBot && message.text) {
+  //         try {
+  //           // Parse the text field into JSON
+  //           return {
+  //             id: message.id,
+  //             isBot: message.isBot,
+  //             time: message.time,
+  //             restroIds: message.restroIds,
+  //             text: message.text,
+  //             queryType: message.queryType,
+  //             structuredText: {
+  //               text: message.text.text,
+  //               items1: message.text.items1,
+  //               items2: message.text.items2,
+  //             },
+  //           };
+  //         } catch (error) {
+  //           console.log("Failed to parse message as JSON:", error);
+  //           return message;
+  //         }
+  //         // If JSON parsing fails or validation fails, return the original message
+  //         return message;
+  //       } else {
+  //         return message;
+  //       }
+  //     });
 
-      return result;
-    } else {
-      return [];
-    }
-  }, [state.messages]);
+  //     return result;
+  //   } else {
+  //     return [];
+  //   }
+  // }, [state.messages]);
 
   // Handle submit and pass serialized memory
   const handleSubmit = (e: React.FormEvent) => {
@@ -218,13 +218,21 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
         {isImageAnalyzing && (
           <div className="flex items-center space-x-2 text-gray-500">
-            <span className="font-sans animate-pulse inline-block ml-4" style={{ transform: 'skew(-10deg)' }}>Analyzing image</span>
+            <span
+              className="font-sans animate-pulse inline-block ml-4"
+              style={{ transform: "skew(-10deg)" }}
+            >
+              Analyzing image
+            </span>
             <div className="flex space-x-1">
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
                   className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-                  style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.6s' }}
+                  style={{
+                    animationDelay: `${i * 0.15}s`,
+                    animationDuration: "0.6s",
+                  }}
                 ></div>
               ))}
             </div>

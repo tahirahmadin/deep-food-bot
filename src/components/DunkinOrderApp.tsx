@@ -112,7 +112,6 @@ export const DunkinOrderApp: React.FC = () => {
         parsedResponse = { text: "I couldn’t process the image.", items: [] };
       }
 
-
       // Dispatch bot response
       dispatch({
         type: "ADD_MESSAGE",
@@ -146,7 +145,7 @@ export const DunkinOrderApp: React.FC = () => {
           queryType: QueryType.GENERAL,
         },
       });
-    }finally {
+    } finally {
       setIsImageAnalyzing(false);
     }
   };
@@ -462,8 +461,7 @@ export const DunkinOrderApp: React.FC = () => {
         const parsedMenuResponse = JSON.parse(
           menuResponse.data.choices[0].message.content
         );
-        console.log("parsedMenuResponse");
-        console.log(parsedMenuResponse);
+
         dispatch({
           type: "ADD_MESSAGE",
           payload: {
