@@ -65,29 +65,33 @@ export const DunkinOrderApp: React.FC = () => {
     });
 
     try {
-      // Analyze image using OpenAI
       const imageDescription = await imageService.analyzeImage(file);
-
+      const { restaurants } = restaurantState;
       const prompt = `
       You are a menu recommendation system.
-      Given the following menu items: ${JSON.stringify(menuItems)},
-      analyze the image description: "${imageDescription}"
+
+      Here are the only restaurants you can recommend:
+      ${JSON.stringify(restaurants)}
+
+      Here are the only menu items you can recommend (each with a restaurantId):
+      ${JSON.stringify(menuItems)}
+
+      Analyze the image description: "${imageDescription}"
       and return exactly one JSON object:
       {
         "text": "",
-        "restroIds": []
+        "restroIds": [],
       }
-    where:
-      - "text" is a short, relevant response.
-      - "restroIds" is an array of up to 2 matching restaurant IDs (numeric).
-
-    STRICT FORMAT RULES:
-      - Return only a valid JSON object with no extra text, explanations, or markdown.
-      - No code fences, no trailing commas, no disclaimers.
-      - Only return a valid JSON object, nothing else.
+      Where:
+      - "text" is a short, relevant response about recommended foods from these restaurants and why it was recommended based on image.
+      - "restroIds" is an array (up to 2) of the restaurant IDs you choose from the above list.
+      - NO invented restaurants or items. Only use what's in the above data.
+      
+      STRICT FORMAT RULES:
+      - Return ONLY a valid JSON object. No code fences, disclaimers, or extra text.
     `;
 
-      const response = await axios.post(
+      const pickResp = await axios.post(
         OPENAI_API_URL,
         {
           model: "gpt-4o-mini",
@@ -101,25 +105,80 @@ export const DunkinOrderApp: React.FC = () => {
           },
         }
       );
-      const rawAIResponse = response.data.choices[0].message.content;
-      const sanitizedAIResponse = rawAIResponse.replace(/```(\w+)?/g, "");
 
-      let parsedResponse;
+      let pickParsed;
       try {
-        parsedResponse = JSON.parse(sanitizedAIResponse);
-      } catch (error) {
-        console.error("Failed to parse AI response:", error);
-        parsedResponse = { text: "I couldn’t process the image.", items: [] };
+        pickParsed = JSON.parse(pickResp.data.choices[0].message.content || "{}");
+      } catch (err) {
+        pickParsed = { text: "Couldn’t parse restaurant picks", restroIds: [] };
       }
-
-      // Dispatch bot response
+      const suggestRestroIds = pickParsed.restroIds || [];
+      let restaurant1Menu: any[] = [];
+      let restaurant2Menu: any[] = [];
+  
+      if (suggestRestroIds.length >= 1) {
+        restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
+      }
+      if (suggestRestroIds.length >= 2) {
+        restaurant2Menu = await getMenuItemsByFile(suggestRestroIds[1]);
+      }
+  
+      const twoMenusPrompt = `
+        You are a menu recommendation system.
+        
+        We have two restaurants:
+        - Restaurant #${suggestRestroIds[0]}: ${JSON.stringify(restaurant1Menu)} 
+        - Restaurant #${suggestRestroIds[1]}: ${JSON.stringify(restaurant2Menu)}
+        
+        Analyze the same image description: "${imageDescription}"
+        Return exactly one JSON:
+        {
+          "text": "",
+          "items1": [],
+          "items2": []
+        }
+        Where:
+        - "text" is a short, clever and funny response about recommended foods from these restaurants and why it was recommended based on image in 10-15 words.
+        - "items1": up to 3 items (id/name) from Restaurant #${suggestRestroIds[0]}'s array
+        - "items2": up to 3 items from Restaurant #${suggestRestroIds[1]}'s array.
+        - If we only have one recommended restaurant, keep items2 = []
+        - No invented items. Only use the arrays we gave you.
+        - If nothing is relevant, keep items1 and items2 empty but still fill "text".
+        - NO invented restaurants or items. Only use what's in the above data.
+        
+        STRICT FORMAT RULES:
+        - Only valid JSON. No code fences or disclaimers.
+        `;
+      const twoMenusResp = await axios.post(
+        OPENAI_API_URL,
+        {
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: twoMenusPrompt }],
+          max_tokens: 1000,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${OPENAI_KEY}`,
+          },
+        }
+      );
+  
+      let itemsParsed;
+      try {
+        itemsParsed = JSON.parse(twoMenusResp.data.choices[0].message.content || "{}");
+      } catch (err) {
+        itemsParsed = { text: "Couldn’t parse items", items1: [], items2: [] };
+      }
+  
       dispatch({
         type: "ADD_MESSAGE",
         payload: {
-          id: Date.now() + 1,
-          text: parsedResponse.text,
+          id: Date.now() + 2,
+          text: itemsParsed.text || "No items found",
           llm: {
-            output: parsedResponse,
+            output: itemsParsed,         
+            restroIds: suggestRestroIds, 
           },
           isBot: true,
           time: new Date().toLocaleString("en-US", {
@@ -131,11 +190,12 @@ export const DunkinOrderApp: React.FC = () => {
         },
       });
     } catch (error) {
+      console.error("Image handle error:", error);
       dispatch({
         type: "ADD_MESSAGE",
         payload: {
-          id: Date.now() + 1,
-          text: "Sorry, I couldn't analyze the image.",
+          id: Date.now() + 999,
+          text: "Sorry, I couldn't analyze the image or fetch items.",
           isBot: true,
           time: new Date().toLocaleString("en-US", {
             hour: "numeric",
