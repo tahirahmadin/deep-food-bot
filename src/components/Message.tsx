@@ -219,27 +219,27 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
     }
   };
 
-  if (message.text && isError && message.isBot) {
-    return (
-      <div className="mb-4 flex justify-start">
-        <div className="max-w-[90%] rounded-2xl p-3 bg-red-50 text-red-700">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 mt-1 flex-shrink-0" />
-            <p>{message.text}</p>
-          </div>
-          <span className="text-xs text-gray-500 mt-1 block">
-            {message.time}
-          </span>
-          <button
-            onClick={onRetry}
-            className="mt-2 text-sm text-orange-500 hover:text-orange-600 transition-colors"
-          >
-            Try again
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // if (message.text && isError && message.isBot) {
+  //   return (
+  //     <div className="mb-4 flex justify-start">
+  //       <div className="max-w-[90%] rounded-2xl p-3 bg-red-50 text-red-700">
+  //         <div className="flex items-start gap-2">
+  //           <AlertTriangle className="w-4 h-4 mt-1 flex-shrink-0" />
+  //           <p>{message.text}</p>
+  //         </div>
+  //         <span className="text-xs text-gray-500 mt-1 block">
+  //           {message.time}
+  //         </span>
+  //         <button
+  //           onClick={onRetry}
+  //           className="mt-2 text-sm text-orange-500 hover:text-orange-600 transition-colors"
+  //         >
+  //           Try again
+  //         </button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div

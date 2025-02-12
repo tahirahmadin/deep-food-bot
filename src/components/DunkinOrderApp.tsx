@@ -25,6 +25,7 @@ export const DunkinOrderApp: React.FC = () => {
   const [input, setInput] = useState("");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isImageAnalyzing, setIsImageAnalyzing] = useState(false);
 
   // Reset UI states when auth state changes
   useEffect(() => {
@@ -44,6 +45,7 @@ export const DunkinOrderApp: React.FC = () => {
   const imageService = new ImageService();
 
   const handleImageUpload = async (file: File) => {
+    setIsImageAnalyzing(true);
     // Create local image URL and dispatch user message
     const imageUrl = URL.createObjectURL(file);
     dispatch({
@@ -66,31 +68,60 @@ export const DunkinOrderApp: React.FC = () => {
       // Analyze image using OpenAI
       const imageDescription = await imageService.analyzeImage(file);
 
-      const prompt = `Here is the menu data: ${JSON.stringify(
-        menuItems
-      )}. Based on this image description: "${imageDescription}". Return the response in the format { "text": "", "items": [{ id: number, name: string, price: string }] }, where "text" is a summary and "items" is an array of matching menu items with only id, name, and price. Include a maximum of 6 items and minimum 2 items - but be flexible with items count based on requirements. Do not include any additional text or explanations.`;
+      const prompt = `
+      You are a menu recommendation system.
+      Given the following menu items: ${JSON.stringify(menuItems)},
+      analyze the image description: "${imageDescription}"
+      and return exactly one JSON object:
+      {
+        "text": "",
+        "restroIds": []
+      }
+    where:
+      - "text" is a short, relevant response.
+      - "restroIds" is an array of up to 2 matching restaurant IDs (numeric).
+
+    STRICT FORMAT RULES:
+      - Return only a valid JSON object with no extra text, explanations, or markdown.
+      - No code fences, no trailing commas, no disclaimers.
+      - Only return a valid JSON object, nothing else.
+    `;
 
       const response = await axios.post(
-        DEEPSEEK_API_URL,
+        OPENAI_API_URL,
         {
-          model: "deepseek-chat",
+          model: "gpt-4o-mini",
           messages: [{ role: "user", content: prompt }],
-          max_tokens: 2000,
+          max_tokens: 1000,
         },
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${API_KEY}`,
+            Authorization: `Bearer ${OPENAI_KEY}`,
           },
         }
       );
+      const rawAIResponse = response.data.choices[0].message.content;
+      const sanitizedAIResponse = rawAIResponse.replace(/```(\w+)?/g, "");
+
+      let parsedResponse;
+      try {
+        parsedResponse = JSON.parse(sanitizedAIResponse);
+      } catch (error) {
+        console.error("Failed to parse AI response:", error);
+        parsedResponse = { text: "I couldn’t process the image.", items: [] };
+      }
+
 
       // Dispatch bot response
       dispatch({
         type: "ADD_MESSAGE",
         payload: {
           id: Date.now() + 1,
-          text: response.data.choices[0].message.content,
+          text: parsedResponse.text,
+          llm: {
+            output: parsedResponse,
+          },
           isBot: true,
           time: new Date().toLocaleString("en-US", {
             hour: "numeric",
@@ -115,6 +146,8 @@ export const DunkinOrderApp: React.FC = () => {
           queryType: QueryType.GENERAL,
         },
       });
+    }finally {
+      setIsImageAnalyzing(false);
     }
   };
 
@@ -316,14 +349,22 @@ export const DunkinOrderApp: React.FC = () => {
       if (!activeRestroId) {
         // SYSTEM PROMPT: Get recommended restaurants based on user query
         const systemPrompt = `
-          You are a restaurant recommendation system. 
-          Given the following restaurants: ${JSON.stringify(restaurants)}, 
-          analyze the user's query: "${input}" 
-          and return a JSON response: { "text": "", "restroIds": [] } 
+          You are a restaurant recommendation system.
+          Given the following restaurants: ${JSON.stringify(restaurants)},
+          analyze the user's query: "${input}"
+          and return exactly one JSON object:
+            {
+              "text": "",
+              "restroIds": []
+            }
           where:
             - "text" is a short, relevant response.
-            - "restroIds" is an array of up to 2 matching restaurant IDs.
-          STRICT FORMAT: No extra text, no explanations.
+            - "restroIds" is an array of up to 2 matching restaurant IDs (numeric).
+
+          STRICT FORMAT RULES:
+            - Return only a valid JSON object with no extra text, explanations, or markdown.
+            - No code fences, no trailing commas, no disclaimers.
+            - Only return a valid JSON object, nothing else.
         `;
 
         const response = await axios.post(
@@ -504,6 +545,7 @@ export const DunkinOrderApp: React.FC = () => {
           onSubmit={handleSubmit}
           placeholder={getInputPlaceholder()}
           onImageUpload={handleImageUpload}
+          isImageAnalyzing={isImageAnalyzing}
           isLoading={state.isLoading}
           queryType={state.currentQueryType}
         />

@@ -16,6 +16,7 @@ interface ChatPanelProps {
   onSubmit: (e: React.FormEvent) => void;
   placeholder: string;
   onImageUpload: (file: File) => void;
+  isImageAnalyzing: boolean;
   isLoading?: boolean;
   queryType?: string;
 }
@@ -25,6 +26,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   setInput,
   onSubmit,
   onImageUpload,
+  isImageAnalyzing,
   placeholder,
   isLoading = false,
 }) => {
@@ -213,6 +215,21 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         {state.messages.map((message) => (
           <Message key={message.id} message={message} onRetry={() => {}} />
         ))}
+
+        {isImageAnalyzing && (
+          <div className="flex items-center space-x-2 text-gray-500">
+            <span className="font-sans animate-pulse inline-block ml-4" style={{ transform: 'skew(-10deg)' }}>Analyzing image</span>
+            <div className="flex space-x-1">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                  style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.6s' }}
+                ></div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {state.isLoading && (
           <div className="flex items-center space-x-2 text-gray-500">
