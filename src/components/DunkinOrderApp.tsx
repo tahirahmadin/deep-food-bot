@@ -108,26 +108,30 @@ export const DunkinOrderApp: React.FC = () => {
 
       let pickParsed;
       try {
-        pickParsed = JSON.parse(pickResp.data.choices[0].message.content || "{}");
+        pickParsed = JSON.parse(
+          pickResp.data.choices[0].message.content || "{}"
+        );
       } catch (err) {
         pickParsed = { text: "Couldn’t parse restaurant picks", restroIds: [] };
       }
       const suggestRestroIds = pickParsed.restroIds || [];
       let restaurant1Menu: any[] = [];
       let restaurant2Menu: any[] = [];
-  
+
       if (suggestRestroIds.length >= 1) {
         restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
       }
       if (suggestRestroIds.length >= 2) {
         restaurant2Menu = await getMenuItemsByFile(suggestRestroIds[1]);
       }
-  
+
       const twoMenusPrompt = `
         You are a menu recommendation system.
         
         We have two restaurants:
-        - Restaurant #${suggestRestroIds[0]}: ${JSON.stringify(restaurant1Menu)} 
+        - Restaurant #${suggestRestroIds[0]}: ${JSON.stringify(
+        restaurant1Menu
+      )} 
         - Restaurant #${suggestRestroIds[1]}: ${JSON.stringify(restaurant2Menu)}
         
         Analyze the same image description: "${imageDescription}"
@@ -139,8 +143,12 @@ export const DunkinOrderApp: React.FC = () => {
         }
         Where:
         - "text" is a short, clever and funny response about recommended foods from these restaurants and why it was recommended based on image in 10-15 words.
-        - "items1": up to 3 items (id/name) from Restaurant #${suggestRestroIds[0]}'s array
-        - "items2": up to 3 items from Restaurant #${suggestRestroIds[1]}'s array.
+        - "items1": up to 3 items (id/name) from Restaurant #${
+          suggestRestroIds[0]
+        }'s array
+        - "items2": up to 3 items from Restaurant #${
+          suggestRestroIds[1]
+        }'s array.
         - If we only have one recommended restaurant, keep items2 = []
         - No invented items. Only use the arrays we gave you.
         - If nothing is relevant, keep items1 and items2 empty but still fill "text".
@@ -163,22 +171,24 @@ export const DunkinOrderApp: React.FC = () => {
           },
         }
       );
-  
+
       let itemsParsed;
       try {
-        itemsParsed = JSON.parse(twoMenusResp.data.choices[0].message.content || "{}");
+        itemsParsed = JSON.parse(
+          twoMenusResp.data.choices[0].message.content || "{}"
+        );
       } catch (err) {
         itemsParsed = { text: "Couldn’t parse items", items1: [], items2: [] };
       }
-  
+
       dispatch({
         type: "ADD_MESSAGE",
         payload: {
           id: Date.now() + 2,
           text: itemsParsed.text || "No items found",
           llm: {
-            output: itemsParsed,         
-            restroIds: suggestRestroIds, 
+            output: itemsParsed,
+            restroIds: suggestRestroIds,
           },
           isBot: true,
           time: new Date().toLocaleString("en-US", {

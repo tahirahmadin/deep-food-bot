@@ -241,7 +241,9 @@ export const Filters: React.FC = () => {
         <button
           onClick={handleClearRestaurant}
           className={`flex items-center gap-1 ${
-            !restaurantState.activeRestroId ? "text-primary" : "text-gray-400"
+            !restaurantState.activeRestroId
+              ? "text-primary"
+              : "text-gray-100 px-2 py-0.5 bg-blue-600 rounded-full"
           }`}
         >
           <Store className="w-4 h-4" />
