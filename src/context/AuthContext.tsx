@@ -139,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               !userDetails.error &&
               userDetails.result?.addresses?.length > 0
             ) {
-              setAddresses(userDetails.result.addresses);
+              setInternalAddresses(userDetails.result.addresses);
             }
           } else {
             console.error("Failed to refresh user data");

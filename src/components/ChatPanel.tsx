@@ -44,6 +44,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     useRestaurant();
   const { addresses, setIsAddressModalOpen, isAuthenticated, setUser } =
     useAuth();
+  const [isFirstLogin, setIsFirstLogin] = useState(true);
 
   const login = useGoogleLogin({
     onSuccess: async (response) => {
@@ -70,6 +71,12 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           picture: userInfo.data.picture,
           userId: loginResponse.result._id,
         });
+        // Get user details to check for addresses
+        const userDetails = await getUserDetails(loginResponse.result._id);
+        if (!userDetails.error && userDetails.result?.addresses?.length === 0) {
+          setIsAddressModalOpen(true);
+        }
+        setIsFirstLogin(false);
       } catch (error) {
         console.error("Login error:", error);
         alert("Failed to sign in. Please try again.");
@@ -251,7 +258,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   return (
     <>
       <div
-        className={`absolute inset-0 overflow-y-auto p-2 pb-32 bg-white/30 backdrop-blur-sm scroll-smooth ${
+        className={`h-full overflow-y-auto p-2 pb-32 bg-white/30 backdrop-blur-sm scroll-smooth ${
           state.mode === "browse" ? "hidden" : ""
         }`}
         ref={chatContainerRef}
