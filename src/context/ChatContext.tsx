@@ -215,6 +215,7 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return {
         ...initialState,
         messages: [initialState.messages[0]], // Keep only the welcome message
+        selectedRestaurant: null,
       };
     default:
       return state;
@@ -225,7 +226,7 @@ const initialState: ChatState = {
   messages: [
     {
       id: 1,
-      text: "Hi! Cozy weather in Dubai calls for something delicious. Let me know what you're craving?",
+      text: "Hi! Cozy weather today calls for something delicious. Let me know what you're craving?",
 
       isBot: true,
       time: new Date().toLocaleString("en-US", {

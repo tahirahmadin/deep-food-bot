@@ -1,43 +1,5 @@
-import { GoogleOAuthProvider } from "@react-oauth/google";
-import { ChatProvider } from "./context/ChatContext";
-import { WalletProvider } from "./context/WalletContext";
-import { RestaurantProvider } from "./context/RestaurantContext";
-import { AuthProvider } from "./context/AuthContext";
-import { ToastProvider } from "./context/ToastContext";
-import { Toast } from "./components/Toast";
-import { DunkinOrderApp } from "./components/DunkinOrderApp";
-import { CustomizationModal } from "./components/CustumizationModal";
-import { AddressModal } from "./components/AddressModal";
-import { FiltersProvider } from "./context/FiltersContext";
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+import { FoodOrderBot } from "./components/FoodOrderBot";
 
 export default function App() {
-  return (
-    <GoogleOAuthProvider
-      clientId={GOOGLE_CLIENT_ID}
-      onScriptLoadError={() => console.error("Google Script failed to load")}
-      onScriptLoadSuccess={() =>
-        console.log("Google Script loaded successfully")
-      }
-    >
-      <AuthProvider>
-        <ToastProvider>
-          <WalletProvider>
-            <RestaurantProvider>
-              <FiltersProvider>
-                <ChatProvider>
-                  <>
-                    <DunkinOrderApp />
-                    <CustomizationModal />
-                    <AddressModal />
-                  </>
-                </ChatProvider>
-              </FiltersProvider>
-            </RestaurantProvider>
-          </WalletProvider>
-        </ToastProvider>
-      </AuthProvider>
-    </GoogleOAuthProvider>
-  );
+  return <FoodOrderBot />;
 }

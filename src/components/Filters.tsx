@@ -17,6 +17,7 @@ import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
 import { RestaurantChangeModal } from "./RestaurantChangeModal";
+import { StyleChangeModal } from "./StyleChangeModal";
 
 export const Filters: React.FC = () => {
   const {
@@ -43,6 +44,8 @@ export const Filters: React.FC = () => {
   const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
   const [isChangeRestaurantModalOpen, setIsChangeRestaurantModalOpen] =
     useState(false);
+  const [isStyleChangeModalOpen, setIsStyleChangeModalOpen] = useState(false);
+  const [pendingStyle, setPendingStyle] = useState<any>(null);
   const { setAddresses } = useAuth();
 
   // Set initial selected address to first address if available
@@ -104,6 +107,22 @@ export const Filters: React.FC = () => {
     dispatch({ type: "SET_SELECTED_RESTAURANT", payload: null });
     setActiveRestaurant(null);
     setIsChangeRestaurantModalOpen(false);
+  };
+
+  const handleStyleSelect = (style: any) => {
+    setPendingStyle(style);
+    setIsStyleChangeModalOpen(true);
+    setIsStyleDropdownOpen(false);
+  };
+
+  const handleStyleChangeConfirm = () => {
+    if (pendingStyle) {
+      setSelectedStyle(pendingStyle);
+      dispatch({ type: "RESET_STATE" });
+      // dispatch({ type: "SET_SELECTED_RESTAURANT",payload:null });
+    }
+    setIsStyleChangeModalOpen(false);
+    setPendingStyle(null);
   };
 
   return (
@@ -190,8 +209,11 @@ export const Filters: React.FC = () => {
                 <button
                   key={style.name}
                   onClick={() => {
-                    setSelectedStyle(style);
-                    setIsStyleDropdownOpen(false);
+                    if (style.name !== selectedStyle.name) {
+                      handleStyleSelect(style);
+                    } else {
+                      setIsStyleDropdownOpen(false);
+                    }
                   }}
                   className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors"
                 >
@@ -214,6 +236,7 @@ export const Filters: React.FC = () => {
           <span className="text-xs text-gray-600">For</span>
           <div className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-1">
             <button
+              disabled
               onClick={() => setNumberOfPeople(Math.max(1, numberOfPeople - 1))}
               className="w-4 h-4 flex items-center justify-center hover:bg-gray-200 rounded-full text-gray-600"
             >
@@ -225,6 +248,7 @@ export const Filters: React.FC = () => {
               </span>
             </div>
             <button
+              disabled
               onClick={() => setNumberOfPeople(numberOfPeople + 1)}
               className="w-4 h-4 flex items-center justify-center hover:bg-gray-200 rounded-full text-gray-600"
             >
@@ -241,10 +265,10 @@ export const Filters: React.FC = () => {
             } transition-colors`}
           >
             <Leaf className="w-3 h-3" />
-            <span className="text-xs">Veg</span>
+            <span className="text-xs">Vegetarian </span>
           </button>
 
-          <button
+          {/* <button
             onClick={() => setIsFastDelivery(!isFastDelivery)}
             className={`flex items-center gap-1 px-2 py-1 rounded-full border ${
               isFastDelivery
@@ -254,7 +278,7 @@ export const Filters: React.FC = () => {
           >
             <Zap className="w-3 h-3" />
             <span className="text-xs">Fast Delivery</span>
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -262,6 +286,16 @@ export const Filters: React.FC = () => {
         isOpen={isChangeRestaurantModalOpen}
         onClose={() => setIsChangeRestaurantModalOpen(false)}
         onConfirm={handleConfirmRestaurantChange}
+      />
+      <StyleChangeModal
+        isOpen={isStyleChangeModalOpen}
+        onClose={() => {
+          setIsStyleChangeModalOpen(false);
+          setPendingStyle(null);
+        }}
+        onConfirm={handleStyleChangeConfirm}
+        currentStyle={selectedStyle.name}
+        newStyle={pendingStyle?.name || ""}
       />
 
       {/* Navigation Section */}
@@ -279,18 +313,18 @@ export const Filters: React.FC = () => {
         <button
           onClick={handleClearRestaurant}
           className={`flex items-center gap-1 ${
-            !restaurantState.activeRestroId
+            !state.selectedRestaurant
               ? "text-primary"
               : "text-gray-100 px-2 py-0.5 bg-blue-600 rounded-full"
           }`}
         >
           <Store className="w-4 h-4" />
           <span className="text-sm">
-            {restaurantState.activeRestroId
+            {state.selectedRestaurant
               ? state.selectedRestaurant
               : "All Restaurants"}
           </span>
-          {restaurantState.activeRestroId && <X className="w-3.5 h-3.5" />}
+          {state.selectedRestaurant && <X className="w-3.5 h-3.5" />}
         </button>
 
         <button

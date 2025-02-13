@@ -9,8 +9,12 @@ import {
   ChevronRight,
   ChevronDown,
   MapPin,
+  Coins,
+  Gift,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useWallet } from "../context/WalletContext";
 
 interface Address {
   id: string;
@@ -41,6 +45,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
   const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
   const [isAddressesExpanded, setIsAddressesExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { connected, publicKey } = useWallet();
   const [retryCount, setRetryCount] = useState(0);
   const latestAddress = addresses[addresses.length - 1];
 
@@ -124,6 +129,58 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
         </div>
+
+        {/* Wallet Section */}
+        {isAuthenticated && (
+          <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100/50 border-b">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Wallet className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-800">
+                    Wallet Balance
+                  </h4>
+                  <p className="text-xs text-gray-500">
+                    {connected
+                      ? `${publicKey?.slice(0, 4)}...${publicKey?.slice(-4)}`
+                      : "Not connected"}
+                  </p>
+                </div>
+              </div>
+              <p className="text-lg font-bold text-primary">$0.00</p>
+            </div>
+
+            <div className="flex items-stretch gap-3">
+              <div className="flex-1 bg-white rounded-xl p-3 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center">
+                    <Coins className="w-3.5 h-3.5 text-yellow-600" />
+                  </div>
+                  <h5 className="text-xs font-medium text-gray-700">
+                    Order value
+                  </h5>
+                </div>
+                <p className="text-lg font-bold text-gray-900">$2,500</p>
+                <p className="text-[10px] text-gray-500">≈ 10 orders</p>
+              </div>
+
+              <div className="flex-1 bg-white rounded-xl p-3 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
+                    <Gift className="w-3.5 h-3.5 text-purple-600" />
+                  </div>
+                  <h5 className="text-xs font-medium text-gray-700">
+                    Airdrops
+                  </h5>
+                </div>
+                <p className="text-lg font-bold text-gray-900">25,000</p>
+                <p className="text-[10px] text-gray-500">Gobbl allocation</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="p-4">
           {/* Orders Section */}
