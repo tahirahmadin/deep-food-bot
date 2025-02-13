@@ -63,6 +63,7 @@ interface ChatState {
   cart: CartItem[];
   checkout: {
     step: "details" | "payment" | null;
+    paymentMethod: "card" | "crypto" | null;
     orderDetails: {
       name: string;
       address: string;
@@ -105,6 +106,7 @@ type ChatAction =
   | { type: "REMOVE_FROM_CART"; payload: number }
   | { type: "UPDATE_CART_ITEM"; payload: CartItem }
   | { type: "SET_CHECKOUT_STEP"; payload: "details" | "payment" | null }
+  | { type: "SET_PAYMENT_METHOD"; payload: "card" | "crypto" }
   | {
       type: "UPDATE_ORDER_DETAILS";
       payload: Partial<ChatState["checkout"]["orderDetails"]>;
@@ -190,10 +192,12 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
     case "SET_CHECKOUT_STEP":
       return {
         ...state,
-        checkout: {
-          ...state.checkout,
-          step: action.payload,
-        },
+        checkout: { ...state.checkout, step: action.payload },
+      };
+    case "SET_PAYMENT_METHOD":
+      return {
+        ...state,
+        checkout: { ...state.checkout, paymentMethod: action.payload },
       };
     case "UPDATE_ORDER_DETAILS":
       return {
@@ -249,6 +253,7 @@ const initialState: ChatState = {
   cart: [],
   checkout: {
     step: null,
+    paymentMethod: null,
     orderDetails: {
       name: "",
       address: "",

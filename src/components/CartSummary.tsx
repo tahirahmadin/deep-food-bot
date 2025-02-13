@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 export const CartSummary: React.FC = () => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState } = useRestaurant();
-  const { isAuthenticated, addresses } = useAuth();
+  const { isAuthenticated, addresses, setIsAddressModalOpen } = useAuth();
   const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
   const [menuItems, setMenuItems] = React.useState<any[]>([]);
 
@@ -63,9 +63,7 @@ export const CartSummary: React.FC = () => {
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      // Close cart and trigger sign in
       setIsExpanded(false);
-      login();
       return;
     }
 
@@ -81,28 +79,29 @@ export const CartSummary: React.FC = () => {
       return;
     }
 
-    // Switch to chat mode if currently in browse mode
     if (state.mode === "browse") {
       dispatch({ type: "SET_MODE", payload: "chat" });
     }
 
-    // Set order details from the first address
-    dispatch({
-      type: "UPDATE_ORDER_DETAILS",
-      payload: {
-        name: addresses[0].name,
-        address: addresses[0].address,
-        phone: addresses[0].mobile,
-      },
-    });
-
-    // Go directly to payment step
-    dispatch({ type: "SET_CHECKOUT_STEP", payload: "payment" });
+    // Set default payment method to card
+    dispatch({ type: "SET_PAYMENT_METHOD", payload: "card" });
+    setIsExpanded(false);
+    // Add order details message with summary card
     dispatch({
       type: "ADD_MESSAGE",
       payload: {
-        id: Date.now(),
-        text: "Please proceed with payment to complete your order.",
+        id: Date.now() + 1,
+        text: JSON.stringify({
+          orderSummary: {
+            items: state.cart.map((item) => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+            total: cartTotal,
+            restaurant: state.selectedRestaurant,
+          },
+        }),
         isBot: true,
         time: new Date().toLocaleTimeString("en-US", {
           hour: "numeric",
@@ -112,7 +111,14 @@ export const CartSummary: React.FC = () => {
         queryType: "CHECKOUT",
       },
     });
-    setIsExpanded(false);
+    dispatch({
+      type: "UPDATE_ORDER_DETAILS",
+      payload: {
+        name: addresses[0].name,
+        address: addresses[0].address,
+        phone: addresses[0].mobile,
+      },
+    });
   };
 
   if (state.cart.length === 0) {
@@ -120,25 +126,29 @@ export const CartSummary: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-28 sm:bottom-24 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4">
+    <div className="fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-2">
       <div className="flex flex-col items-end">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-full hover:bg-primary-600 transition-all shadow-lg mb-2"
+          className="flex items-center gap-2 px-2 py-2 bg-primary text-white rounded-full hover:bg-primary-600 transition-all shadow-lg mb-2"
         >
           <ShoppingBag className="w-4 h-4" />
-          <span className="font-medium">{cartTotal} AED</span>
-          <span className="bg-white text-primary px-2 py-0.5 rounded-full text-sm">
+          <span className="font-medium text-xs">{cartTotal} AED</span>
+          <span className="bg-white text-primary px-2 py-0.5 rounded-full text-xs">
             {state.cart.length}
           </span>
         </button>
 
         {isExpanded && (
           <div className="bg-white rounded-lg shadow-xl w-full overflow-hidden animate-slide-up">
-            <div className="p-4 bg-orange-50 border-b">
+            <div className="px-4 py-2 flex justify-between items-center border-b p-3 bg-orange-50 border-b">
               <h3 className="font-semibold text-gray-800">Your Cart</h3>
+              <X
+                className="w-4 h-4 text-gray-500"
+                onClick={() => setIsExpanded(!isExpanded)}
+              />
             </div>
-            <div className="max-h-96 overflow-y-auto">
+            <div className="max-h-64 overflow-y-auto">
               {state.cart.map((item) => {
                 const menuItem = menuItems.find(
                   (menuItem) => menuItem.id === item.id
@@ -146,7 +156,7 @@ export const CartSummary: React.FC = () => {
                 return (
                   <div
                     key={item.id}
-                    className="flex items-center gap-3 p-3 border-b"
+                    className="flex items-center gap-3 px-3 py-2 border-b"
                   >
                     {menuItem && (
                       <img
@@ -156,12 +166,15 @@ export const CartSummary: React.FC = () => {
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm text-gray-800 truncate">
+                      <h4 className="font-medium text-xs text-gray-800 truncate">
                         {item.name}
-                        <div className="mt-1">
+                        <div className="mt-0.5">
                           {item.customizations?.map((customization, index) => (
-                            <div key={index} className="text-xs text-gray-500">
-                              <span className="font-medium">
+                            <div
+                              key={index}
+                              className="text-[10px] text-gray-500"
+                            >
+                              <span className="font-semibold text-gray-800">
                                 {customization.categoryName}:
                               </span>{" "}
                               {customization.selection.name}
@@ -174,7 +187,7 @@ export const CartSummary: React.FC = () => {
                           ))}
                         </div>
                       </h4>
-                      <p className="text-sm text-gray-500">{item.price} AED</p>
+                      <p className="text-xs text-gray-500">{item.price} AED</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button

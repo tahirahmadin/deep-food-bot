@@ -58,24 +58,87 @@ const CheckoutForm: React.FC<{
   total: string;
   onSuccess: () => void;
   cart: any[];
-}> = ({ orderDetails, total, onSuccess, cart }) => {
+  selectedPaymentMethod: string;
+}> = ({ orderDetails, total, onSuccess, cart, selectedPaymentMethod }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { dispatch, state } = useChatContext();
   const { refreshOrders } = useAuth();
   const { state: restaurantState } = useRestaurant();
   const { user } = useAuth();
-  const { connectWallet, transferUSDT, connected, publicKey } = useWallet();
+  const { connectWallet, transferUSDT, connected, account } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cardComplete, setCardComplete] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "crypto">("card");
   const [clientSecret, setClientSecret] = useState<string>("");
+  const [currentNetwork, setCurrentNetwork] = useState<string | null>(null);
 
   useEffect(() => {
-    if (paymentMethod === "card" && user?.userId) {
+    const checkNetwork = async () => {
+      if (window.ethereum) {
+        const chainId = await window.ethereum.request({
+          method: "eth_chainId",
+        });
+        setCurrentNetwork(chainId);
+      }
+    };
+    checkNetwork();
+  }, []);
+
+  const switchNetwork = async (chainId: string) => {
+    try {
+      if (!window.ethereum) throw new Error("No crypto wallet found");
+
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId }],
+      });
+
+      setCurrentNetwork(chainId);
+    } catch (err: any) {
+      // This error code indicates that the chain has not been added to MetaMask
+      if (err.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              chainId === "0x38"
+                ? {
+                    chainId: "0x38",
+                    chainName: "Binance Smart Chain",
+                    nativeCurrency: {
+                      name: "BNB",
+                      symbol: "BNB",
+                      decimals: 18,
+                    },
+                    rpcUrls: ["https://bsc-dataseed.binance.org/"],
+                    blockExplorerUrls: ["https://bscscan.com/"],
+                  }
+                : {
+                    chainId: "0x2105",
+                    chainName: "Base",
+                    nativeCurrency: {
+                      name: "ETH",
+                      symbol: "ETH",
+                      decimals: 18,
+                    },
+                    rpcUrls: ["https://mainnet.base.org"],
+                    blockExplorerUrls: ["https://basescan.org"],
+                  },
+            ],
+          });
+        } catch (addError) {
+          console.error("Error adding network:", addError);
+        }
+      }
+      console.error("Error switching network:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedPaymentMethod === "card" && user?.userId) {
       const createIntent = async () => {
         try {
           const secret = await stripeService.createPaymentIntent(
@@ -94,7 +157,7 @@ const CheckoutForm: React.FC<{
       createIntent();
     }
   }, [
-    paymentMethod,
+    selectedPaymentMethod,
     cart,
     orderDetails,
     state.selectedRestaurant,
@@ -189,7 +252,7 @@ const CheckoutForm: React.FC<{
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (paymentMethod === "card") {
+    if (selectedPaymentMethod === "card") {
       await handleCardPayment();
     } else {
       await handleCryptoPayment();
@@ -303,30 +366,6 @@ const CheckoutForm: React.FC<{
   return (
     <div className="bg-white/80 rounded-lg p-2.5 shadow-sm backdrop-blur-sm mb-3 max-w-sm mx-auto">
       <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg overflow-hidden p-2.5 text-white">
-        {/* Payment Method Selection */}
-        {/* <div className="flex gap-2 mb-4">
-          <button
-            onClick={() => setPaymentMethod("card")}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-              paymentMethod === "card"
-                ? "bg-white text-orange-500"
-                : "bg-orange-600/50 text-white"
-            }`}
-          >
-            Pay with Card
-          </button>
-          <button
-            onClick={() => setPaymentMethod("crypto")}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-              paymentMethod === "crypto"
-                ? "bg-white text-orange-500"
-                : "bg-orange-600/50 text-white"
-            }`}
-          >
-            Pay with USDT
-          </button>
-        </div> */}
-
         <div className="absolute right-2 top-2">
           <Lock className="w-4 h-4 text-orange-200" />
         </div>
@@ -360,77 +399,114 @@ const CheckoutForm: React.FC<{
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-3 space-y-4">
-        <div>
-          {paymentMethod === "card" ? (
-            <>
-              <label className="block text-xs text-gray-600 mb-1">
-                Card Details
-              </label>
-              <div className="w-full p-3 border border-gray-200 rounded-lg">
-                <CardElement
-                  options={cardStyle}
-                  onChange={(e) => setCardComplete(e.complete)}
-                />
-              </div>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <label className="block text-xs text-gray-600 mb-1">
-                USDT Payment
-              </label>
-              <div className="p-3 bg-gray-50 rounded-lg text-sm">
-                <p className="text-gray-600">
-                  Amount: {(parseFloat(total) * 0.27).toFixed(2)} USDT
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Recipient: 21X...njHNq
-                </p>
-              </div>
-              {!connected && (
-                <button
-                  type="button"
-                  onClick={connectWallet}
-                  className="w-full p-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
-                >
-                  Connect Phantom Wallet
-                </button>
-              )}
+      {selectedPaymentMethod === "card" ? (
+        <form onSubmit={handleSubmit} className="mt-3 space-y-4">
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">
+              Card Details
+            </label>
+            <div className="w-full p-3 border border-gray-200 rounded-lg">
+              <CardElement
+                options={cardStyle}
+                onChange={(e) => setCardComplete(e.complete)}
+              />
             </div>
+          </div>
+        </form>
+      ) : (
+        <div className="mt-3 space-y-4">
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Select Network
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => switchNetwork("0x2105")}
+                  className={`px-3 py-1.5 rounded text-xs font-medium ${
+                    currentNetwork === "0x2105"
+                      ? "bg-primary text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Base Chain
+                </button>
+                <button
+                  onClick={() => switchNetwork("0x38")}
+                  className={`px-3 py-1.5 rounded text-xs font-medium ${
+                    currentNetwork === "0x38"
+                      ? "bg-primary text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  BSC
+                </button>
+              </div>
+              {currentNetwork &&
+                currentNetwork !== "0x2105" &&
+                currentNetwork !== "0x38" && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Please switch to either Base Chain or BSC to continue
+                  </p>
+                )}
+            </div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-600">Amount in USDT</span>
+              <span className="font-bold text-gray-900">
+                {(parseFloat(total) * 0.27).toFixed(2)} USDT
+              </span>
+            </div>
+            <div className="text-xs text-gray-500">
+              <p>Recipient Address:</p>
+              <p className="font-mono text-[10px] break-all">
+                0xeBB825f034519927D2c54171d36B4801DEf2A6B1
+              </p>
+            </div>
+          </div>
+
+          {!connected ? (
+            <button
+              onClick={connectWallet}
+              className="w-full p-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm"
+            >
+              Connect Metamask
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={
+                isProcessing ||
+                (currentNetwork !== "0x2105" && currentNetwork !== "0x38")
+              }
+              className="w-full p-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm disabled:opacity-50"
+            >
+              {isProcessing ? "Processing..." : "Pay with USDT"}
+            </button>
           )}
         </div>
+      )}
 
-        {error && (
-          <div className="p-2 bg-red-50 text-red-600 text-xs rounded-lg">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="p-2 bg-red-50 text-red-600 text-xs rounded-lg">
+          {error}
+        </div>
+      )}
 
+      {selectedPaymentMethod === "card" && (
         <button
           type="submit"
-          disabled={
-            (paymentMethod === "card" &&
-              (!stripe || !cardComplete || !clientSecret)) ||
-            (paymentMethod === "crypto" && !connected) ||
-            isProcessing
-          }
+          disabled={!stripe || !cardComplete || !clientSecret || isProcessing}
           className="w-full p-2.5 bg-primary text-white rounded-lg hover:bg-primary-600 transition-all shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
         >
           <Wallet className="w-3.5 h-3.5" />
-          {isProcessing
-            ? "Processing..."
-            : `Pay ${
-                paymentMethod === "crypto"
-                  ? `${(parseFloat(total) * 0.27).toFixed(2)} USDT`
-                  : `${total} AED`
-              } & Place Order`}
+          {isProcessing ? "Processing..." : `Pay ${total} AED & Place Order`}
         </button>
+      )}
 
-        <p className="text-[10px] text-center text-gray-500">
-          <Lock className="w-3 h-3 inline-block mr-1" />
-          Payments are secure and encrypted
-        </p>
-      </form>
+      <p className="text-[10px] text-center text-gray-500">
+        <Lock className="w-3 h-3 inline-block mr-1" />
+        Payments are secure and encrypted
+      </p>
     </div>
   );
 };
@@ -442,7 +518,7 @@ interface PaymentFormProps {
 
 export const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
   const { state, dispatch } = useChatContext();
-  const { orderDetails } = state.checkout;
+  const { orderDetails, paymentMethod } = state.checkout;
 
   const total = state.cart
     .reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0)
@@ -455,6 +531,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
           orderDetails={orderDetails}
           total={total}
           onSuccess={onSubmit}
+          selectedPaymentMethod={paymentMethod || "card"}
           cart={state.cart}
         />
       </div>

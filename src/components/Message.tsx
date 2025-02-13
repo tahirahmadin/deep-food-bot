@@ -24,7 +24,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
     setRestaurants,
   } = useRestaurant();
   const { selectedStyle } = useFiltersContext();
-  const { dispatch } = useChatContext();
+  const { state: chatState, dispatch } = useChatContext();
   const messageRef = React.useRef(message);
   const isError =
     message.text.toLowerCase().includes("error") ||
@@ -50,6 +50,142 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
 
   const renderContent = () => {
     if (message.queryType === QueryType.CHECKOUT) {
+      // Handle order summary display
+      try {
+        const parsedContent = JSON.parse(message.text);
+        if (parsedContent.orderSummary) {
+          const { items, total, restaurant } = parsedContent.orderSummary;
+          return (
+            <div className="bg-white rounded-lg shadow-sm p-4 space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="font-semibold text-gray-800">Order Summary</h3>
+                <span className="text-sm text-gray-500">{restaurant}</span>
+              </div>
+
+              <div className="space-y-2">
+                {items.map((item: any, index: number) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center text-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600">{item.quantity}x</span>
+                      <span className="text-gray-800">{item.name}</span>
+                    </div>
+                    <span className="text-gray-600">
+                      {(parseFloat(item.price) * item.quantity).toFixed(2)} AED
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t pt-3 mt-3">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-800">
+                    Total Amount
+                  </span>
+                  <span className="font-bold text-primary">{total} AED</span>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <p className="text-sm text-gray-600 mb-3">
+                  How would you like to pay?
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      dispatch({ type: "SET_PAYMENT_METHOD", payload: "card" });
+                      dispatch({
+                        type: "SET_CHECKOUT_STEP",
+                        payload: "payment",
+                      });
+                      dispatch({
+                        type: "ADD_MESSAGE",
+                        payload: {
+                          id: Date.now(),
+                          text: "Please complete your card payment.",
+                          isBot: true,
+                          time: new Date().toLocaleString("en-US", {
+                            hour: "numeric",
+                            minute: "numeric",
+                            hour12: true,
+                          }),
+                          queryType: QueryType.CHECKOUT,
+                        },
+                      });
+                    }}
+                    className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors"
+                  >
+                    Credit/Debit Card
+                  </button>
+                  <button
+                    onClick={() => {
+                      dispatch({
+                        type: "SET_PAYMENT_METHOD",
+                        payload: "crypto",
+                      });
+                      dispatch({
+                        type: "SET_CHECKOUT_STEP",
+                        payload: "payment",
+                      });
+                      dispatch({
+                        type: "ADD_MESSAGE",
+                        payload: {
+                          id: Date.now(),
+                          text: "Please complete your USDT payment.",
+                          isBot: true,
+                          time: new Date().toLocaleString("en-US", {
+                            hour: "numeric",
+                            minute: "numeric",
+                            hour12: true,
+                          }),
+                          queryType: QueryType.CHECKOUT,
+                        },
+                      });
+                    }}
+                    className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors"
+                  >
+                    Pay with USDT
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+      } catch (e) {
+        // Not a JSON message, continue with normal flow
+      }
+
+      // Handle payment method selection
+      if (message.text.includes("How would you like to pay")) {
+        return (
+          <div className="space-y-3">
+            <p className="text-gray-800 text-sm">{message.text}</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  dispatch({ type: "SET_PAYMENT_METHOD", payload: "card" });
+                  dispatch({ type: "SET_CHECKOUT_STEP", payload: "payment" });
+                }}
+                className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors"
+              >
+                Credit/Debit Card
+              </button>
+              <button
+                onClick={() => {
+                  dispatch({ type: "SET_PAYMENT_METHOD", payload: "crypto" });
+                  dispatch({ type: "SET_CHECKOUT_STEP", payload: "payment" });
+                }}
+                className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors"
+              >
+                Pay with USDT
+              </button>
+            </div>
+          </div>
+        );
+      }
+
       if (message.isBot && state.checkout.step === "details") {
         return <DeliveryForm onSubmit={onRetry} />;
       }
