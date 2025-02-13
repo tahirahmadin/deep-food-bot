@@ -120,7 +120,7 @@ export const CartSummary: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-20 sm:bottom-24 right-4 z-50">
+    <div className="fixed bottom-28 sm:bottom-24 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4">
       <div className="flex flex-col items-end">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -134,7 +134,7 @@ export const CartSummary: React.FC = () => {
         </button>
 
         {isExpanded && (
-          <div className="bg-white rounded-lg shadow-xl w-[calc(100vw-2rem)] sm:w-80 overflow-hidden animate-slide-up">
+          <div className="bg-white rounded-lg shadow-xl w-full overflow-hidden animate-slide-up">
             <div className="p-4 bg-orange-50 border-b">
               <h3 className="font-semibold text-gray-800">Your Cart</h3>
             </div>
