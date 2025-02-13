@@ -36,6 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
   } = useAuth();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
 
   // Initialize Telegram WebApp
   useEffect(() => {
@@ -46,13 +47,25 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
 
     script.onload = () => {
       // @ts-ignore
-      window.Telegram?.WebApp?.ready();
+      const tg = window.Telegram?.WebApp;
+      if (tg) {
+        const user = tg.initDataUnsafe?.user;
+        if (!user?.id) {
+          throw new Error("No Telegram user data available");
+        }
+
+        console.log(tg);
+        setIsTelegramWebApp(true);
+        tg.ready();
+        // Auto login if in Telegram WebApp
+        handleTelegramLogin();
+      }
     };
 
     return () => {
       document.body.removeChild(script);
     };
-  }, []);
+  }, [isAuthenticated]); // Re-run if auth state changes
 
   const handleTelegramLogin = async () => {
     try {
@@ -213,7 +226,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
             <button
               onClick={handleLoginClick}
               disabled={isLoggingIn}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-600 rounded-lg border border-gray-200 transition-colors"
+              className={`flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-600 rounded-lg border border-gray-200 transition-colors ${
+                isTelegramWebApp ? "hidden" : ""
+              }`}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -235,16 +250,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
               </svg>
               <span className="text-sm font-medium">
                 {isLoggingIn ? "Signing in..." : "Sign in"}
-              </span>
-            </button>
-            <button
-              onClick={handleTelegramLogin}
-              disabled={isLoggingIn}
-              className="flex items-center gap-2 px-3 py-1.5 bg-[#0088cc] hover:bg-[#0088cc]/90 text-white rounded-lg transition-colors"
-            >
-              <Send className="w-5 h-5" />
-              <span className="text-sm font-medium">
-                {isLoggingIn ? "Signing in..." : "Telegram"}
               </span>
             </button>
           </div>

@@ -50,6 +50,7 @@ interface AuthContextType {
   handleLogout: () => void;
   addresses: Address[];
   setAddresses: (addresses: Address[]) => void;
+  setInternalAddresses: (addresses: Address[]) => void;
   addNewAddress: (newAddress: {
     name: string;
     address: string;

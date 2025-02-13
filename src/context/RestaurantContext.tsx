@@ -62,7 +62,11 @@ const restaurantReducer = (
         activeRestroId: null,
       };
     case "RESET_STATE":
-      return initialState;
+      return {
+        ...state,
+        selectedRestroIds: [],
+        activeRestroId: null,
+      };
     default:
       return state;
   }
@@ -77,13 +81,17 @@ const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state, dispatch] = useReducer(restaurantReducer, initialState);
+  const hasInitialFetch = React.useRef(false);
 
   React.useEffect(() => {
+    if (hasInitialFetch.current) return;
+
     const fetchRestaurants = async () => {
       const restaurantData = await getAllRestaurants();
-      console.log(restaurantData);
       dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
+      hasInitialFetch.current = true;
     };
+
     fetchRestaurants();
   }, []);
 

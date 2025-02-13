@@ -219,11 +219,11 @@ export const CustomizationModal: React.FC = () => {
                 </span>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {category.items.map((option) => (
                   <label
                     key={option._id}
-                    className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    className={`flex items-center justify-between p-2 rounded-lg border-2 cursor-pointer transition-all ${
                       (selectedOptions[category.categoryName] || []).some(
                         (sel) => sel.name === option.name
                       )
@@ -231,7 +231,7 @@ export const CustomizationModal: React.FC = () => {
                         : "border-gray-100 hover:border-gray-200"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <input
                         type={category.maxQuantity === 1 ? "radio" : "checkbox"}
                         name={category.categoryName}
@@ -241,7 +241,7 @@ export const CustomizationModal: React.FC = () => {
                         onChange={() => handleOptionSelect(category, option)}
                         className="text-primary focus:ring-primary"
                       />
-                      <span className="text-xs font-medium text-gray-800">
+                      <span className="text-[10px] font-medium text-gray-800 ">
                         {option.name}
                       </span>
                     </div>

@@ -1,7 +1,9 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
+import { useAuth } from "../context/AuthContext";
 import { CartChangeModal } from "./CartChangeModal";
+
 interface MenuItemProps {
   name: string;
   price: string;
@@ -39,6 +41,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   customisation,
 }) => {
   const { state, dispatch } = useChatContext();
+  const { isAuthenticated } = useAuth();
 
   const [isCustomizationOpen, setIsCustomizationOpen] = React.useState(false);
   const [isCartChangeModalOpen, setIsCartChangeModalOpen] =
@@ -49,6 +52,11 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   const isInCart = Boolean(cartItem);
 
   const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      alert("Please sign in to add items to cart");
+      return;
+    }
+
     if (isCustomisable && customisation) {
       dispatch({
         type: "SET_CUSTOMIZATION_MODAL",
@@ -109,6 +117,8 @@ export const MenuItem: React.FC<MenuItemProps> = ({
           <button
             onClick={handleAddToCart}
             className={`absolute bottom-1 right-1 p-1 rounded-full transition-all ${
+              !isAuthenticated ? "opacity-50" : ""
+            } ${
               isInCart
                 ? "bg-primary text-white hover:bg-primary-600 shadow-sm"
                 : "bg-white text-primary hover:bg-primary-50"

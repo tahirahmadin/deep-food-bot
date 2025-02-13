@@ -1,6 +1,14 @@
 // src/components/ChatInput.tsx
 import React, { useRef } from "react";
-import { Send, ImageIcon, Leaf, Clock as Timer, Zap, Tag } from "lucide-react";
+import {
+  Send,
+  ImageIcon,
+  Leaf,
+  Clock as Timer,
+  Zap,
+  Tag,
+  Pizza,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 interface ChatInputProps {
@@ -55,10 +63,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     >
       <div className="w-full">
         {showQuickActions && !input && (
-          <div className="grid grid-cols-2 gap-2 mb-2 max-h-[120px] overflow-y-auto">
+          <div className="grid grid-cols-2 gap-2 mb-1 max-h-[120px] overflow-y-auto">
             <button
               onClick={() => handleQuickAction("Show me lunch combos")}
-              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
+              className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
             >
               <Timer className="w-3.5 h-3.5" />
               <span>Lunch combos ?</span>
@@ -66,30 +74,26 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
             <button
               onClick={() => handleQuickAction("Show me best veg options")}
-              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
+              className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
             >
               <Leaf className="w-3.5 h-3.5" />
               <span>Best veg options ?</span>
             </button>
 
             <button
-              onClick={() =>
-                handleQuickAction("What are most exciting options today?")
-              }
-              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
+              onClick={() => handleQuickAction("What are best chicken meals?")}
+              className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
             >
-              <Tag className="w-3.5 h-3.5" />
-              <span>Best offers today ?</span>
+              <Pizza className="w-3.5 h-3.5" />
+              <span>Best chicken meals?</span>
             </button>
 
             <button
-              onClick={() =>
-                handleQuickAction("Show me quickest delivery options")
-              }
-              className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
+              onClick={() => handleQuickAction("Show me Healthy drinks option")}
+              className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
             >
               <Zap className="w-3.5 h-3.5" />
-              <span>Quickest delivery ?</span>
+              <span>Healthy drinks ?</span>
             </button>
           </div>
         )}

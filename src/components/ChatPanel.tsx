@@ -192,14 +192,14 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       >
         {!isAuthenticated && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">
-            <div className="bg-white p-6 rounded-xl shadow-lg max-w-sm w-full mx-4 text-center">
+            <div className="bg-white px-4 py-4 rounded-xl shadow-lg max-w-xs w-full mx-6 text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <LogIn className="w-6 h-6 text-primary" />
+                <img src="https://gobbl-bucket.s3.ap-south-1.amazonaws.com/gobbl_token.png" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">
                 Sign In Required
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-gray-600 mb-2">
                 Please sign in to start chatting and ordering with us.
               </p>
               <button
@@ -234,7 +234,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
         {isAuthenticated && addresses.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">
-            <div className="bg-white p-6 rounded-xl shadow-lg max-w-sm w-full mx-4 text-center">
+            <div className="bg-white px-4 py-4 rounded-xl shadow-lg max-w-xs w-full mx-6 text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MapPin className="w-6 h-6 text-primary" />
               </div>
