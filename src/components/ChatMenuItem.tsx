@@ -35,7 +35,10 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
   const [restaurantName, setRestaurantName] = React.useState("");
 
   // Check if item is in cart
-  const cartItem = state.cart.find((item) => item.id === id);
+  const cartItem = state.cart.find((item) => {
+    // console.log(item);
+    return item.id === id && restaurantName === state.cart[0]?.restaurant;
+  });
   const isInCart = Boolean(cartItem);
 
   // Get and set restaurant name when component mounts or restroId changes
@@ -69,6 +72,8 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
     // Check if cart has items from a different restaurant
     const cartRestaurant = state.cart[0]?.restaurant;
 
+    console.log(cartRestaurant);
+    console.log(restaurantName);
     // If cart is not empty and has items from a different restaurant
     if (cartRestaurant && cartRestaurant !== restaurantName) {
       setIsCartChangeModalOpen(true);
