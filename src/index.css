@@ -46,10 +46,10 @@
 @keyframes success-bounce {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.95);
   }
   50% {
-    transform: translateY(-15px);
+    transform: translateY(-8px) scale(1.05);
   }
 }
 
@@ -109,7 +109,7 @@
 }
 
 .animate-success-bounce {
-  animation: success-bounce 2s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+  animation: success-bounce 1.5s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
 }
 
 /* Success fade in animation */
@@ -125,5 +125,22 @@
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out forwards;
+  animation: fade-in-up 0.4s ease-out forwards;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
 }

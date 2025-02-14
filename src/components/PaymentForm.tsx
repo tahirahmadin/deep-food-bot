@@ -28,7 +28,7 @@ const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
     "pk_test_51QnDfMRsmaUdhKRSXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
   {
-    stripeAccount: "acct_1QnDfMRsmaUdhKRS",
+    stripeAccount: "acct_1Qs3zeJDUPLwCpmp",
   }
 );
 
@@ -328,11 +328,34 @@ const CheckoutForm: React.FC<{
     // Refresh orders after successful payment
     refreshOrders();
 
+    // Get first item image for the success card
+    const firstItemImage = cart[0]
+      ? `https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurantState.activeRestroId}/${restaurantState.activeRestroId}-${cart[0].id}.jpg`
+      : null;
+
     dispatch({
       type: "ADD_MESSAGE",
       payload: {
         id: Date.now(),
-        text: "🎉 Order Confirmed! Your delicious food is being prepared with care.",
+        text: JSON.stringify({
+          success: true,
+          orderDetails: {
+            items: cart.map((item) => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+            total: total,
+            paymentMethod: selectedPaymentMethod,
+            deliveryDetails: {
+              name: orderDetails.name,
+              address: orderDetails.address,
+              phone: orderDetails.phone,
+            },
+            restaurant: state.selectedRestaurant,
+            firstItemImage,
+          },
+        }),
         isBot: true,
         time: new Date().toLocaleString("en-US", {
           hour: "numeric",

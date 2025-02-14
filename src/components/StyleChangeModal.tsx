@@ -1,5 +1,5 @@
 import React from "react";
-import { X } from "lucide-react";
+import { X, ArrowRight } from "lucide-react";
 
 interface StyleChangeModalProps {
   isOpen: boolean;
@@ -19,13 +19,13 @@ export const StyleChangeModal: React.FC<StyleChangeModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative bg-white rounded-xl shadow-lg w-full max-w-sm mx-4 animate-slide-up">
-        <div className="p-4 border-b">
+      <div className="relative bg-white rounded-xl shadow-lg w-full max-w-sm animate-slide-up overflow-hidden">
+        <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 border-b">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-800">
               Change Conversation Style
@@ -39,58 +39,80 @@ export const StyleChangeModal: React.FC<StyleChangeModalProps> = ({
           </div>
         </div>
 
-        <div className="p-4">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="flex-1 text-center">
-              <img
-                src={
-                  currentStyle === "Gobbl"
-                    ? "https://gobbl-bucket.s3.ap-south-1.amazonaws.com/tapAssets/gobbl_coin.webp"
-                    : currentStyle === "Trump"
-                    ? "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop"
-                    : "https://img.delicious.com.au/D-EUAdrh/w759-h506-cfill/del/2017/06/gordon-ramsay-47340-2.jpg"
-                }
-                alt={currentStyle}
-                className="w-12 h-12 rounded-full object-cover mx-auto mb-2"
-              />
-              <p className="text-sm font-medium text-gray-600">
+        <div className="p-4 bg-gradient-to-br from-white to-gray-50/50">
+          <div className="flex items-center justify-between gap-6 mb-6">
+            {/* Current Style */}
+            <div className="flex-1 text-center relative">
+              <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden ring-4 ring-white shadow-lg">
+                <img
+                  src={
+                    currentStyle === "Gobbl"
+                      ? "https://gobbl-bucket.s3.ap-south-1.amazonaws.com/tapAssets/gobbl_coin.webp"
+                      : currentStyle === "Trump"
+                      ? "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop"
+                      : currentStyle === "CZ Binance"
+                      ? "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSnI1JQg6mXsN66qOzLiX2n5IOgWYBXi01rzQeEQto8EiGsWnZUCvv6jN3A5KrBIhVh2VvRfI6_KbtkLRin1G0Bsg"
+                      : "https://img.delicious.com.au/D-EUAdrh/w759-h506-cfill/del/2017/06/gordon-ramsay-47340-2.jpg"
+                  }
+                  alt={currentStyle}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <p className="text-sm font-semibold text-gray-800">
                 {currentStyle}
               </p>
+              <p className="text-xs text-gray-500">Current Style</p>
             </div>
-            <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
-              <X className="w-4 h-4 text-red-500" />
+
+            {/* Arrow */}
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                <ArrowRight className="w-4 h-4 text-orange-600" />
+              </div>
             </div>
-            <div className="flex-1 text-center">
-              <img
-                src={
-                  newStyle === "Gobbl"
-                    ? "https://gobbl-bucket.s3.ap-south-1.amazonaws.com/tapAssets/gobbl_coin.webp"
-                    : newStyle === "Trump"
-                    ? "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop"
-                    : "https://img.delicious.com.au/D-EUAdrh/w759-h506-cfill/del/2017/06/gordon-ramsay-47340-2.jpg"
-                }
-                alt={newStyle}
-                className="w-12 h-12 rounded-full object-cover mx-auto mb-2"
-              />
-              <p className="text-sm font-medium text-gray-600">{newStyle}</p>
+
+            {/* New Style */}
+            <div className="flex-1 text-center relative">
+              <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden ring-4 ring-white shadow-lg">
+                <img
+                  src={
+                    newStyle === "Gobbl"
+                      ? "https://gobbl-bucket.s3.ap-south-1.amazonaws.com/tapAssets/gobbl_coin.webp"
+                      : newStyle === "Trump"
+                      ? "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop"
+                      : newStyle === "CZ Binance"
+                      ? "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSnI1JQg6mXsN66qOzLiX2n5IOgWYBXi01rzQeEQto8EiGsWnZUCvv6jN3A5KrBIhVh2VvRfI6_KbtkLRin1G0Bsg"
+                      : "https://img.delicious.com.au/D-EUAdrh/w759-h506-cfill/del/2017/06/gordon-ramsay-47340-2.jpg"
+                  }
+                  alt={newStyle}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <p className="text-sm font-semibold text-gray-800">{newStyle}</p>
+              <p className="text-xs text-gray-500">New Style</p>
             </div>
           </div>
-          <p className="text-gray-600 text-sm text-center">
-            Changing the conversation style will clear your current chat
-            history. Would you like to continue?
-          </p>
+          <div className="bg-orange-50 rounded-lg p-3 text-center">
+            <p className="text-gray-700 text-sm">
+              Changing the conversation style will clear your current chat
+              history.
+            </p>
+            <p className="text-orange-600 text-xs mt-1">
+              Would you like to continue?
+            </p>
+          </div>
         </div>
 
         <div className="p-4 border-t flex gap-2">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="flex-1 px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
+            className="flex-1 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
           >
             Continue
           </button>

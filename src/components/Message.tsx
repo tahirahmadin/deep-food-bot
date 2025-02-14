@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, MapPin } from "lucide-react";
 import { MenuList } from "./MenuList";
 import { DeliveryForm } from "./DeliveryForm";
 import { PaymentForm } from "./PaymentForm";
@@ -203,6 +203,117 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
             className="h-32 object-cover rounded-lg mb-2"
           />
         )}
+        {message.queryType === "CHECKOUT" &&
+          message.isBot &&
+          (() => {
+            try {
+              const orderData = JSON.parse(message.text);
+              if (orderData.success && orderData.orderDetails) {
+                const { orderDetails } = orderData;
+                return (
+                  <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-sm mb-3 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-primary/10 to-green-600/5 animate-gradient" />
+
+                    <div className="relative">
+                      {/* Success Header */}
+                      <div className="text-center mb-3">
+                        <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg animate-success-bounce">
+                          <CheckCircle2 className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-0.5">
+                          Order Confirmed!
+                        </h3>
+                        <p className="text-primary font-medium">
+                          {orderDetails.restaurant}
+                        </p>
+                      </div>
+
+                      {/* Order Image & Details */}
+                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 mb-2 shadow-inner">
+                        <div className="flex items-center gap-3 mb-2 pb-2 border-b border-gray-200">
+                          {orderDetails.firstItemImage && (
+                            <img
+                              src={orderDetails.firstItemImage}
+                              alt="Order"
+                              className="w-16 h-16 rounded-lg object-cover shadow-md"
+                            />
+                          )}
+                          <div className="flex-1">
+                            <div className="space-y-1">
+                              {orderDetails.items.map(
+                                (item: any, index: number) => (
+                                  <div
+                                    key={index}
+                                    className="flex justify-between text-xs"
+                                  >
+                                    <span className="text-gray-600">
+                                      {item.quantity}x {item.name}
+                                    </span>
+                                    <span className="text-gray-800 font-medium">
+                                      {(
+                                        parseFloat(item.price) * item.quantity
+                                      ).toFixed(2)}{" "}
+                                      AED
+                                    </span>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Payment Summary */}
+                        <div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">
+                              Total Amount
+                            </span>
+                            <span className="text-lg font-bold text-primary">
+                              {orderDetails.total} AED
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">
+                              Payment Method
+                            </span>
+                            <span className="text-xs font-medium text-gray-800 bg-white px-2 py-0.5 rounded-full shadow-sm">
+                              {orderDetails.paymentMethod === "card"
+                                ? "Credit Card"
+                                : "USDT"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Delivery Details */}
+                      <div className="bg-white rounded-lg px-2 py-1 border border-gray-100">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <p className="text-sm font-medium text-gray-700">
+                            Delivery Details
+                          </p>
+                        </div>
+                        <div className="space-y-0.5 pl-5">
+                          <p className="text-xs font-medium text-gray-800">
+                            {orderDetails.deliveryDetails.name}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {orderDetails.deliveryDetails.address}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {orderDetails.deliveryDetails.phone}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return <p className="text-gray-800 text-sm">{message.text}</p>;
+            } catch (e) {
+              return <p className="text-gray-800 text-sm">{message.text}</p>;
+            }
+          })()}
 
         {message.isBot && message.llm ? (
           <div>
@@ -330,7 +441,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                 : "text-white text-[13px]"
             }
           >
-            {message.text}
+            {message.queryType !== "CHECKOUT" && message.text}
           </div>
         )}
       </>
