@@ -74,6 +74,59 @@ const CheckoutForm: React.FC<{
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [clientSecret, setClientSecret] = useState<string>("");
   const [currentNetwork, setCurrentNetwork] = useState<string | null>(null);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [orderStatus, setOrderStatus] = useState<string | null>(null);
+
+  const checkOrderStatus = async (orderId: string) => {
+    try {
+      const status = await stripeService.getOrderStatus(orderId);
+      return status;
+    } catch (error) {
+      console.error("Error checking order status:", error);
+      throw error;
+    }
+  };
+
+  const pollOrderStatus = async (orderId: string) => {
+    setIsCheckingStatus(true);
+    let attempts = 0;
+    const maxAttempts = 30; // 30 attempts * 2 seconds = 1 minute maximum
+
+    const poll = async () => {
+      try {
+        const status = await checkOrderStatus(orderId);
+        setOrderStatus(status);
+
+        if (status === "succeeded") {
+          setShowSuccessAnimation(true);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          setIsSuccess(true);
+          handlePaymentSuccess();
+          setIsCheckingStatus(false);
+          return;
+        } else if (status === "failed") {
+          setError("Payment verification failed. Please try again.");
+          setIsCheckingStatus(false);
+          return;
+        }
+
+        attempts++;
+        if (attempts >= maxAttempts) {
+          setError("Payment verification timeout. Please contact support.");
+          setIsCheckingStatus(false);
+          return;
+        }
+
+        // Poll again after 2 seconds
+        setTimeout(poll, 2000);
+      } catch (error) {
+        setError("Error verifying payment. Please contact support.");
+        setIsCheckingStatus(false);
+      }
+    };
+
+    await poll();
+  };
 
   useEffect(() => {
     const checkNetwork = async () => {
@@ -104,17 +157,19 @@ const CheckoutForm: React.FC<{
           await window.ethereum.request({
             method: "wallet_addEthereumChain",
             params: [
-              chainId === "0x38"
+              chainId === "0x61"
                 ? {
-                    chainId: "0x38",
-                    chainName: "Binance Smart Chain",
+                    chainId: "0x61",
+                    chainName: "BSC Testnet",
                     nativeCurrency: {
                       name: "BNB",
                       symbol: "BNB",
                       decimals: 18,
                     },
-                    rpcUrls: ["https://bsc-dataseed.binance.org/"],
-                    blockExplorerUrls: ["https://bscscan.com/"],
+                    rpcUrls: [
+                      "https://data-seed-prebsc-1-s1.binance.org:8545/",
+                    ],
+                    blockExplorerUrls: ["https://testnet.bscscan.com/"],
                   }
                 : {
                     chainId: "0x2105",
@@ -226,21 +281,35 @@ const CheckoutForm: React.FC<{
       const usdtAmount = parseFloat(total) * 0.27;
 
       // Transfer USDT
-      const signature = await transferUSDT(usdtAmount);
-
-      if (!signature) {
+      const { signature, network } = await transferUSDT(usdtAmount);
+      if (!signature || !network) {
         throw new Error("USDT transfer failed");
       }
 
-      setShowSuccessAnimation(true);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Add transaction details to order details
+      const orderDetailsWithTx = {
+        ...orderDetails,
+        transactionHash: signature,
+        network: network,
+      };
 
-      if (user?.userId) {
-        await getUserOrders(user.userId);
+      // Create order in backend after successful USDT transfer
+      const orderResponse = await stripeService.createCryptoOrder(
+        cart,
+        orderDetailsWithTx,
+        state.selectedRestaurant || "Unknown Restaurant",
+        user.userId,
+        restaurantState.activeRestroId
+      );
+
+      console.log(orderResponse);
+
+      if (orderResponse && orderResponse?.result?.orderId) {
+        // Start polling for order status
+        await pollOrderStatus(orderResponse?.result?.orderId);
+      } else {
+        throw new Error("No order ID received from server");
       }
-
-      setIsSuccess(true);
-      handlePaymentSuccess();
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "Crypto payment failed"
@@ -365,6 +434,16 @@ const CheckoutForm: React.FC<{
 
   return (
     <div className="bg-white/80 rounded-lg p-2.5 shadow-sm backdrop-blur-sm mb-3 max-w-sm mx-auto">
+      {isCheckingStatus && (
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 font-medium">Verifying Payment</p>
+            <p className="text-sm text-gray-500 mt-2">Please wait...</p>
+          </div>
+        </div>
+      )}
+
       <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg overflow-hidden p-2.5 text-white">
         <div className="absolute right-2 top-2">
           <Lock className="w-4 h-4 text-orange-200" />
@@ -432,21 +511,22 @@ const CheckoutForm: React.FC<{
                   Base Chain
                 </button>
                 <button
-                  onClick={() => switchNetwork("0x38")}
+                  onClick={() => switchNetwork("0x61")}
                   className={`px-3 py-1.5 rounded text-xs font-medium ${
-                    currentNetwork === "0x38"
+                    currentNetwork === "0x61"
                       ? "bg-primary text-white"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
                 >
-                  BSC
+                  BSC Testnet
                 </button>
               </div>
               {currentNetwork &&
                 currentNetwork !== "0x2105" &&
-                currentNetwork !== "0x38" && (
+                currentNetwork !== "0x61" && (
                   <p className="text-xs text-red-500 mt-1">
-                    Please switch to either Base Chain or BSC to continue
+                    Please switch to either Base Chain or BSC Testnet to
+                    continue
                   </p>
                 )}
             </div>
@@ -463,12 +543,7 @@ const CheckoutForm: React.FC<{
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-600">USDT Balance</span>
                   <span className="text-xs font-medium text-gray-800">
-                    {balance !== null
-                      ? parseFloat(
-                          Web3.utils?.fromWei(balance, "ether")
-                        ).toFixed(2)
-                      : "0.00"}{" "}
-                    USDT
+                    {balance !== null ? balance.toFixed(2) : "0.00"} USDT
                   </span>
                 </div>
               </div>
@@ -497,15 +572,13 @@ const CheckoutForm: React.FC<{
           ) : (
             <button
               onClick={handleSubmit}
-              disabled={
-                isProcessing ||
-                (currentNetwork !== "0x2105" && currentNetwork !== "0x38") ||
-                (balance || 0) < parseFloat(total) * 0.27
-              }
+              disabled={isProcessing || currentNetwork !== "0x61" || !connected}
               className="w-full p-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm disabled:opacity-50"
             >
               {isProcessing
                 ? "Processing..."
+                : !connected
+                ? "Connect Metamask"
                 : (balance || 0) < parseFloat(total) * 0.27
                 ? "Insufficient USDT Balance"
                 : `Pay ${(parseFloat(total) * 0.27).toFixed(2)} USDT`}

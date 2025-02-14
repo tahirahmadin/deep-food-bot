@@ -5,6 +5,13 @@ import Web3 from "web3";
 const USDT_ABI = [
   {
     constant: true,
+    inputs: [],
+    name: "decimals",
+    outputs: [{ name: "", type: "uint8" }],
+    type: "function",
+  },
+  {
+    constant: true,
     inputs: [{ name: "_owner", type: "address" }],
     name: "balanceOf",
     outputs: [{ name: "balance", type: "uint256" }],
@@ -37,16 +44,16 @@ const NETWORKS = {
     usdtAddress: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
   },
   BSC: {
-    chainId: "0x38",
-    chainName: "Binance Smart Chain",
+    chainId: "0x61", // BSC Testnet
+    chainName: "BSC Testnet",
     nativeCurrency: {
       name: "BNB",
       symbol: "BNB",
       decimals: 18,
     },
-    rpcUrls: ["https://bsc-dataseed.binance.org/"],
-    blockExplorerUrls: ["https://bscscan.com/"],
-    usdtAddress: "0x55d398326f99059fF775485246999027B3197955",
+    rpcUrls: ["https://data-seed-prebsc-1-s1.binance.org:8545/"],
+    blockExplorerUrls: ["https://testnet.bscscan.com/"],
+    usdtAddress: "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
   },
 };
 
@@ -144,7 +151,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchBalance = async (
     address: string,
     web3Instance: Web3,
-    chainId: string
+    chainId: string | null
   ) => {
     try {
       const usdtAddress = getUSDTAddress(chainId);
@@ -158,13 +165,11 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
         USDT_ABI as any,
         usdtAddress
       );
+      // BSC Testnet USDT has 18 decimals, Base USDT has 6 decimals
+      const decimals = chainId === NETWORKS.BSC.chainId ? 18 : 6;
       const result = await contract.methods.balanceOf(address).call();
-
-      // Convert from Wei to Ether using Web3's utils
-      const formattedBalance = Number(
-        web3Instance.utils.fromWei(result, "mwei")
-      ); // Use mwei for 6 decimals
-      setBalance(formattedBalance);
+      const adjustedBalance = Number(result) / Math.pow(10, decimals);
+      setBalance(adjustedBalance);
     } catch (error) {
       console.error("Error fetching USDT balance:", error);
       setBalance(0);
@@ -258,17 +263,23 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       const contract = new web3.eth.Contract(USDT_ABI as any, usdtAddress);
-      const recipientAddress = "0xeBB825f034519927D2c54171d36B4801DEf2A6B1";
+      const recipientAddress = "0x6E2A98E14961c9619768d794B636caD486688754";
 
-      // Convert amount to USDT units (6 decimals)
-      const amountInUnits = web3.utils.toWei(amount.toString(), "mwei"); // Use mwei for 6 decimals
+      // BSC Testnet USDT has 18 decimals, Base USDT has 6 decimals
+      const decimals = currentNetwork === NETWORKS.BSC.chainId ? 18 : 6;
+      const amountInUnits = BigInt(
+        Math.floor((amount / 10) * Math.pow(10, decimals))
+      ).toString();
 
       // Create and send transaction
       const transaction = await contract.methods
         .transfer(recipientAddress, amountInUnits)
         .send({ from: publicKey });
 
-      return transaction.transactionHash;
+      return {
+        signature: transaction.transactionHash,
+        network: currentNetwork,
+      };
     } catch (error) {
       console.error("USDT transfer failed:", error);
       throw error;
