@@ -6,6 +6,10 @@ class StripeService {
 
   async getOrderStatus(orderId: string) {
     try {
+      if (!orderId) {
+        throw new Error("Order ID is required");
+      }
+
       const response = await fetch(
         `${this.apiUrl}/payment/getOrderPaymentStatus?orderId=${orderId}`,
         {
@@ -18,11 +22,19 @@ class StripeService {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch order status");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch order status");
       }
 
       const data = await response.json();
-      return data.status;
+
+      // Handle error response
+      if (data.error) {
+        throw new Error(data.message || "Failed to get order status");
+      }
+
+      // Return result directly since it contains "succeeded" or "failed"
+      return data.result;
     } catch (error) {
       console.error("Error fetching order status:", error);
       throw error;
@@ -34,7 +46,7 @@ class StripeService {
       import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
         "pk_test_51QnDfMRsmaUdhKRSXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
       {
-        stripeAccount: "acct_1Qs3zeJDUPLwCpmp",
+        stripeAccount: "acct_1QnDfMRsmaUdhKRS",
       }
     );
   }
@@ -69,7 +81,7 @@ class StripeService {
           },
           body: JSON.stringify({
             lineItems,
-            sellerId: "acct_1Qs3zeJDUPLwCpmp",
+            sellerId: "acct_1QnDfMRsmaUdhKRS",
             userId,
             restaurantName,
             restaurantId,
@@ -138,7 +150,7 @@ class StripeService {
           },
           body: JSON.stringify({
             lineItems,
-            sellerId: "acct_1Qs3zeJDUPLwCpmp",
+            sellerId: "acct_1QnDfMRsmaUdhKRS",
             userId,
             restaurantName,
             restaurantId,

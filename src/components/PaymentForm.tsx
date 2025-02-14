@@ -28,7 +28,7 @@ const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
     "pk_test_51QnDfMRsmaUdhKRSXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
   {
-    stripeAccount: "acct_1Qs3zeJDUPLwCpmp",
+    stripeAccount: "acct_1QnDfMRsmaUdhKRS",
   }
 );
 
@@ -100,6 +100,7 @@ const CheckoutForm: React.FC<{
         if (status === "succeeded") {
           setShowSuccessAnimation(true);
           await new Promise((resolve) => setTimeout(resolve, 1000));
+          await refreshOrders();
           setIsSuccess(true);
           handlePaymentSuccess();
           setIsCheckingStatus(false);
@@ -252,11 +253,6 @@ const CheckoutForm: React.FC<{
       if (paymentIntent.status === "succeeded") {
         // Show success animation
         setShowSuccessAnimation(true);
-
-        // Wait for the order to be processed and refresh orders
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        await refreshOrders();
-
         setIsSuccess(true);
         handlePaymentSuccess();
       }
@@ -329,6 +325,9 @@ const CheckoutForm: React.FC<{
   };
 
   const handlePaymentSuccess = () => {
+    // Refresh orders after successful payment
+    refreshOrders();
+
     dispatch({
       type: "ADD_MESSAGE",
       payload: {
@@ -572,7 +571,12 @@ const CheckoutForm: React.FC<{
           ) : (
             <button
               onClick={handleSubmit}
-              disabled={isProcessing || currentNetwork !== "0x61" || !connected}
+              disabled={
+                isProcessing ||
+                currentNetwork !== "0x61" ||
+                (balance || 0) < parseFloat(total) * 0.27 ||
+                !connected
+              }
               className="w-full p-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm disabled:opacity-50"
             >
               {isProcessing

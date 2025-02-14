@@ -17,11 +17,13 @@ import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
 import { getMenuByRestaurantId } from "../utils/menuUtils";
+import { getRestaurantColors } from "../utils/colorUtils";
 
 export const DunkinOrderApp: React.FC = () => {
   const { toast, hideToast } = useToast();
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setRestaurants } = useRestaurant();
+  const colors = getRestaurantColors(restaurantState.activeRestroId);
   const { user, setUser, isAuthenticated, setIsAddressModalOpen, addresses } =
     useAuth();
   const { selectedStyle, isVegOnly, isFastDelivery, numberOfPeople } =
@@ -604,7 +606,10 @@ export const DunkinOrderApp: React.FC = () => {
 
   return (
     <div className="min-h-[100vh] h-[100vh] relative flex items-center justify-center bg-gray-50 overflow-hidden">
-      <div className="relative bg-[#FFF5F2] w-full h-full max-w-md">
+      <div
+        className="relative w-full h-full max-w-md transition-colors duration-300"
+        style={{ backgroundColor: colors }}
+      >
         {toast.visible && (
           <Toast
             message={toast.message}
