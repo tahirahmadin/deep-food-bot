@@ -29,7 +29,7 @@ const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
     "pk_test_51QnDfMRsmaUdhKRSXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
   {
-    stripeAccount: "acct_1QnDfMRsmaUdhKRS",
+    stripeAccount: "acct_1Qs3zeJDUPLwCpmp",
   }
 );
 
