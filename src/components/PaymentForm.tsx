@@ -1,8 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ShoppingBag,
-  CreditCard,
   Lock,
   CheckCircle2,
   PartyPopper,
@@ -23,6 +21,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useRestaurant } from "../context/RestaurantContext";
+import Web3 from "web3";
 
 // Initialize Stripe
 const stripePromise = loadStripe(
@@ -66,7 +65,8 @@ const CheckoutForm: React.FC<{
   const { refreshOrders } = useAuth();
   const { state: restaurantState } = useRestaurant();
   const { user } = useAuth();
-  const { connectWallet, transferUSDT, connected, account } = useWallet();
+  const { connectWallet, transferUSDT, connected, publicKey, balance } =
+    useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -415,7 +415,7 @@ const CheckoutForm: React.FC<{
         </form>
       ) : (
         <div className="mt-3 space-y-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
             <div className="mb-4">
               <p className="text-sm font-medium text-gray-700 mb-2">
                 Select Network
@@ -450,6 +450,29 @@ const CheckoutForm: React.FC<{
                   </p>
                 )}
             </div>
+            {connected && (
+              <div className="mb-4 p-3 bg-white/50 rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-600">
+                    Connected Wallet
+                  </span>
+                  <span className="text-xs font-mono text-gray-800">
+                    {publicKey?.slice(0, 6)}...{publicKey?.slice(-4)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">USDT Balance</span>
+                  <span className="text-xs font-medium text-gray-800">
+                    {balance !== null
+                      ? parseFloat(
+                          Web3.utils?.fromWei(balance, "ether")
+                        ).toFixed(2)
+                      : "0.00"}{" "}
+                    USDT
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm text-gray-600">Amount in USDT</span>
               <span className="font-bold text-gray-900">
@@ -476,11 +499,16 @@ const CheckoutForm: React.FC<{
               onClick={handleSubmit}
               disabled={
                 isProcessing ||
-                (currentNetwork !== "0x2105" && currentNetwork !== "0x38")
+                (currentNetwork !== "0x2105" && currentNetwork !== "0x38") ||
+                (balance || 0) < parseFloat(total) * 0.27
               }
               className="w-full p-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm disabled:opacity-50"
             >
-              {isProcessing ? "Processing..." : "Pay with USDT"}
+              {isProcessing
+                ? "Processing..."
+                : (balance || 0) < parseFloat(total) * 0.27
+                ? "Insufficient USDT Balance"
+                : `Pay ${(parseFloat(total) * 0.27).toFixed(2)} USDT`}
             </button>
           )}
         </div>
