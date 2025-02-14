@@ -44,7 +44,7 @@ class StripeService {
           },
           body: JSON.stringify({
             lineItems,
-            sellerId: "acct_1QnDfMRsmaUdhKRS",
+            sellerId: "acct_1Qs3zeJDUPLwCpmp",
             userId,
             restaurantName,
             restaurantId,
