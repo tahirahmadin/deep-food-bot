@@ -493,14 +493,16 @@ const CheckoutForm: React.FC<{
       )}
 
       {selectedPaymentMethod === "card" && (
-        <button
-          type="submit"
-          disabled={!stripe || !cardComplete || !clientSecret || isProcessing}
-          className="w-full p-2.5 bg-primary text-white rounded-lg hover:bg-primary-600 transition-all shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-        >
-          <Wallet className="w-3.5 h-3.5" />
-          {isProcessing ? "Processing..." : `Pay ${total} AED & Place Order`}
-        </button>
+        <form onSubmit={handleSubmit} className="mt-3">
+          <button
+            type="submit"
+            disabled={!stripe || !cardComplete || !clientSecret || isProcessing}
+            className="w-full p-2.5 bg-primary text-white rounded-lg hover:bg-primary-600 transition-all shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+          >
+            <Wallet className="w-3.5 h-3.5" />
+            {isProcessing ? "Processing..." : `Pay ${total} AED & Place Order`}
+          </button>
+        </form>
       )}
 
       <p className="text-[10px] text-center text-gray-500">
@@ -519,6 +521,10 @@ interface PaymentFormProps {
 export const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
   const { state, dispatch } = useChatContext();
   const { orderDetails, paymentMethod } = state.checkout;
+
+  if (!paymentMethod) {
+    dispatch({ type: "SET_PAYMENT_METHOD", payload: "card" });
+  }
 
   const total = state.cart
     .reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0)
