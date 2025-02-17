@@ -1,5 +1,6 @@
 // src/context/ChatContext.tsx
 import React, { createContext, useContext, useReducer } from "react";
+import { GreetingService } from "../services/greetingService";
 
 export enum QueryType {
   MENU_QUERY = "MENU_QUERY",
@@ -218,7 +219,7 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
     case "RESET_STATE":
       return {
         ...initialState,
-        messages: [initialState.messages[0]], // Keep only the welcome message
+        messages: [state.messages[0]], // Keep only the welcome message
         selectedRestaurant: null,
       };
     default:
@@ -227,20 +228,7 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
 };
 
 const initialState: ChatState = {
-  messages: [
-    {
-      id: 1,
-      text: "Hi! Cozy weather today calls for something delicious. Let me know what you're craving?",
-
-      isBot: true,
-      time: new Date().toLocaleString("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      }),
-      queryType: QueryType.GENERAL,
-    },
-  ],
+  messages: [],
   isLoading: false,
   error: null,
   currentQueryType: QueryType.GENERAL,
@@ -274,6 +262,37 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
+  const greetingService = new GreetingService();
+  const greetingUpdated = React.useRef(false);
+
+  React.useEffect(() => {
+    const updateGreeting = async () => {
+      if (greetingUpdated.current) return;
+      greetingUpdated.current = true;
+
+      try {
+        const greeting = await greetingService.getGreeting();
+        dispatch({
+          type: "ADD_MESSAGE",
+          payload: {
+            id: 1,
+            text: greeting,
+            isBot: true,
+            time: new Date().toLocaleString("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+              hour12: true,
+            }),
+            queryType: QueryType.GENERAL,
+          },
+        });
+      } catch (error) {
+        console.error("Error updating greeting:", error);
+      }
+    };
+
+    updateGreeting();
+  }, []);
 
   return (
     <ChatContext.Provider value={{ state, dispatch }}>

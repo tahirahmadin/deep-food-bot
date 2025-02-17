@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
-import { AlertTriangle, CheckCircle2, MapPin } from "lucide-react";
+import { AlertTriangle, CheckCircle2, MapPin, Clock, Bike } from "lucide-react";
 import { MenuList } from "./MenuList";
 import { DeliveryForm } from "./DeliveryForm";
 import { PaymentForm } from "./PaymentForm";
@@ -8,8 +8,79 @@ import { useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { useFiltersContext } from "../context/FiltersContext";
 import * as menuUtils from "../utils/menuUtils";
-import { useEffect } from "react";
 import { Message as MessageType, QueryType } from "../types";
+
+interface MessageSkeletonProps {
+  type: "restaurant" | "menu";
+}
+
+interface TypingEffectProps {
+  text: string;
+  onComplete?: () => void;
+}
+
+const TypingEffect: React.FC<TypingEffectProps> = ({ text, onComplete }) => {
+  const [displayText, setDisplayText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timer = setTimeout(() => {
+        setDisplayText((prev) => prev + text[currentIndex]);
+        setCurrentIndex((prev) => prev + 1);
+      }, 15); // Adjust typing speed here
+
+      return () => clearTimeout(timer);
+    } else if (onComplete) {
+      onComplete();
+    }
+  }, [currentIndex, text, onComplete]);
+
+  return <span>{displayText}</span>;
+};
+
+const MessageSkeleton: React.FC<MessageSkeletonProps> = ({ type }) => {
+  return (
+    <div className="animate-pulse">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-8 h-8 bg-gray-200 rounded-full" />
+        <div className="h-4 bg-gray-200 rounded w-3/4" />
+      </div>
+
+      {type === "restaurant" && (
+        <>
+          <div className="flex items-center gap-2 mt-2">
+            <div className="h-6 bg-gray-200 rounded-full w-32" />
+            <div className="h-6 bg-gray-200 rounded-full w-16" />
+            <div className="h-6 bg-gray-200 rounded-full w-24" />
+            <div className="h-6 bg-gray-200 rounded-full w-20" />
+          </div>
+          <div className="flex gap-2 mt-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="w-[80px]">
+                <div className="h-[55px] bg-gray-200 rounded-lg mb-2" />
+                <div className="h-3 bg-gray-200 rounded w-full mb-1" />
+                <div className="h-3 bg-gray-200 rounded w-1/2" />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {type === "menu" && (
+        <div className="flex gap-2 mt-2">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="w-[80px]">
+              <div className="h-[55px] bg-gray-200 rounded-lg mb-2" />
+              <div className="h-3 bg-gray-200 rounded w-full mb-1" />
+              <div className="h-3 bg-gray-200 rounded w-1/2" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface MessageProps {
   message: MessageType;
@@ -27,8 +98,29 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
   const { state: chatState, dispatch } = useChatContext();
   const messageRef = React.useRef(message);
   const isError =
-    message.text.toLowerCase().includes("error") ||
-    message.text.toLowerCase().includes("sorry");
+    message.text?.toLowerCase().includes("error") ||
+    message.text?.toLowerCase().includes("sorry");
+  const [isLoading, setIsLoading] = useState(true);
+  const [showTypingEffect, setShowTypingEffect] = useState(false);
+  const [typingComplete, setTypingComplete] = useState(false);
+
+  // Only show typing effect for the first message
+  useEffect(() => {
+    if (message.isBot && message.id === 1 && !typingComplete) {
+      setShowTypingEffect(true);
+    }
+  }, [message.isBot, message.id, typingComplete]);
+
+  useEffect(() => {
+    // Simulate loading time for skeleton
+    if (message.isBot) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+    setIsLoading(false);
+  }, [message]);
 
   useEffect(() => {
     // Parse the message text to get restaurant IDs
@@ -320,22 +412,30 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
             <div className="pr-3 flex-shrink-0 flex">
               <img
                 src={selectedStyle.image}
-                alt={selectedStyle.name}
+                alt={selectedStyle?.name || "Chat Style"}
                 className="w-8 h-8 rounded-full object-cover border-2 border-secondary"
               />{" "}
               <p className="text-gray-600 text-[13px] pl-2">{message.text}</p>
             </div>
 
             {message.llm.output.items1?.length > 0 && (
-              <div className="flex items-center gap-1 mt-1">
-                <div className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={() => {
+                    if (message.llm?.restroIds?.[0]) {
+                      dispatch({ type: "SET_MODE", payload: "browse" });
+                      handleSelectRestro(message.llm.restroIds[0]);
+                    }
+                  }}
+                  className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium hover:bg-blue-600 transition-colors"
+                >
                   <span>
                     {menuUtils.getRestaurantNameById(
                       restaurantState.restaurants,
-                      message.llm.restroIds[0]
+                      message.llm?.restroIds?.[0] || 0
                     )}
                   </span>
-                </div>
+                </button>
                 <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px]  font-medium">
                   <svg
                     className="w-3 h-3"
@@ -345,6 +445,14 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                   </svg>
                   <span>4.5</span>
+                </div>
+                <div className="flex items-center gap-1 bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                  <Bike className="w-3 h-3" />
+                  <span>30-45 min</span>
+                </div>
+                <div className="flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                  <MapPin className="w-3 h-3" />
+                  <span>2.5 km</span>
                 </div>
               </div>
             )}
@@ -380,15 +488,23 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
               </div>
             )}
             {message.llm.output.items2?.length > 0 && (
-              <div className="flex items-center gap-1 mt-2">
-                <div className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium">
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={() => {
+                    if (message.llm?.restroIds?.[1]) {
+                      dispatch({ type: "SET_MODE", payload: "browse" });
+                      handleSelectRestro(message.llm.restroIds[1]);
+                    }
+                  }}
+                  className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium hover:bg-blue-600 transition-colors"
+                >
                   <span>
                     {menuUtils.getRestaurantNameById(
                       restaurantState.restaurants,
-                      message.llm.restroIds[1]
+                      message.llm?.restroIds?.[1] || 0
                     )}
                   </span>
-                </div>
+                </button>
                 <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px]  font-medium">
                   <svg
                     className="w-3 h-3"
@@ -398,6 +514,14 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                   </svg>
                   <span>4.3</span>
+                </div>
+                <div className="flex items-center gap-1 bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                  <Bike className="w-3 h-3" />
+                  <span>35-50 min</span>
+                </div>
+                <div className="flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                  <MapPin className="w-3 h-3" />
+                  <span>3.2 km</span>
                 </div>
               </div>
             )}
@@ -441,7 +565,18 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                 : "text-white text-[13px]"
             }
           >
-            {message.queryType !== "CHECKOUT" && message.text}
+            {message.queryType !== "CHECKOUT" && (
+              <div className="pr-3 flex-shrink-0 flex">
+                {message.isBot && selectedStyle && (
+                  <img
+                    src={selectedStyle.image}
+                    alt={selectedStyle.name}
+                    className="w-8 h-8 rounded-full object-cover border-2 border-secondary mr-2"
+                  />
+                )}
+                <div className="text-gray-800 text-[13px]">{message.text}</div>
+              </div>
+            )}
           </div>
         )}
       </>
@@ -466,41 +601,10 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
     }
   };
 
-  // if (message.text && isError && message.isBot) {
-  //   return (
-  //     <div className="mb-4 flex justify-start">
-  //       <div className="max-w-[90%] rounded-2xl p-3 bg-red-50 text-red-700">
-  //         <div className="flex items-start gap-2">
-  //           <AlertTriangle className="w-4 h-4 mt-1 flex-shrink-0" />
-  //           <p>{message.text}</p>
-  //         </div>
-  //         <span className="text-xs text-gray-500 mt-1 block">
-  //           {message.time}
-  //         </span>
-  //         <button
-  //           onClick={onRetry}
-  //           className="mt-2 text-sm text-orange-500 hover:text-orange-600 transition-colors"
-  //         >
-  //           Try again
-  //         </button>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   return (
     <div
       className={`mb-4 flex ${message.isBot ? "justify-start" : "justify-end"}`}
     >
-      {/* {message.isBot && (
-        <div className="mr-1 flex-shrink-0">
-          <img
-            src={selectedStyle.image}
-            alt={selectedStyle.name}
-            className="w-8 h-8 rounded-full object-cover border-2 border-primary"
-          />
-        </div>
-      )} */}
       <div
         className={`max-w-[90%] rounded-2xl p-2 ${
           message.isBot
@@ -508,7 +612,31 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
             : "bg-orange-500 text-white"
         }`}
       >
-        {renderContent()}
+        {message.isBot && isLoading && !showTypingEffect && !typingComplete ? (
+          <MessageSkeleton
+            type={
+              message.llm?.output?.items1?.length > 0 ? "restaurant" : "menu"
+            }
+          />
+        ) : showTypingEffect && !typingComplete ? (
+          <div className="pr-3 flex-shrink-0 flex">
+            {selectedStyle && (
+              <img
+                src={selectedStyle.image}
+                alt={selectedStyle.name}
+                className="w-8 h-8 rounded-full object-cover border-2 border-secondary mr-3"
+              />
+            )}
+            <div className="text-gray-800 text-[13px]">
+              <TypingEffect
+                text={message.text}
+                onComplete={() => setTypingComplete(true)}
+              />
+            </div>
+          </div>
+        ) : (
+          renderContent()
+        )}
         <span className="text-xs text-gray-500 mt-1 block">{message.time}</span>
       </div>
     </div>

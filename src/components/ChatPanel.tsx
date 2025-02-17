@@ -14,7 +14,12 @@ import { LogIn } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import { loginUserFromBackendServer } from "../actions/serverActions";
+import {
+  getUserDetails,
+  loginUserFromBackendServer,
+} from "../actions/serverActions";
+import { useFiltersContext } from "../context/FiltersContext";
+import * as menuUtils from "../utils/menuUtils";
 
 interface ChatPanelProps {
   input: string;
@@ -36,12 +41,17 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   placeholder,
   isLoading = false,
 }) => {
-  const { state } = useChatContext();
+  const { state, dispatch } = useChatContext();
+  const { selectedStyle, isVegOnly, isFastDelivery, numberOfPeople } =
+    useFiltersContext();
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [allMenuItems, setAllMenuItems] = useState<MenuItemFront[]>([]);
-  const { state: restaurantState, dispatch: restaurantDispatch } =
-    useRestaurant();
+  const {
+    state: restaurantState,
+    dispatch: restaurantDispatch,
+    setActiveRestaurant,
+  } = useRestaurant();
   const {
     addresses,
     setIsAddressModalOpen,
@@ -51,6 +61,23 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     setInternalAddresses,
   } = useAuth();
   const [isFirstLogin, setIsFirstLogin] = useState(true);
+
+  const handleSelectRestro = (restroId: number) => {
+    if (restaurantState.activeRestroId === restroId) {
+      return;
+    }
+    setActiveRestaurant(restroId);
+    const restaurantName = menuUtils.getRestaurantNameById(
+      restaurantState.restaurants,
+      restroId
+    );
+    if (restaurantName !== "Unknown Restaurant") {
+      dispatch({
+        type: "SET_SELECTED_RESTAURANT",
+        payload: restaurantName,
+      });
+    }
+  };
 
   const login = useGoogleLogin({
     onSuccess: async (response) => {
@@ -147,13 +174,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   }, [state.messages]);
 
   // Serialize messages for maintaining memory context
-  const serializedMemory = useMemo(() => {
-    return state.messages
-      .map((message) =>
-        message.isBot ? `Bot: ${message.text}` : `User: ${message.text}`
-      )
-      .join("\n");
-  }, [state.messages]);
+  // const serializedMemory = useMemo(() => {
+  //   return state.messages
+  //     .map((message) =>
+  //       message.isBot ? `Bot: ${message.text}` : `User: ${message.text}`
+  //     )
+  //     .join("\n");
+  // }, [state.messages]);
 
   // Handle submit and pass serialized memory
   const handleSubmit = (e: React.FormEvent) => {
@@ -251,6 +278,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             </div>
           </div>
         )}
+        {console.log(state.messages)}
         {state.messages.map((message) => (
           <Message key={message.id} message={message} onRetry={() => {}} />
         ))}
@@ -281,7 +309,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         {state.isLoading && (
           <div className="flex items-center space-x-2 text-gray-500">
             <span
-              className="font-sans animate-pulse inline-block ml-4 text-sm text-blue"
+              className="font-sans animate-pulse inline-block ml-4 text-sm"
               style={{ transform: "skew(-10deg)" }}
             >
               {loadingMessage()}

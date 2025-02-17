@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 import { CartChangeModal } from "./CartChangeModal";
 import { useRestaurant } from "../context/RestaurantContext";
@@ -68,7 +68,16 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
     }
   };
 
-  const handleAddToCart = () => {
+  const handleCartAction = () => {
+    // If item is in cart, remove it
+    if (isInCart) {
+      dispatch({
+        type: "REMOVE_FROM_CART",
+        payload: id,
+      });
+      return;
+    }
+
     // Check if cart has items from a different restaurant
     const cartRestaurant = state.cart[0]?.restaurant;
 
@@ -130,14 +139,18 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
             className="w-full h-[55px] object-cover"
           />
           <button
-            onClick={handleAddToCart}
+            onClick={handleCartAction}
             className={`absolute bottom-1 right-1 p-1 rounded-full transition-all ${
               isInCart
                 ? "bg-primary text-white hover:bg-primary-600 shadow-sm"
                 : "bg-white text-primary hover:bg-primary-50"
             }`}
           >
-            <Plus className="w-3 h-3" />
+            {isInCart ? (
+              <Minus className="w-3 h-3" />
+            ) : (
+              <Plus className="w-3 h-3" />
+            )}
           </button>
         </div>
 
