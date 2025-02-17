@@ -157,9 +157,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
     chainId: string | null
   ) => {
     try {
-      console.log("Balance fetching");
-      console.log(address);
-      console.log(chainId);
       const usdtAddress = getUSDTAddress(chainId);
       if (!usdtAddress) {
         console.error("Unsupported network for USDT");
@@ -174,10 +171,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
       // BSC Testnet USDT has 18 decimals, Base USDT has 6 decimals
       const decimals = chainId === NETWORKS.BSC.chainId ? 18 : 6;
       const result = await contract.methods.balanceOf(address).call();
-      console.log(chainId);
-      console.log(contract);
-      console.log("result");
-      console.log(result);
+
       const adjustedBalance = Number(result) / Math.pow(10, decimals);
       setBalance(adjustedBalance);
     } catch (error) {
