@@ -45,11 +45,11 @@ export const DunkinOrderApp: React.FC = () => {
   // Replace with your DeepSeek API endpoint and API key
   const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"; // Example endpoint
   const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"; // Example endpoint
-  const GROQ_API_URL = "https://api.groq.com/v1/chat/completions"; // Example endpoint
+  const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"; // Example endpoint
 
   const API_KEY = import.meta.env.VITE_PUBLIC_DEEPSEEK_KEY; // Replace with your actual API key
   const OPENAI_KEY = import.meta.env.VITE_PUBLIC_OPENAI_API_KEY; // Replace with your actual API key
-  const GROQ_KEY = import.meta.env.VITE_PUBLIC_OPENAI_API_KEY; // Replace with your actual API key
+  const GROQ_KEY = import.meta.env.VITE_PUBLIC_GROQ_API_KEY; // Replace with your actual API key
 
   const imageService = new ImageService();
 
@@ -77,27 +77,21 @@ export const DunkinOrderApp: React.FC = () => {
       const imageDescription = await imageService.analyzeImage(file);
       const { restaurants } = restaurantState;
       const prompt = `
-      You are a menu recommendation system.
-
-      Here are the only restaurants you can recommend:
-      ${JSON.stringify(restaurants)}
-
-      Here are the only menu items you can recommend (each with a restaurantId):
-      ${JSON.stringify(menuItems)}
-
-      Analyze the image description: "${imageDescription}"
-      and return exactly one JSON object:
-      {
-        "text": "",
-        "restroIds": [],
-      }
-      Where:
-      - "text" is a short, relevant response about recommended foods from these restaurants and why it was recommended based on image.
-      - "restroIds" is an array (up to 2) of the restaurant IDs you choose from the above list.
-      - NO invented restaurants or items. Only use what's in the above data.
-      
+      You are an expert menu recommendation system. Use only the provided data.
+      Data:
+      - Restaurants: ${JSON.stringify(restaurants)}
+      - Menu Items: ${JSON.stringify(menuItems)}
+      Image description: "${imageDescription}"
+      Context: If the image or accompanying query implies any dietary constraints or negations (e.g., "no spicy", "non-dairy", "without garlic", etc.), you must exclude items violating these rules.
+      Return exactly one valid JSON object with this structure:
+      {"text": "string", "restroIds": [number]}
+      Requirements:
+      • "text" is a concise explanation (max 20 words) derived solely from the image description and any inferred dietary or negation constraints.
+      • "restroIds" is an array of up to 2 numbers corresponding to valid restaurant IDs from the provided data.
+      • If the description is ambiguous or conflicts with the constraints such that no recommendations are available, return an empty "restroIds" array and a generic message in "text".
       STRICT FORMAT RULES:
-      - Return ONLY a valid JSON object. No code fences, disclaimers, or extra text.
+      • Return only the JSON object with no additional text, markdown, or code fences.
+      • The JSON must strictly follow the provided structure with no extra keys or formatting.
     `;
 
       const pickResp = await axios.post(
@@ -415,6 +409,7 @@ export const DunkinOrderApp: React.FC = () => {
     dispatch({ type: "SET_LOADING", payload: true });
 
     try {
+      console.log("Starting request processing...");
       let apiResponseText = null;
       let restaurant1Menu = [];
       let restaurant2Menu = [];
@@ -423,20 +418,38 @@ export const DunkinOrderApp: React.FC = () => {
       let suggestRestroIds = [];
 
       const { activeRestroId, restaurants } = restaurantState;
+      console.log("Initial state:", {
+        activeRestroId,
+        totalRestaurants: restaurants?.length || 0
+      });
+
+      console.log("Original restaurants data:", restaurants);
 
       let restaurantContext = restaurants.map((ele) => {
         return {
+          id: ele.id,
           menuSummary: ele.menuSummary,
           name: ele.name,
           description: ele.description,
         };
       });
 
+      console.log("Restaurant Context:", {
+        totalRestaurants: restaurantContext.length,
+        restaurants: restaurantContext.map(r => ({
+          name: r.name,
+          description: r.description,
+          menuItems: r.menuSummary?.length || 0
+        }))
+      });
+
       if (!activeRestroId) {
+        console.log("No active restaurant, proceeding with restaurant recommendation...");
+        
         // SYSTEM PROMPT: Get recommended restaurants based on user query
         const systemPrompt = `
-          You are a restaurant recommendation system.
-          Given the following restaurants: ${JSON.stringify(restaurantContext)},
+          You are an expert restaurant recommendation system. 
+          Given the following Available Restaurants:${JSON.stringify(restaurantContext)},
           analyze the user's query: "${input}"
           and return exactly one JSON object:
             {
@@ -453,37 +466,75 @@ export const DunkinOrderApp: React.FC = () => {
             - Only return a valid JSON object, nothing else.
         `;
 
+        console.log("System Prompt with Restaurant Data:", {
+          input,
+          restaurantCount: restaurantContext.length,
+          prompt: systemPrompt
+        });
+
+        console.log("Making Groq API call for restaurant recommendations...");
         const response = await axios.post(
-          OPENAI_API_URL,
+          GROQ_API_URL,
           {
-            model: "gpt-4o",
+            model: "llama-3.3-70b-versatile",
             messages: [{ role: "user", content: systemPrompt }],
             max_tokens: 500,
           },
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${OPENAI_KEY}`,
+              Authorization: `Bearer ${GROQ_KEY}`,
             },
           }
         );
+        console.log("Raw Groq Restaurant Response:", response.data);
 
         const parsedResponse = JSON.parse(
           response.data.choices[0].message.content
         );
+        console.log("Parsed Restaurant Response:", {
+          rawContent: response.data.choices[0].message.content,
+          parsed: parsedResponse,
+          text: parsedResponse.text,
+          suggestedIds: parsedResponse.restroIds
+        });
+        
         suggestRestroText = parsedResponse.text;
         suggestRestroIds = parsedResponse.restroIds;
 
+        console.log("Restaurant suggestions:", {
+          text: suggestRestroText,
+          ids: suggestRestroIds
+        });
+
         if (suggestRestroIds.length > 0) {
+          console.log(`Fetching menus for ${suggestRestroIds.length} restaurants...`);
           setRestaurants(suggestRestroIds);
           restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
+          console.log("Restaurant 1 Menu:", {
+            id: suggestRestroIds[0],
+            menuItems: restaurant1Menu.length,
+            menu: restaurant1Menu
+          });
+
           if (suggestRestroIds.length > 1) {
             restaurant2Menu = await getMenuItemsByFile(suggestRestroIds[1]);
+            console.log("Restaurant 2 Menu:", {
+              id: suggestRestroIds[1],
+              menuItems: restaurant2Menu.length,
+              menu: restaurant2Menu
+            });
           }
         }
       } else {
+        console.log("Using active restaurant:", activeRestroId);
         // Fetch active restaurant menu
         activeMenu = await getMenuItemsByFile(activeRestroId);
+        console.log("Active Restaurant Menu:", {
+          id: activeRestroId,
+          menuItems: activeMenu.length,
+          menu: activeMenu
+        });
       }
 
       // Build instruction string for menu filtering
@@ -492,9 +543,23 @@ export const DunkinOrderApp: React.FC = () => {
       if (numberOfPeople > 1)
         instructionString += ` Show portions sufficient for ${numberOfPeople} people.`;
 
+      console.log("Menu filtering instructions:", {
+        isVegOnly,
+        numberOfPeople,
+        instructionString
+      });
+
       // MENU PROMPT: Fetch menu items based on user query
+      console.log("Preparing menu prompt with data:", {
+        activeRestroId,
+        restaurant1MenuItems: restaurant1Menu.length,
+        restaurant2MenuItems: restaurant2Menu.length,
+        activeMenuItems: activeMenu.length,
+        style: selectedStyle.name
+      });
+
       const menuPrompt = `
-      You are a menu recommendation system.
+      You are an expert menu recommendation system.
       Given the menu items from ${
         activeRestroId ? "a restaurant" : "two restaurants"
       }:
@@ -506,14 +571,48 @@ export const DunkinOrderApp: React.FC = () => {
             JSON.stringify(restaurant2Menu)
       },
       analyze the user's query: "${input}"
-      and return a JSON response: 
+      Context:  
+      - Parse the query for all relevant information, including:
+        - Negations and dislikes (e.g., "no cilantro", "sans shellfish", "non-spicy", "no dairy")
+        - Dietary restrictions (e.g., vegan, nut-free, gluten-free, halal) 
+        - Preferences, cravings and desired ingredients (e.g., "craving something sweet", "with extra cheese")
+        - Meal context and party size if mentioned (e.g., "a hearty dinner", "appetizers for 4")
+
+      - For negations and dislikes:
+        - Identify all ingredients, preparation styles, and characteristics to strictly avoid
+        - Exclude any menu items containing or prepared with the negated components, even in small amounts
+        - If a negation eliminates all menu options, return empty item arrays with an explanatory "text"
+        - Only suggest substitutions if they completely satisfy the negation (e.g., don't recommend almond milk if they asked for no nuts)
+
+      - For dietary restrictions:
+        - Prioritize menu items that unequivocally meet the stated dietary needs
+        - Carefully consider the full implications of the restriction:
+          - Vegan: No animal products (meat, dairy, eggs, honey, gelatin, etc.)
+          - Nut-free: No peanuts, tree nuts, or nut-derived oils or butters
+        
+      - For preferences, cravings, and desired ingredients:
+        - Rank menu items by relevance to the stated preferences
+        - Look for items featuring the desired flavors, ingredients, and preparation methods
+        - Suggest upgrades, add-ons and modifications to best satisfy the cravings without violating any restrictions
+
+      - For meal context and party size:
+        - Recommend items and quantities suited to the meal occasion and number of diners
+        - Consider dietary and prep restrictions for all members of the party if a size is given 
+        - Mention the occasion and group size in "text" to show your understanding
+        
+      - Handle edge cases and unusual requests:
+        - If the query combines multiple complex restrictions (e.g., "gluten-free vegan appetizers without onions"), narrow down to only items that fit all criteria
+        - For very specific cravings or ingredients (e.g., "something with dragonfruit"), seek out items featuring them prominently
+        - If a request is too complex or specific to satisfy (e.g., "a low-carb, nut-free, sugar-free vegan dessert"), gently suggest broadening some criteria
+
+      Return exactly one valid JSON object following this structure:
       ${
         activeRestroId
           ? `{ "text": "", "items1": [{ "id": number, "name": string }] }`
           : `{ "text": "", "items1": [{ "id": number, "name": string }], "items2": [{ "id": number, "name": string }] }`
       } 
       where:
-        - "text" provides a concise and creative response in ${
+        - "text" provides a small, hilarious and creative response in ${
           selectedStyle.name
         } style.
         - ${
@@ -522,33 +621,58 @@ export const DunkinOrderApp: React.FC = () => {
             : `"items1" and "items2" contain up to 3 relevant items each from their respective restaurant menus.`
         }
         - Adjust the number of items based on user requirements.
-        - If no matching items are found, return a valid response with empty arrays.
-      STRICT FORMAT RULES:
-        - DO NOT include any markdown formatting.
-        - DO NOT include explanations or additional text before or after the JSON.
-        - Only return a valid JSON object, nothing else.
+        - If the query is ambiguous or all items are excluded by the constraints, return empty arrays for items but include an appropriate message in "text".
+        - Account for any dietary filters or portion requirements mentioned in the query.
+        CRITICAL RULES:
+        1. ONLY return a raw JSON object
+        2. NO code blocks (no \`\`\` or \`\`\`json)
+        3. NO markdown formatting
+        4. NO explanations before or after JSON
+        5. NO trailing commas
+        6. text must be a string
+        7. items must be arrays of objects with id and name
+        8. INVALID OUTPUT EXAMPLE (DO NOT DO THIS):
+           \`\`\`json
+           { "text": "response" }
+           \`\`\`
+        9. VALID OUTPUT EXAMPLE (DO THIS):
+           {"text": "Here are some great options!", "items1": [{"id": 1, "name": "Pasta"}]}.
     `;
 
+      console.log("Menu Prompt:", menuPrompt);
+
       if (suggestRestroIds.length > 0 || activeRestroId) {
+        console.log("Making Groq API call for menu recommendations...");
         const menuResponse = await axios.post(
-          OPENAI_API_URL,
+          GROQ_API_URL,
           {
-            model: "gpt-4o",
+            model: "llama-3.3-70b-versatile",
             messages: [{ role: "user", content: menuPrompt }],
             max_tokens: 1000,
           },
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${OPENAI_KEY}`,
+              Authorization: `Bearer ${GROQ_KEY}`,
             },
           }
         );
 
+        console.log("Raw Groq Menu Response:", menuResponse.data);
+
         const parsedMenuResponse = JSON.parse(
           menuResponse.data.choices[0].message.content
         );
+        
+        console.log("Parsed Menu Response:", {
+          rawContent: menuResponse.data.choices[0].message.content,
+          parsed: parsedMenuResponse,
+          text: parsedMenuResponse.text,
+          items1: parsedMenuResponse.items1,
+          items2: parsedMenuResponse.items2
+        });
 
+        console.log("Dispatching menu response message...");
         dispatch({
           type: "ADD_MESSAGE",
           payload: {
@@ -558,7 +682,6 @@ export const DunkinOrderApp: React.FC = () => {
               output: parsedMenuResponse,
               restroIds: activeRestroId ? [activeRestroId] : suggestRestroIds,
             },
-
             isBot: true,
             time: new Date().toLocaleString("en-US", {
               hour: "numeric",
@@ -569,6 +692,7 @@ export const DunkinOrderApp: React.FC = () => {
           },
         });
       } else {
+        console.log("No restaurants found, dispatching general response...");
         dispatch({
           type: "ADD_MESSAGE",
           payload: {
@@ -585,7 +709,14 @@ export const DunkinOrderApp: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error("Error processing AI response:", error);
+      console.error("Error processing AI response:", {
+        error,
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        stack: error.stack
+      });
+      
       dispatch({
         type: "ADD_MESSAGE",
         payload: {
@@ -601,9 +732,10 @@ export const DunkinOrderApp: React.FC = () => {
         },
       });
     } finally {
+      console.log("Request processing completed");
       dispatch({ type: "SET_LOADING", payload: false });
     }
-  };
+  }
 
   // Helper function to get appropriate placeholder text based on current query type
   const getInputPlaceholder = () => {
