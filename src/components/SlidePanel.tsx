@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useWallet } from "../context/WalletContext";
+import { getUserDetails } from "../actions/serverActions";
 
 interface UserDetails {
   gobblBalance: number;
@@ -190,6 +191,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                     Order value
                   </h5>
                 </div>
+
                 <p className="text-lg font-bold text-gray-900">
                   {userDetails.totalOrdersValue.toFixed(2)} AED
                 </p>

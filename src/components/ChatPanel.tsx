@@ -14,10 +14,7 @@ import { LogIn } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import {
-  getUserDetails,
-  loginUserFromBackendServer,
-} from "../actions/serverActions";
+import { loginUserFromBackendServer } from "../actions/serverActions";
 
 interface ChatPanelProps {
   input: string;
@@ -284,7 +281,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         {state.isLoading && (
           <div className="flex items-center space-x-2 text-gray-500">
             <span
-              className="font-sans animate-pulse inline-block ml-4 text-sm"
+              className="font-sans animate-pulse inline-block ml-4 text-sm text-blue"
               style={{ transform: "skew(-10deg)" }}
             >
               {loadingMessage()}
