@@ -17,9 +17,9 @@ interface FiltersContextType {
 }
 
 const defaultStyle = {
-  name: "Trump",
+  name: "Gobbl",
   image:
-    "https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=1964&auto=format&fit=crop",
+    "https://gobbl-bucket.s3.ap-south-1.amazonaws.com/tapAssets/gobbl_coin.webp",
 };
 
 const FiltersContext = createContext<FiltersContextType | null>(null);

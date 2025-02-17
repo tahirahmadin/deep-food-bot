@@ -130,11 +130,12 @@ export class GreetingService {
 
   public async getGreeting(): Promise<string> {
     try {
-      const location = await this.getCurrentLocation();
-      const weather = await this.getWeather(location.city);
-      const occasions = await this.getSpecialOccasions(location.country);
+      // const location = await this.getCurrentLocation();
+      // const weather = await this.getWeather(location.city);
+      // const occasions = await this.getSpecialOccasions(location.country);
 
-      return await this.generateGreeting(location, weather, occasions);
+      // return await this.generateGreeting(location, weather, occasions);
+      return "Hi! Cozy weather today calls for something delicious. Let me know what you're craving?";
     } catch (error) {
       console.error("Error in greeting service:", error);
       return "Hi! Cozy weather today calls for something delicious. Let me know what you're craving?";
