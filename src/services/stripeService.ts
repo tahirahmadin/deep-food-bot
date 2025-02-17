@@ -46,7 +46,7 @@ class StripeService {
       import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
         "pk_test_51QnDfMRsmaUdhKRSXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
       {
-        stripeAccount: "acct_1QnDfMRsmaUdhKRS",
+        stripeAccount: "",
       }
     );
   }
@@ -56,7 +56,8 @@ class StripeService {
     orderDetails: any,
     restaurantName: string,
     userId: string,
-    restaurantId: number
+    restaurantId: number,
+    sellerId: string
   ) {
     try {
       const lineItems = cart.map((item) => ({
@@ -81,7 +82,7 @@ class StripeService {
           },
           body: JSON.stringify({
             lineItems,
-            sellerId: "acct_1QnDfMRsmaUdhKRS",
+            sellerId: sellerId,
             userId,
             restaurantName,
             restaurantId,
@@ -117,7 +118,8 @@ class StripeService {
     orderDetails: any,
     restaurantName: string,
     userId: string,
-    restaurantId: number
+    restaurantId: number,
+    depositAddress: string
   ) {
     try {
       console.log("Creating crypto order with data:", {
@@ -150,7 +152,7 @@ class StripeService {
           },
           body: JSON.stringify({
             lineItems,
-            sellerId: "acct_1QnDfMRsmaUdhKRS",
+            sellerId: depositAddress,
             userId,
             restaurantName,
             restaurantId,

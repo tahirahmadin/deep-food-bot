@@ -4,6 +4,8 @@ export interface SingleRestro {
   menuSummary: string;
   description: string;
   items: string;
+  bscBaseDepositAddress: string;
+  stripeAccountId: string;
 }
 export interface MenuItem {
   id: number;

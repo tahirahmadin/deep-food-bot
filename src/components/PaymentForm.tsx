@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Lock,
   CheckCircle2,
@@ -10,7 +9,6 @@ import {
 } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 import { useAuth } from "../context/AuthContext";
-import { getUserOrders } from "../actions/serverActions";
 import { stripeService } from "../services/stripeService";
 import { useWallet } from "../context/WalletContext";
 import {
@@ -24,13 +22,9 @@ import { useRestaurant } from "../context/RestaurantContext";
 import Web3 from "web3";
 
 // Initialize Stripe
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
-    "pk_test_51QnDfMRsmaUdhKRSXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  {
-    stripeAccount: "acct_1QnDfMRsmaUdhKRS",
-  }
-);
+// const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, {
+//   stripeAccount: "acct_1QnDfMRsmaUdhKRS",
+// });
 
 // Card Element styles
 const cardStyle = {
@@ -197,12 +191,24 @@ const CheckoutForm: React.FC<{
     if (selectedPaymentMethod === "card" && user?.userId) {
       const createIntent = async () => {
         try {
+          let sellerId = "";
+          if (restaurantState.activeRestroId) {
+            let selectedRestro = restaurantState.restaurants.find(
+              (ele) => ele.id === restaurantState.activeRestroId
+            );
+
+            if (selectedRestro) {
+              sellerId = selectedRestro.stripeAccountId;
+            }
+          }
+
           const secret = await stripeService.createPaymentIntent(
             cart,
             orderDetails,
             state.selectedRestaurant || "Unknown Restaurant",
             user.userId,
-            restaurantState.activeRestroId
+            restaurantState.activeRestroId,
+            sellerId
           );
           setClientSecret(secret);
         } catch (error) {
@@ -273,11 +279,29 @@ const CheckoutForm: React.FC<{
         await connectWallet();
       }
 
+      let cryptoDepositAddress = "";
+      if (restaurantState.activeRestroId) {
+        let selectedRestro = restaurantState.restaurants.find(
+          (ele) => ele.id === restaurantState.activeRestroId
+        );
+
+        if (selectedRestro) {
+          cryptoDepositAddress = selectedRestro.bscBaseDepositAddress;
+        }
+
+        cryptoDepositAddress =
+          restaurantState.restaurants[restaurantState.activeRestroId]
+            .bscBaseDepositAddress;
+      }
+
       // Calculate USDT amount (assuming 1 AED = 0.27 USDT)
       const usdtAmount = parseFloat(total) * 0.27;
 
       // Transfer USDT
-      const { signature, network } = await transferUSDT(usdtAmount);
+      const { signature, network } = await transferUSDT(
+        usdtAmount,
+        cryptoDepositAddress
+      );
       if (!signature || !network) {
         throw new Error("USDT transfer failed");
       }
@@ -295,7 +319,8 @@ const CheckoutForm: React.FC<{
         orderDetailsWithTx,
         state.selectedRestaurant || "Unknown Restaurant",
         user.userId,
-        restaurantState.activeRestroId
+        restaurantState.activeRestroId,
+        cryptoDepositAddress
       );
 
       console.log(orderResponse);
@@ -648,6 +673,7 @@ interface PaymentFormProps {
 
 export const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
   const { state, dispatch } = useChatContext();
+  const { state: restaurantState } = useRestaurant();
   const { orderDetails, paymentMethod } = state.checkout;
 
   if (!paymentMethod) {
@@ -657,6 +683,13 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
   const total = state.cart
     .reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0)
     .toFixed(2);
+
+  let stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, {
+    stripeAccount: restaurantState.activeRestroId
+      ? restaurantState.restaurants[restaurantState.activeRestroId]
+          .stripeAccountId
+      : "",
+  });
 
   return (
     <Elements stripe={stripePromise}>

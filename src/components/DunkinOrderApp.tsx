@@ -424,11 +424,19 @@ export const DunkinOrderApp: React.FC = () => {
 
       const { activeRestroId, restaurants } = restaurantState;
 
+      let restaurantContext = restaurants.map((ele) => {
+        return {
+          menuSummary: ele.menuSummary,
+          name: ele.name,
+          description: ele.description,
+        };
+      });
+
       if (!activeRestroId) {
         // SYSTEM PROMPT: Get recommended restaurants based on user query
         const systemPrompt = `
           You are a restaurant recommendation system.
-          Given the following restaurants: ${JSON.stringify(restaurants)},
+          Given the following restaurants: ${JSON.stringify(restaurantContext)},
           analyze the user's query: "${input}"
           and return exactly one JSON object:
             {

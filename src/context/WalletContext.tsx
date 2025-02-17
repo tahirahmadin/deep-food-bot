@@ -63,7 +63,10 @@ interface WalletContextType {
   balance: number | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => Promise<void>;
-  transferUSDT: (amount: number) => Promise<string | null>;
+  transferUSDT: (
+    amount: number,
+    depositAddress: string
+  ) => Promise<string | null>;
   currentNetwork: string | null;
   switchNetwork: (chainId: string) => Promise<void>;
 }
@@ -140,7 +143,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
         window.ethereum.removeAllListeners("chainChanged");
       }
     };
-  }, []);
+  }, [publicKey, connected]);
 
   const getUSDTAddress = (chainId: string) => {
     if (chainId === NETWORKS.BASE.chainId) return NETWORKS.BASE.usdtAddress;
@@ -154,6 +157,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
     chainId: string | null
   ) => {
     try {
+      console.log("Balance fetching");
+      console.log(address);
+      console.log(chainId);
       const usdtAddress = getUSDTAddress(chainId);
       if (!usdtAddress) {
         console.error("Unsupported network for USDT");
@@ -168,6 +174,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
       // BSC Testnet USDT has 18 decimals, Base USDT has 6 decimals
       const decimals = chainId === NETWORKS.BSC.chainId ? 18 : 6;
       const result = await contract.methods.balanceOf(address).call();
+      console.log(chainId);
+      console.log(contract);
+      console.log("result");
+      console.log(result);
       const adjustedBalance = Number(result) / Math.pow(10, decimals);
       setBalance(adjustedBalance);
     } catch (error) {
@@ -245,7 +255,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
     setBalance(null);
   };
 
-  const transferUSDT = async (amount: number): Promise<string | null> => {
+  const transferUSDT = async (
+    amount: number,
+    depositAddress: string
+  ): Promise<string | null> => {
     try {
       if (
         !window.ethereum ||
@@ -263,7 +276,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       const contract = new web3.eth.Contract(USDT_ABI as any, usdtAddress);
-      const recipientAddress = "0x6E2A98E14961c9619768d794B636caD486688754";
+      const recipientAddress = depositAddress;
 
       // BSC Testnet USDT has 18 decimals, Base USDT has 6 decimals
       const decimals = currentNetwork === NETWORKS.BSC.chainId ? 18 : 6;
