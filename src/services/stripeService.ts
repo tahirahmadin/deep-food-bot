@@ -60,6 +60,12 @@ class StripeService {
     sellerId: string
   ) {
     try {
+      console.log("Creating payment intent with seller ID:", sellerId);
+
+      if (!sellerId || !sellerId.trim()) {
+        throw new Error("Valid Stripe account ID is required");
+      }
+
       const lineItems = cart.map((item) => ({
         price_data: {
           currency: "aed",
@@ -98,10 +104,23 @@ class StripeService {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to create payment intent");
+        const errorData = await response.text();
+        throw new Error(errorData.message || "Failed to create payment intent");
       }
 
       const data = await response.json();
+      console.log("Payment intent response:", data);
+
+      if (!data.clientSecret) {
+        throw new Error(
+          "No client secret returned from payment intent creation"
+        );
+      }
+
+      if (data.error) {
+        throw new Error(data.error.message || "Payment intent creation failed");
+      }
+
       return data.clientSecret;
     } catch (error) {
       console.error("Error creating payment intent:", error);

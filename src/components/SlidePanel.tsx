@@ -16,6 +16,12 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useWallet } from "../context/WalletContext";
 
+interface UserDetails {
+  gobblBalance: number;
+  totalOrders: number;
+  totalOrdersValue: number;
+}
+
 interface Address {
   id: string;
   name: string;
@@ -45,12 +51,34 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
   const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
   const [isAddressesExpanded, setIsAddressesExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userDetails, setUserDetails] = useState<UserDetails>({
+    gobblBalance: 0,
+    totalOrders: 0,
+    totalOrdersValue: 0,
+  });
   const { connected, publicKey } = useWallet();
   const [retryCount, setRetryCount] = useState(0);
   const latestAddress = addresses[addresses.length - 1];
 
   useEffect(() => {
-    refreshOrders();
+    const fetchUserData = async () => {
+      if (user?.userId) {
+        try {
+          const details = await getUserDetails(user.userId);
+          if (!details.error && details.result) {
+            setUserDetails({
+              gobblBalance: details.result.gobblBalance || 0,
+              totalOrders: details.result.totalOrders || 0,
+              totalOrdersValue: details.result.totalOrdersValue || 0,
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching user details:", error);
+        }
+      }
+      refreshOrders();
+    };
+    fetchUserData();
   }, [isAuthenticated, user?.userId, retryCount]);
 
   const handleRetry = () => {
@@ -162,8 +190,12 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                     Order value
                   </h5>
                 </div>
-                <p className="text-lg font-bold text-gray-900">$2,500</p>
-                <p className="text-[10px] text-gray-500">≈ 10 orders</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {userDetails.totalOrdersValue.toFixed(2)} AED
+                </p>
+                <p className="text-[10px] text-gray-500">
+                  ≈ {userDetails.totalOrders} orders
+                </p>
               </div>
 
               <div className="flex-1 bg-white rounded-xl p-3 shadow-sm">
@@ -175,7 +207,9 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                     Airdrops
                   </h5>
                 </div>
-                <p className="text-lg font-bold text-gray-900">25,000</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {userDetails.gobblBalance.toFixed(2)}
+                </p>
                 <p className="text-[10px] text-gray-500">Gobbl allocation</p>
               </div>
             </div>

@@ -190,6 +190,7 @@ const CheckoutForm: React.FC<{
   useEffect(() => {
     if (selectedPaymentMethod === "card" && user?.userId) {
       const createIntent = async () => {
+        setError(null);
         try {
           let sellerId = "";
           if (restaurantState.activeRestroId) {
@@ -199,6 +200,14 @@ const CheckoutForm: React.FC<{
 
             if (selectedRestro) {
               sellerId = selectedRestro.stripeAccountId;
+              console.log("Found Stripe account ID:", sellerId);
+            } else {
+              console.error(
+                "Restaurant not found:",
+                restaurantState.activeRestroId
+              );
+              setError("Restaurant configuration error");
+              return;
             }
           }
 
@@ -212,7 +221,9 @@ const CheckoutForm: React.FC<{
           );
           setClientSecret(secret);
         } catch (error) {
-          console.error("Error creating payment intent:", error);
+          const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
+          console.error("Error creating payment intent:", errorMessage);
           setError("Failed to initialize payment. Please try again.");
         }
       };
@@ -224,6 +235,7 @@ const CheckoutForm: React.FC<{
     orderDetails,
     state.selectedRestaurant,
     user?.userId,
+    restaurantState.activeRestroId,
   ]);
 
   const handleCardPayment = async () => {
@@ -684,12 +696,16 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
     .reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0)
     .toFixed(2);
 
-  let stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, {
-    stripeAccount: restaurantState.activeRestroId
-      ? restaurantState.restaurants[restaurantState.activeRestroId]
-          .stripeAccountId
-      : "",
-  });
+  const selectedRestaurant = restaurantState.restaurants.find(
+    (restaurant) => restaurant.id === restaurantState.activeRestroId
+  );
+
+  let stripePromise = loadStripe(
+    import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
+    selectedRestaurant?.stripeAccountId
+      ? { stripeAccount: selectedRestaurant.stripeAccountId }
+      : undefined
+  );
 
   return (
     <Elements stripe={stripePromise}>
