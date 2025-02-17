@@ -70,9 +70,9 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-gray-600">{item.quantity}x</span>
-                      <span className="text-gray-800">{item.name}</span>
+                      <span className="text-gray-800 text-xs">{item.name}</span>
                     </div>
-                    <span className="text-gray-600">
+                    <span className="text-gray-600 text-xs">
                       {(parseFloat(item.price) * item.quantity).toFixed(2)} AED
                     </span>
                   </div>

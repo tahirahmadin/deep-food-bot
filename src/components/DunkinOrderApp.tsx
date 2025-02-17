@@ -45,8 +45,11 @@ export const DunkinOrderApp: React.FC = () => {
   // Replace with your DeepSeek API endpoint and API key
   const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"; // Example endpoint
   const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"; // Example endpoint
+  const GROQ_API_URL = "https://api.groq.com/v1/chat/completions"; // Example endpoint
+
   const API_KEY = import.meta.env.VITE_PUBLIC_DEEPSEEK_KEY; // Replace with your actual API key
   const OPENAI_KEY = import.meta.env.VITE_PUBLIC_OPENAI_API_KEY; // Replace with your actual API key
+  const GROQ_KEY = import.meta.env.VITE_PUBLIC_OPENAI_API_KEY; // Replace with your actual API key
 
   const imageService = new ImageService();
 
