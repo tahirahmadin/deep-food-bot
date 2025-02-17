@@ -574,7 +574,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                     className="w-8 h-8 rounded-full object-cover border-2 border-secondary mr-2"
                   />
                 )}
-                <div className="text-gray-800 text-[13px]">{message.text}</div>
+                <div className="text-[13px]">{message.text}</div>
               </div>
             )}
           </div>
