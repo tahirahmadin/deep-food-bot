@@ -1,8 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import CryptoJS from "crypto-js";
 
-let apiUrl: string = "https://payments.gobbl.ai/api";
-let restaurantApiUrl: string = "https://restauranttest.gobbl.ai/api";
+let apiUrl: string = import.meta.env.VITE_PUBLIC_BACKEND_API_URL;
 
 // Define types for the encryption function
 interface CipherTextResponse {

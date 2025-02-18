@@ -2,7 +2,7 @@ import { loadStripe } from "@stripe/stripe-js";
 
 class StripeService {
   private stripe: Promise<any>;
-  private apiUrl: string = "https://payments.gobbl.ai/api";
+  private apiUrl: string = import.meta.env.VITE_PUBLIC_BACKEND_API_URL;
 
   async getOrderStatus(orderId: string) {
     try {
