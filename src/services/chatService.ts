@@ -1,7 +1,5 @@
 // src/services/chatService.ts
 import { QueryType } from "../context/ChatContext";
-import { MenuItem } from "../types/menu";
-import { menuItems } from "../data/menuData";
 
 interface ChatResponse {
   response: string;

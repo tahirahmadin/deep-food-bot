@@ -9,7 +9,6 @@ import { ChatPanel } from "./ChatPanel";
 import { SlidePanel } from "./SlidePanel";
 import { CartSummary } from "./CartSummary";
 import { QueryType } from "../context/ChatContext";
-import { menuItems } from "../data/menuData";
 import { ImageService } from "../services/imageService";
 import axios from "axios";
 const chatService = new ChatService();
@@ -87,9 +86,6 @@ export const DunkinOrderApp: React.FC = () => {
 
       Here are the only restaurants you can recommend:
       ${JSON.stringify(restaurants)}
-
-      Here are the only menu items you can recommend (each with a restaurantId):
-      ${JSON.stringify(menuItems)}
 
       Analyze the image description: "${imageDescription}"
       and return exactly one JSON object:
