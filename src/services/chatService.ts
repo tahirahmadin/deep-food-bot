@@ -47,7 +47,10 @@ export class ChatService {
     this.openaiKey = openaiKey;
   }
 
-  private determineQueryType(query: string): QueryType {
+  private determineQueryType(
+    query: string,
+    activeRestroId: number | null
+  ): QueryType {
     console.log("\n=== Query Type Determination ===");
     console.log("Original Query:", query);
 
@@ -119,7 +122,7 @@ export class ChatService {
       query.includes(keyword)
     );
 
-    if (matchedRestaurantKeywords.length > 0) {
+    if (matchedRestaurantKeywords.length > 0 && activeRestroId === null) {
       console.log("➡️ Determined Type: RESTAURANT_QUERY");
       return QueryType.RESTAURANT_QUERY;
     }

@@ -395,7 +395,10 @@ export const DunkinOrderApp: React.FC = () => {
     }
 
     // Determine query type
-    const queryType = chatService.determineQueryType(input.trim());
+    const queryType = chatService.determineQueryType(
+      input.trim(),
+      restaurantState.activeRestroId
+    );
 
     // Create user message with query type
     const userMessage = {
