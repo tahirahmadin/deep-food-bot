@@ -5,6 +5,9 @@ export const getMenuByRestaurantId = async (
   state: any,
   dispatch: any
 ): Promise<any[]> => {
+  console.log("state.menus");
+  console.log(state.menus);
+  console.log(restaurantId);
   // Check if menu exists in context
   if (state.menus[restaurantId]) {
     return state.menus[restaurantId];

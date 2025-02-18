@@ -429,8 +429,13 @@ export const DunkinOrderApp: React.FC = () => {
           menuSummary: ele.menuSummary,
           name: ele.name,
           description: ele.description,
+          id: ele.id,
         };
       });
+
+      console.log("restaurants");
+      console.log(restaurants);
+      console.log(restaurantContext);
 
       if (!activeRestroId) {
         // SYSTEM PROMPT: Get recommended restaurants based on user query

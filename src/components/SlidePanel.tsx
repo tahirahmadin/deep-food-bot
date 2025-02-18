@@ -193,7 +193,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 <p className="text-lg font-bold text-gray-900">
-                  {userDetails.totalOrdersValue.toFixed(2)} AED
+                  {userDetails.totalOrdersValue.toFixed(2)} USD
                 </p>
                 <p className="text-[10px] text-gray-500">
                   ≈ {userDetails.totalOrders} orders
