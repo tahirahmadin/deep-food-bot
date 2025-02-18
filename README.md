@@ -1,4 +1,4 @@
-# Dunkin' Donuts Demo Chatbot
+# Global Food Ordering Chatbot
 
 Welcome to the **Dunkin' Donuts Demo Chatbot**! This project showcases an AI-powered chatbot designed to assist users with menu navigation and ordering. The chatbot leverages OpenAI APIs to provide dynamic, contextual responses based on the Dunkin' Donuts menu.
 
@@ -42,4 +42,5 @@ Welcome to the **Dunkin' Donuts Demo Chatbot**! This project showcases an AI-pow
    git clone https://github.com/tahirahmadin/dunkin-demo.git
    cd dunkin-demo
    ```
+
 # deep-food-bot
