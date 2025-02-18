@@ -53,6 +53,36 @@ export class ChatService {
     console.log("\n=== Query Type Determination ===");
     console.log("Original Query:", query);
 
+    const restaurantKeywords = [
+      "restaurant",
+      "place",
+      "where",
+      "location",
+      "open",
+      "closed",
+      "timing",
+      "hours",
+      "address",
+      "branch",
+      "outlet",
+      "distance",
+      "near",
+      "closest",
+      "rating",
+      "review",
+      "cuisine",
+      "type of food",
+      "ambiance",
+      "atmosphere",
+      "seating",
+      "reservation",
+      "book",
+      "parking",
+      "delivery",
+      "takeout",
+      "dine in",
+    ];
+
     const menuKeywords = [
       "price",
       "cost",
@@ -83,9 +113,18 @@ export class ChatService {
     query = query.toLowerCase();
     console.log("Lowercase Query:", query);
 
+    const matchedRestaurantKeywords = restaurantKeywords.filter((keyword) =>
+      query.includes(keyword)
+    );
+
     const matchedMenuKeywords = menuKeywords.filter((keyword) =>
       query.includes(keyword)
     );
+
+    if (matchedRestaurantKeywords.length > 0) {
+      console.log("➡️ Determined Type: RESTAURANT_QUERY");
+      return QueryType.RESTAURANT_QUERY;
+    }
 
     if (matchedMenuKeywords.length > 0) {
       console.log("➡️ Determined Type: MENU_QUERY");

@@ -24,8 +24,14 @@ export const DunkinOrderApp: React.FC = () => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setRestaurants } = useRestaurant();
   const colors = getRestaurantColors(restaurantState.activeRestroId);
-  const { user, setUser, isAuthenticated, setIsAddressModalOpen, addresses } =
-    useAuth();
+  const {
+    user,
+    setUser,
+    isAuthenticated,
+    setIsAddressModalOpen,
+    addresses,
+    orders,
+  } = useAuth();
   const { selectedStyle, isVegOnly, isFastDelivery, numberOfPeople } =
     useFiltersContext();
   const [input, setInput] = useState("");
@@ -421,6 +427,8 @@ export const DunkinOrderApp: React.FC = () => {
       let activeMenu = [];
       let suggestRestroText = "";
       let suggestRestroIds = [];
+      let orderContextRestro = "";
+      let orderContextItem = "";
 
       const { activeRestroId, restaurants } = restaurantState;
 
@@ -433,16 +441,26 @@ export const DunkinOrderApp: React.FC = () => {
         };
       });
 
-      console.log("restaurants");
-      console.log(restaurants);
-      console.log(restaurantContext);
+      orderContextItem = [
+        ...new Set(
+          orders?.flatMap((ele) => ele.items?.map((itemObj) => itemObj.name)) ||
+            []
+        ),
+      ].join(", ");
+
+      console.log("orderContext");
+      console.log(orderContextItem);
+
+      const summary = getConversationSummary(state.messages);
+      console.log("summary");
+      console.log(summary);
 
       if (!activeRestroId) {
         // SYSTEM PROMPT: Get recommended restaurants based on user query
         const systemPrompt = `
           You are a restaurant recommendation system.
           Given the following restaurants: ${JSON.stringify(restaurantContext)},
-          analyze the user's query: "${input}"
+          analyze the user's query: "${input}" and also consider his previous order choices from ${orderContextItem}
           and return exactly one JSON object:
             {
               "text": "",
@@ -479,6 +497,33 @@ export const DunkinOrderApp: React.FC = () => {
         suggestRestroText = parsedResponse.text;
         suggestRestroIds = parsedResponse.restroIds;
 
+        if (queryType === QueryType.RESTAURANT_QUERY) {
+          dispatch({
+            type: "ADD_MESSAGE",
+            payload: {
+              id: Date.now() + 1,
+              text: suggestRestroText,
+              llm: {
+                output: {
+                  text: suggestRestroText,
+                  items1: [],
+                  items2: [],
+                  restroIds: [],
+                },
+                restroIds: suggestRestroIds,
+              },
+
+              isBot: true,
+              time: new Date().toLocaleString("en-US", {
+                hour: "numeric",
+                minute: "numeric",
+                hour12: true,
+              }),
+              queryType,
+            },
+          });
+          return;
+        }
         if (suggestRestroIds.length > 0) {
           setRestaurants(suggestRestroIds);
           restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
@@ -510,7 +555,7 @@ export const DunkinOrderApp: React.FC = () => {
             " and " +
             JSON.stringify(restaurant2Menu)
       },
-      analyze the user's query: "${input}"
+      analyze the user's query: "${input}" and also consider his previous order choices from ${orderContextItem}
       and return a JSON response: 
       ${
         activeRestroId
@@ -610,6 +655,26 @@ export const DunkinOrderApp: React.FC = () => {
     }
   };
 
+  function getConversationSummary(messages) {
+    return messages
+      .filter((msg) => !msg.isBot || msg.llm?.output) // Keep user messages and bot messages with suggestions
+      .map((msg) => {
+        if (msg.isBot && msg.llm?.output) {
+          // Extract relevant bot response text and suggested items
+          const items = [
+            ...new Set([
+              ...(msg.llm.output.items1?.map((item) => item.name) || []),
+              ...(msg.llm.output.items2?.map((item) => item.name) || []),
+            ]),
+          ].join(", ");
+
+          return `Bot: ${msg.llm.output.text} (Suggested: ${items})`;
+        }
+        return `${msg.isBot ? "Bot" : "User"}: ${msg.text}`;
+      })
+      .join("\n");
+  }
+
   // Helper function to get appropriate placeholder text based on current query type
   const getInputPlaceholder = () => {
     switch (state.currentQueryType) {
@@ -641,7 +706,6 @@ export const DunkinOrderApp: React.FC = () => {
           />
           <Filters />
         </div>
-
         <div className="h-full pt-[160px] pb-15">
           <ChatPanel
             input={input}

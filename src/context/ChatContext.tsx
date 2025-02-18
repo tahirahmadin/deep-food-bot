@@ -5,6 +5,7 @@ import { GreetingService } from "../services/greetingService";
 export enum QueryType {
   MENU_QUERY = "MENU_QUERY",
   GENERAL = "GENERAL",
+  RESTAURANT_QUERY = "RESTAURANT_QUERY",
   CHECKOUT = "CHECKOUT",
   BROWSE = "BROWSE",
 }
