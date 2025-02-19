@@ -3,6 +3,36 @@ import CryptoJS from "crypto-js";
 
 let apiUrl: string = import.meta.env.VITE_PUBLIC_BACKEND_API_URL;
 
+// LLM API function
+export const generateLLMResponse = async (
+  systemPrompt: string,
+  maxTokens: number = 1000
+): Promise<any> => {
+  try {
+    const response = await axios.post(
+      `${apiUrl}/llm/generateText`,
+      {
+        systemPrompt,
+        maxTokens,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (response.data && !response.data.error) {
+      return response.data.result;
+    }
+    throw new Error("Failed to generate LLM response");
+  } catch (error) {
+    console.error("Error generating LLM response:", error);
+    throw error;
+  }
+};
+
 // Define types for the encryption function
 interface CipherTextResponse {
   data: string;

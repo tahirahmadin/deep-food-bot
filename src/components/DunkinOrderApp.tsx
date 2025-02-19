@@ -17,6 +17,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
 import { getMenuByRestaurantId } from "../utils/menuUtils";
 import { getRestaurantColors } from "../utils/colorUtils";
+import { generateLLMResponse } from "../actions/serverActions";
 
 export const DunkinOrderApp: React.FC = () => {
   const { toast, hideToast } = useToast();
@@ -462,42 +463,27 @@ export const DunkinOrderApp: React.FC = () => {
       if (!activeRestroId) {
         // SYSTEM PROMPT: Get recommended restaurants based on user query
         const systemPrompt = `
-          You are a restaurant recommendation system.
-          Given the following restaurants: ${JSON.stringify(restaurantContext)},
-          analyze the user's query: "${input}" and also consider his previous order choices from ${orderContextItem}
-          and return exactly one JSON object:
-            {
-              "text": "",
-              "restroIds": []
-            }
-          where:
-            - "text" is a short, relevant response.
-            - "restroIds" is an array of up to 2 matching restaurant IDs (numeric).
-
-          STRICT FORMAT RULES:
-            - Return only a valid JSON object with no extra text, explanations, or markdown.
-            - No code fences, no trailing commas, no disclaimers.
-            - Only return a valid JSON object, nothing else.
-        `;
-
-        const response = await axios.post(
-          OPENAI_API_URL,
+        You are a restaurant recommendation system.
+        Given the following restaurants: ${JSON.stringify(restaurantContext)},
+        analyze the user's query: "${input}" and also consider his previous order choices from ${orderContextItem}
+        and return exactly one JSON object:
           {
-            model: "gpt-4o",
-            messages: [{ role: "user", content: systemPrompt }],
-            max_tokens: 500,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${OPENAI_KEY}`,
-            },
+            "text": "",
+            "restroIds": []
           }
-        );
+        where:
+          - "text" is a short, relevant response.
+          - "restroIds" is an array of up to 2 matching restaurant IDs (numeric).
 
-        const parsedResponse = JSON.parse(
-          response.data.choices[0].message.content
-        );
+        STRICT FORMAT RULES:
+          - Return only a valid JSON object with no extra text, explanations, or markdown.
+          - No code fences, no trailing commas, no disclaimers.
+          - Only return a valid JSON object, nothing else.
+      `;
+
+        const response = await generateLLMResponse(systemPrompt, 500);
+        const parsedResponse = response;
+
         suggestRestroText = parsedResponse.text;
         suggestRestroIds = parsedResponse.restroIds;
 
@@ -584,24 +570,8 @@ export const DunkinOrderApp: React.FC = () => {
     `;
 
       if (suggestRestroIds.length > 0 || activeRestroId) {
-        const menuResponse = await axios.post(
-          OPENAI_API_URL,
-          {
-            model: "gpt-4o",
-            messages: [{ role: "user", content: menuPrompt }],
-            max_tokens: 1000,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${OPENAI_KEY}`,
-            },
-          }
-        );
-
-        const parsedMenuResponse = JSON.parse(
-          menuResponse.data.choices[0].message.content
-        );
+        const menuResponse = await generateLLMResponse(menuPrompt, 1000);
+        const parsedMenuResponse = menuResponse;
 
         dispatch({
           type: "ADD_MESSAGE",
@@ -838,5 +808,3 @@ export const DunkinOrderApp: React.FC = () => {
     </div>
   );
 };
-
-export default DunkinOrderApp;
