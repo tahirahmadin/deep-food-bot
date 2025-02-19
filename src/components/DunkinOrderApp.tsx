@@ -240,8 +240,8 @@ export const DunkinOrderApp: React.FC = () => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // Switch to chat mode if currently in browse mode when starting checkout
-    if (state.checkout.step && state.mode === "browse") {
+    // Always switch to chat mode during checkout
+    if (state.checkout.step) {
       dispatch({ type: "SET_MODE", payload: "chat" });
     }
 
@@ -259,6 +259,11 @@ export const DunkinOrderApp: React.FC = () => {
         queryType: QueryType.CHECKOUT,
       };
       dispatch({ type: "ADD_MESSAGE", payload: userMessage });
+
+      // Show payment form immediately after setting payment method
+      if (state.checkout.paymentMethod) {
+        return;
+      }
 
       if (state.checkout.step === "details") {
         if (!state.checkout.orderDetails.name) {
@@ -833,3 +838,5 @@ export const DunkinOrderApp: React.FC = () => {
     </div>
   );
 };
+
+export default DunkinOrderApp;

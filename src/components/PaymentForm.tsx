@@ -355,8 +355,16 @@ const CheckoutForm: React.FC<{
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedPaymentMethod === "card") {
+      if (!stripe || !elements || !clientSecret) {
+        setError("Payment system not ready. Please try again.");
+        return;
+      }
       await handleCardPayment();
     } else {
+      if (!connected) {
+        await connectWallet();
+        return;
+      }
       await handleCryptoPayment();
     }
   };
@@ -493,6 +501,7 @@ const CheckoutForm: React.FC<{
 
   return (
     <div className="bg-white/80 rounded-lg p-2.5 shadow-sm backdrop-blur-sm mb-3 max-w-sm mx-auto">
+      {/* Loading Overlay */}
       {isCheckingStatus && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="text-center">
@@ -503,6 +512,7 @@ const CheckoutForm: React.FC<{
         </div>
       )}
 
+      {/* Order Summary Card */}
       <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg overflow-hidden p-2.5 text-white">
         <div className="absolute right-2 top-2">
           <Lock className="w-4 h-4 text-orange-200" />
@@ -537,6 +547,7 @@ const CheckoutForm: React.FC<{
         </div>
       </div>
 
+      {/* Payment Method Forms */}
       {selectedPaymentMethod === "card" ? (
         <form onSubmit={handleSubmit} className="mt-3 space-y-4">
           <div>
@@ -554,6 +565,7 @@ const CheckoutForm: React.FC<{
       ) : (
         <div className="mt-3 space-y-4">
           <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
+            {/* Network Selection */}
             <div className="mb-4">
               <p className="text-sm font-medium text-gray-700 mb-2">
                 Select Network
@@ -589,6 +601,7 @@ const CheckoutForm: React.FC<{
                   </p>
                 )}
             </div>
+            {/* Wallet Info */}
             {connected && (
               <div className="mb-4 p-3 bg-white/50 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between mb-2">
@@ -607,6 +620,7 @@ const CheckoutForm: React.FC<{
                 </div>
               </div>
             )}
+            {/* Payment Button */}
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm text-gray-600">Amount in USDT</span>
               <span className="font-bold text-gray-900">
@@ -621,6 +635,7 @@ const CheckoutForm: React.FC<{
             </div>
           </div>
 
+          {/* Connect/Pay Button */}
           {!connected ? (
             <button
               onClick={connectWallet}
@@ -633,16 +648,14 @@ const CheckoutForm: React.FC<{
               onClick={handleSubmit}
               disabled={
                 isProcessing ||
+                !connected ||
                 currentNetwork !== "0x61" ||
-                (balance || 0) < parseFloat(total) * 0.27 ||
-                !connected
+                (balance || 0) < parseFloat(total) * 0.27
               }
               className="w-full p-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm disabled:opacity-50"
             >
               {isProcessing
                 ? "Processing..."
-                : !connected
-                ? "Connect Metamask"
                 : (balance || 0) < parseFloat(total) * 0.27
                 ? "Insufficient USDT Balance"
                 : `Pay ${(parseFloat(total) * 0.27).toFixed(2)} USDT`}
@@ -651,18 +664,20 @@ const CheckoutForm: React.FC<{
         </div>
       )}
 
+      {/* Error Message */}
       {error && (
         <div className="p-2 bg-red-50 text-red-600 text-xs rounded-lg">
           {error}
         </div>
       )}
 
+      {/* Card Payment Submit Button */}
       {selectedPaymentMethod === "card" && (
         <form onSubmit={handleSubmit} className="mt-3">
           <button
             type="submit"
             disabled={!stripe || !cardComplete || !clientSecret || isProcessing}
-            className="w-full p-2.5 bg-primary text-white rounded-lg hover:bg-primary-600 transition-all shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            className="w-full p-2.5 bg-primary text-white rounded-lg hover:bg-primary-600 transition-all shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 text-sm"
           >
             <Wallet className="w-3.5 h-3.5" />
             {isProcessing ? "Processing..." : `Pay ${total} AED & Place Order`}
@@ -670,6 +685,7 @@ const CheckoutForm: React.FC<{
         </form>
       )}
 
+      {/* Security Notice */}
       <p className="text-[10px] text-center text-gray-500">
         <Lock className="w-3 h-3 inline-block mr-1" />
         Payments are secure and encrypted

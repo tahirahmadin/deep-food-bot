@@ -20,6 +20,7 @@ import {
 } from "../actions/serverActions";
 import { useFiltersContext } from "../context/FiltersContext";
 import * as menuUtils from "../utils/menuUtils";
+import { PaymentForm } from "./PaymentForm";
 
 interface ChatPanelProps {
   input: string;
@@ -282,6 +283,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         {state.messages.map((message) => (
           <Message key={message.id} message={message} onRetry={() => {}} />
         ))}
+
+        {/* Show PaymentForm when in payment step */}
+        {state.checkout.step === "payment" && (
+          <PaymentForm onSubmit={handleSubmit} />
+        )}
 
         {isImageAnalyzing && (
           <div className="flex items-center space-x-2 text-gray-500">
