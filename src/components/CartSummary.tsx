@@ -158,13 +158,11 @@ export const CartSummary: React.FC = () => {
                     key={item.id}
                     className="flex items-center gap-3 px-3 py-2 border-b"
                   >
-                    {menuItem && (
-                      <img
-                        src={menuItem.image}
-                        alt={item.name}
-                        className="w-12 h-12 object-cover rounded-lg"
-                      />
-                    )}
+                    <img
+                      src={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurantState.activeRestroId}/${restaurantState.activeRestroId}-${item.id}.jpg`}
+                      alt={item.name}
+                      className="w-12 h-12 object-cover rounded-lg"
+                    />
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-xs text-gray-800 truncate">
                         {item.name}
