@@ -34,7 +34,7 @@ export class ChatService {
   private readonly openaiKey: string;
 
   constructor() {
-    const restaurantId = import.meta.env.VITE_RESTAURANT_ID;
+    const restaurantId = "1000";
     const queryUrl = import.meta.env.VITE_PUBLIC_QUERY_DOCUMENT_API_URL;
     const openaiKey = import.meta.env.VITE_PUBLIC_OPENAI_API_KEY;
 
