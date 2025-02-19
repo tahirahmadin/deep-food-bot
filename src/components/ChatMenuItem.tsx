@@ -1,7 +1,8 @@
 import React from "react";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, Info } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 import { CartChangeModal } from "./CartChangeModal";
+import { DishDetailsModal } from "./DishDetailsModal";
 import { useRestaurant } from "../context/RestaurantContext";
 import * as menuUtils from "../utils/menuUtils";
 
@@ -33,6 +34,7 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
   const [isCartChangeModalOpen, setIsCartChangeModalOpen] =
     React.useState(false);
   const [restaurantName, setRestaurantName] = React.useState("");
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = React.useState(false);
 
   // Check if item is in cart
   const cartItem = state.cart.find((item) => {
@@ -132,12 +134,14 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
   return (
     <>
       <div className="bg-[#F9FAFB] rounded-lg shadow-sm overflow-hidden flex flex-col w-[80px]">
-        <div className=" w-full relative">
+        <div className="w-full relative">
           <img
+            onClick={() => setIsDetailsModalOpen(true)}
             src={image || "https://via.placeholder.com/100"}
             alt={name}
             className="w-full h-[55px] object-cover"
           />
+
           <button
             onClick={handleCartAction}
             className={`absolute bottom-1 right-1 p-1 rounded-full transition-all ${
@@ -155,7 +159,7 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
         </div>
 
         {/* Content Container */}
-        <div className="p-1.5 flex flex-col">
+        <div className="relative p-1.5 flex flex-col">
           <h3 className="text-[9px] font-medium text-gray-800 line-clamp-2 min-h-[1.5rem]">
             {name}
           </h3>
@@ -168,6 +172,22 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
         onConfirm={handleCartChange}
         currentRestaurant={state.cart[0]?.restaurant || ""}
         newRestaurant={restaurantName}
+      />
+      <DishDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          console.log("hitting");
+          setIsDetailsModalOpen(false);
+          return true;
+        }}
+        id={id}
+        name={name}
+        price={price}
+        image={image}
+        restroId={restroId}
+        restaurant={restaurant}
+        isCustomisable={isCustomisable}
+        customisation={customisation}
       />
     </>
   );

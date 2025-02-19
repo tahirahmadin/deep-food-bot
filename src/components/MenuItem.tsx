@@ -1,8 +1,10 @@
 import React from "react";
-import { Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 import { useAuth } from "../context/AuthContext";
 import { CartChangeModal } from "./CartChangeModal";
+import { DishDetailsModal } from "./DishDetailsModal";
+import { useRestaurant } from "../context/RestaurantContext";
 
 interface MenuItemProps {
   name: string;
@@ -41,19 +43,33 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   customisation,
 }) => {
   const { state, dispatch } = useChatContext();
+  const { state: restaurantState, setActiveRestaurant } = useRestaurant();
+
   const { isAuthenticated } = useAuth();
 
   const [isCustomizationOpen, setIsCustomizationOpen] = React.useState(false);
   const [isCartChangeModalOpen, setIsCartChangeModalOpen] =
     React.useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = React.useState(false);
 
   // Check if item is in cart
-  const cartItem = state.cart.find((item) => item.id === id);
+  const cartItem = state.cart.find((item) => {
+    // console.log(item);
+    return item.id === id && restaurant === state.cart[0]?.restaurant;
+  });
   const isInCart = Boolean(cartItem);
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
       alert("Please sign in to add items to cart");
+      return;
+    }
+    // If item is in cart, remove it
+    if (isInCart) {
+      dispatch({
+        type: "REMOVE_FROM_CART",
+        payload: id,
+      });
       return;
     }
 
@@ -124,7 +140,11 @@ export const MenuItem: React.FC<MenuItemProps> = ({
                 : "bg-white text-primary hover:bg-primary-50"
             }`}
           >
-            <Plus className="w-3 h-3" />
+            {isInCart ? (
+              <Minus className="w-3 h-3" />
+            ) : (
+              <Plus className="w-3 h-3" />
+            )}
           </button>
         </div>
 
@@ -142,6 +162,24 @@ export const MenuItem: React.FC<MenuItemProps> = ({
         onConfirm={handleCartChange}
         currentRestaurant={state.cart[0]?.restaurant || ""}
         newRestaurant={restaurant}
+      />
+      <DishDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          console.log("hitting");
+          setIsDetailsModalOpen(false);
+          return true;
+        }}
+        id={id}
+        name={name}
+        price={price}
+        image={image}
+        restroId={
+          restaurantState.activeRestroId ? restaurantState.activeRestroId : 0
+        }
+        restaurant={restaurant}
+        isCustomisable={isCustomisable}
+        customisation={customisation}
       />
     </>
   );

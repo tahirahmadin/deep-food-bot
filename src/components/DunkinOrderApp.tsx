@@ -481,7 +481,7 @@ export const DunkinOrderApp: React.FC = () => {
           - Only return a valid JSON object, nothing else.
       `;
 
-        const response = await generateLLMResponse(systemPrompt, 500);
+        const response = await generateLLMResponse(systemPrompt, 200);
         const parsedResponse = response;
 
         suggestRestroText = parsedResponse.text;
@@ -570,7 +570,7 @@ export const DunkinOrderApp: React.FC = () => {
     `;
 
       if (suggestRestroIds.length > 0 || activeRestroId) {
-        const menuResponse = await generateLLMResponse(menuPrompt, 1000);
+        const menuResponse = await generateLLMResponse(menuPrompt, 500);
         const parsedMenuResponse = menuResponse;
 
         dispatch({
