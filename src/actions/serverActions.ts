@@ -6,7 +6,9 @@ let apiUrl: string = import.meta.env.VITE_PUBLIC_BACKEND_API_URL;
 // LLM API function
 export const generateLLMResponse = async (
   systemPrompt: string,
-  maxTokens: number = 1000
+  maxTokens: number = 1000,
+  model: string = "openai",
+  temperature: number = temperature
 ): Promise<any> => {
   try {
     const response = await axios.post(
@@ -14,6 +16,8 @@ export const generateLLMResponse = async (
       {
         systemPrompt,
         maxTokens,
+        model,
+        temperature,
       },
       {
         headers: {

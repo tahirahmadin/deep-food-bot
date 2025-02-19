@@ -9,6 +9,12 @@ export enum QueryType {
   CHECKOUT = "CHECKOUT",
   BROWSE = "BROWSE",
 }
+
+export enum ChatModel {
+  OPENAI = "OPENAI",
+  GROQ = "GROQ",
+  DEEPSEEK = "DEEPSEEK",
+}
 interface LLMType {
   restroIds: number[];
   output: OutputType;
@@ -38,6 +44,7 @@ interface ChatState {
   currentQueryType: QueryType;
   mode: "chat" | "browse";
   selectedRestaurant: string | null;
+  selectedModel: ChatModel;
   customization: {
     isOpen: boolean;
     item: {
@@ -99,6 +106,7 @@ type ChatAction =
   | { type: "SET_QUERY_TYPE"; payload: QueryType }
   | { type: "CLEAR_MESSAGES" }
   | { type: "SET_SELECTED_RESTAURANT"; payload: string | null }
+  | { type: "SET_CHAT_MODEL"; payload: ChatModel }
   | { type: "SET_MODE"; payload: "chat" | "browse" }
   | { type: "ADD_TO_CART"; payload: CartItem }
   | {
@@ -155,6 +163,11 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return {
         ...state,
         selectedRestaurant: action.payload,
+      };
+    case "SET_CHAT_MODEL":
+      return {
+        ...state,
+        selectedModel: action.payload,
       };
     case "CLEAR_MESSAGES":
       return {
@@ -234,6 +247,7 @@ const initialState: ChatState = {
   error: null,
   currentQueryType: QueryType.GENERAL,
   mode: "chat",
+  selectedModel: ChatModel.OPENAI,
   selectedRestaurant: null,
   customization: {
     isOpen: false,

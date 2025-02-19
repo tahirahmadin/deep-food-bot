@@ -11,6 +11,7 @@ import {
   Plus,
   Home,
   Minus,
+  Bot,
 } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
@@ -18,6 +19,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
 import { RestaurantChangeModal } from "./RestaurantChangeModal";
 import { StyleChangeModal } from "./StyleChangeModal";
+import { ChatModel } from "../context/ChatContext";
 
 export const Filters: React.FC = () => {
   const {
@@ -44,9 +46,11 @@ export const Filters: React.FC = () => {
   const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
   const [isChangeRestaurantModalOpen, setIsChangeRestaurantModalOpen] =
     useState(false);
+  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [isStyleChangeModalOpen, setIsStyleChangeModalOpen] = useState(false);
   const [pendingStyle, setPendingStyle] = useState<any>(null);
   const { setAddresses } = useAuth();
+  const { state: chatState, dispatch: chatDispatch } = useChatContext();
 
   // Set initial selected address to first address if available
   useEffect(() => {
@@ -133,7 +137,7 @@ export const Filters: React.FC = () => {
   return (
     <div className="px-4 py-1 bg-white border-b border-gray-100">
       {/* Home Address Section */}
-      <div className="relative w-full flex justify-between items-center mb-1">
+      <div className="relative w-full flex justify-between items-center gap-2 mb-1">
         <div className="relative flex-1 max-w-[70%]">
           <button
             onClick={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
@@ -284,6 +288,39 @@ export const Filters: React.FC = () => {
             <Zap className="w-3 h-3" />
             <span className="text-xs">Fast Delivery</span>
           </button> */}
+        </div>
+        {/* Model Selection */}
+        <div className="relative">
+          <button
+            onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+            className="flex items-center gap-1 hover:bg-gray-50 p-1.5 rounded-lg transition-colors"
+          >
+            <Bot className="w-3.5 h-3.5 text-gray-600" />
+            <span className="text-[10px] font-medium">
+              {chatState.selectedModel.toUpperCase()}
+            </span>
+            <ChevronDown className="w-3 h-3" />
+          </button>
+
+          {isModelDropdownOpen && (
+            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 py-1 w-32 z-50">
+              {Object.values(ChatModel).map((model) => (
+                <button
+                  key={model}
+                  onClick={() => {
+                    chatDispatch({ type: "SET_CHAT_MODEL", payload: model });
+                    setIsModelDropdownOpen(false);
+                  }}
+                  className={`flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors ${
+                    chatState.selectedModel === model ? "text-primary" : ""
+                  }`}
+                >
+                  <Bot className="w-3.5 h-3.5" />
+                  <span className="text-xs">{model.toUpperCase()}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

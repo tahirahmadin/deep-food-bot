@@ -481,7 +481,12 @@ export const DunkinOrderApp: React.FC = () => {
           - Only return a valid JSON object, nothing else.
       `;
 
-        const response = await generateLLMResponse(systemPrompt, 200);
+        const response = await generateLLMResponse(
+          systemPrompt,
+          200,
+          state.selectedModel,
+          0.5
+        );
         const parsedResponse = response;
 
         suggestRestroText = parsedResponse.text;
@@ -569,8 +574,94 @@ export const DunkinOrderApp: React.FC = () => {
         - Only return a valid JSON object, nothing else.
     `;
 
+      const menuPrompt2 = `
+    You are an expert menu recommendation system.
+    Given the menu items from ${
+      activeRestroId ? "a restaurant" : "two restaurants"
+    }:
+    ${
+      activeRestroId
+        ? JSON.stringify(activeMenu)
+        : JSON.stringify(restaurant1Menu) +
+          " and " +
+          JSON.stringify(restaurant2Menu)
+    },
+    analyze the user's query: "${input}"
+    Context:  
+    - Parse the query for all relevant information, including:
+      - Negations and dislikes (e.g., "no cilantro", "sans shellfish", "non-spicy", "no dairy")
+      - Dietary restrictions (e.g., vegan, nut-free, gluten-free, halal) 
+      - Preferences, cravings and desired ingredients (e.g., "craving something sweet", "with extra cheese")
+      - Meal context and party size if mentioned (e.g., "a hearty dinner", "appetizers for 4")
+
+    - For negations and dislikes:
+      - Identify all ingredients, preparation styles, and characteristics to strictly avoid
+      - Exclude any menu items containing or prepared with the negated components, even in small amounts
+      - If a negation eliminates all menu options, return empty item arrays with an explanatory "text"
+      - Only suggest substitutions if they completely satisfy the negation (e.g., don't recommend almond milk if they asked for no nuts)
+
+    - For dietary restrictions:
+      - Prioritize menu items that unequivocally meet the stated dietary needs
+      - Carefully consider the full implications of the restriction:
+        - Vegan: No animal products (meat, dairy, eggs, honey, gelatin, etc.)
+        - Nut-free: No peanuts, tree nuts, or nut-derived oils or butters
+      
+    - For preferences, cravings, and desired ingredients:
+      - Rank menu items by relevance to the stated preferences
+      - Look for items featuring the desired flavors, ingredients, and preparation methods
+      - Suggest upgrades, add-ons and modifications to best satisfy the cravings without violating any restrictions
+
+    - For meal context and party size:
+      - Recommend items and quantities suited to the meal occasion and number of diners
+      - Consider dietary and prep restrictions for all members of the party if a size is given 
+      - Mention the occasion and group size in "text" to show your understanding
+      
+    - Handle edge cases and unusual requests:
+      - If the query combines multiple complex restrictions (e.g., "gluten-free vegan appetizers without onions"), narrow down to only items that fit all criteria
+      - For very specific cravings or ingredients (e.g., "something with dragonfruit"), seek out items featuring them prominently
+      - If a request is too complex or specific to satisfy (e.g., "a low-carb, nut-free, sugar-free vegan dessert"), gently suggest broadening some criteria
+
+    Return exactly one valid JSON object following this structure:
+    ${
+      activeRestroId
+        ? `{ "text": "", "items1": [{ "id": number, "name": string }] }`
+        : `{ "text": "", "items1": [{ "id": number, "name": string }], "items2": [{ "id": number, "name": string }] }`
+    } 
+    where:
+      - "text" provides a small, hilarious and creative response in ${
+        selectedStyle.name
+      } style.
+      - ${
+        activeRestroId
+          ? `"items1" contains up to 3 recommended items.`
+          : `"items1" and "items2" contain up to 3 relevant items each from their respective restaurant menus.`
+      }
+      - Adjust the number of items based on user requirements.
+      - If the query is ambiguous or all items are excluded by the constraints, return empty arrays for items but include an appropriate message in "text".
+      - Account for any dietary filters or portion requirements mentioned in the query.
+      CRITICAL RULES:
+      1. ONLY return a raw JSON object
+      2. NO code blocks (no \`\`\` or \`\`\`json)
+      3. NO markdown formatting
+      4. NO explanations before or after JSON
+      5. NO trailing commas
+      6. text must be a string
+      7. items must be arrays of objects with id and name
+      8. INVALID OUTPUT EXAMPLE (DO NOT DO THIS):
+         \`\`\`json
+         { "text": "response" }
+         \`\`\`
+      9. VALID OUTPUT EXAMPLE (DO THIS):
+         {"text": "Here are some great options!", "items1": [{"id": 1, "name": "Pasta"}]}.
+  `;
+
       if (suggestRestroIds.length > 0 || activeRestroId) {
-        const menuResponse = await generateLLMResponse(menuPrompt, 500);
+        const menuResponse = await generateLLMResponse(
+          state.selectedModel === "GROQ" ? menuPrompt2 : menuPrompt,
+          1000,
+          state.selectedModel,
+          0.5
+        );
         const parsedMenuResponse = menuResponse;
 
         dispatch({
