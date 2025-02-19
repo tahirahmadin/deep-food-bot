@@ -22,6 +22,14 @@ import { useFiltersContext } from "../context/FiltersContext";
 import * as menuUtils from "../utils/menuUtils";
 import { PaymentForm } from "./PaymentForm";
 
+// Viewport height helper
+function getVH() {
+  return Math.max(
+    document.documentElement.clientHeight || 0,
+    window.innerHeight || 0
+  );
+}
+
 interface ChatPanelProps {
   input: string;
   setInput: (value: string) => void;
@@ -210,10 +218,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   return (
     <>
       <div
-        className={`h-full overflow-y-auto p-2 pb-32 bg-white/30 backdrop-blur-sm scroll-smooth ${
+        className={`h-full overflow-y-auto p-2 pb-32 bg-white/30 backdrop-blur-sm scroll-smooth overscroll-contain ${
           state.mode === "browse" ? "hidden" : ""
         }`}
         ref={chatContainerRef}
+        style={{ height: `${getVH() - 160}px` }}
       >
         {!isAuthenticated && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">

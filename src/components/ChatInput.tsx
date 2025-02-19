@@ -59,7 +59,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div
-      className={`p-2 border-t border-white/200 bg-white/50 backdrop-blur-sm fixed bottom-0 left-0 right-0 max-w-md mx-auto ${className}`}
+      className={`p-2 border-t border-white/200 bg-white/50 backdrop-blur-sm fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 ${className}`}
+      style={{ position: "fixed", bottom: 0 }}
     >
       <div className="w-full">
         {showQuickActions && !input && (
@@ -102,7 +103,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       <form
         ref={formRef}
         onSubmit={onSubmit}
-        className={`flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2 ${
+        className={`flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2 relative ${
           addresses.length === 0 ? "opacity-50 pointer-events-none" : ""
         }`}
       >
@@ -112,7 +113,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={isLoading || addresses.length === 0}
-          className="flex-1 bg-transparent focus:outline-none placeholder:text-gray-400 text-[16px]" // Ensure font size is 16px
+          className="flex-1 bg-transparent focus:outline-none placeholder:text-gray-400 text-[16px] min-h-[40px]"
         />
         <label className="cursor-pointer p-1 text-gray-400 hover:text-gray-600">
           <input
