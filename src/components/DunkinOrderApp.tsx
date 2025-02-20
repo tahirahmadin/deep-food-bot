@@ -81,138 +81,184 @@ export const DunkinOrderApp: React.FC = () => {
 
     try {
       const imageDescription = await imageService.analyzeImage(file);
-      const { restaurants } = restaurantState;
-      const prompt = `
-      You are a menu recommendation system.
-
-      Here are the only restaurants you can recommend:
-      ${JSON.stringify(restaurants)}
-
-      Analyze the image description: "${imageDescription}"
-      and return exactly one JSON object:
-      {
-        "text": "",
-        "restroIds": [],
-      }
-      Where:
-      - "text" is a short, relevant response about recommended foods from these restaurants and why it was recommended based on image.
-      - "restroIds" is an array (up to 2) of the restaurant IDs you choose from the above list.
-      - NO invented restaurants or items. Only use what's in the above data.
+      const { activeRestroId, restaurants } = restaurantState;
       
-      STRICT FORMAT RULES:
-      - Return ONLY a valid JSON object. No code fences, disclaimers, or extra text.
-    `;
+      let apiResponseText = null;
+      let restaurant1Menu = [];
+      let restaurant2Menu = [];
+      let activeMenu = [];
+      let suggestRestroText = "";
+      let suggestRestroIds = [];
 
-      const pickResp = await axios.post(
-        OPENAI_API_URL,
-        {
-          model: "gpt-4o-mini",
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: 1000,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${OPENAI_KEY}`,
-          },
-        }
-      );
-
-      let pickParsed;
-      try {
-        pickParsed = JSON.parse(
-          pickResp.data.choices[0].message.content || "{}"
-        );
-      } catch (err) {
-        pickParsed = { text: "Couldn’t parse restaurant picks", restroIds: [] };
-      }
-      const suggestRestroIds = pickParsed.restroIds || [];
-      let restaurant1Menu: any[] = [];
-      let restaurant2Menu: any[] = [];
-
-      if (suggestRestroIds.length >= 1) {
-        restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
-      }
-      if (suggestRestroIds.length >= 2) {
-        restaurant2Menu = await getMenuItemsByFile(suggestRestroIds[1]);
-      }
-
-      const twoMenusPrompt = `
-        You are a menu recommendation system.
-        
-        We have two restaurants:
-        - Restaurant #${suggestRestroIds[0]}: ${JSON.stringify(
-        restaurant1Menu
-      )} 
-        - Restaurant #${suggestRestroIds[1]}: ${JSON.stringify(restaurant2Menu)}
-        
-        Analyze the same image description: "${imageDescription}"
-        Return exactly one JSON:
-        {
-          "text": "",
-          "items1": [],
-          "items2": []
-        }
-        Where:
-        - "text" is a short, clever and funny response about recommended foods from these restaurants and why it was recommended based on image in 10-15 words.
-        - "items1": up to 3 items (id/name) from Restaurant #${
-          suggestRestroIds[0]
-        }'s array
-        - "items2": up to 3 items from Restaurant #${
-          suggestRestroIds[1]
-        }'s array.
-        - If we only have one recommended restaurant, keep items2 = []
-        - No invented items. Only use the arrays we gave you.
-        - If nothing is relevant, keep items1 and items2 empty but still fill "text".
-        - NO invented restaurants or items. Only use what's in the above data.
-        
-        STRICT FORMAT RULES:
-        - Only valid JSON. No code fences or disclaimers.
-        `;
-      const twoMenusResp = await axios.post(
-        OPENAI_API_URL,
-        {
-          model: "gpt-4o-mini",
-          messages: [{ role: "user", content: twoMenusPrompt }],
-          max_tokens: 1000,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${OPENAI_KEY}`,
-          },
-        }
-      );
-
-      let itemsParsed;
-      try {
-        itemsParsed = JSON.parse(
-          twoMenusResp.data.choices[0].message.content || "{}"
-        );
-      } catch (err) {
-        itemsParsed = { text: "Couldn’t parse items", items1: [], items2: [] };
-      }
-
-      dispatch({
-        type: "ADD_MESSAGE",
-        payload: {
-          id: Date.now() + 2,
-          text: itemsParsed.text || "No items found",
-          llm: {
-            output: itemsParsed,
-            restroIds: suggestRestroIds,
-          },
-          isBot: true,
-          time: new Date().toLocaleString("en-US", {
-            hour: "numeric",
-            minute: "numeric",
-            hour12: true,
-          }),
-          queryType: QueryType.MENU_QUERY,
-        },
+      let restaurantContext = restaurants.map((ele) => {
+        return {
+          menuSummary: ele.menuSummary,
+          name: ele.name,
+          description: ele.description,
+          id: ele.id,
+        };
       });
+
+      const orderContextItem = [
+        ...new Set(
+          orders?.flatMap((ele) => ele.items?.map((itemObj) => itemObj.name)) || []
+        ),
+      ].join(", ");
+
+      const summary = getConversationSummary(state.messages);
+
+      // Build instruction string for menu filtering
+      let instructionString = "";
+      if (isVegOnly) instructionString += " Provide only VEGETARIAN options.";
+      if (numberOfPeople > 1)
+        instructionString += ` Show portions sufficient for ${numberOfPeople} people.`;
+
+      if (!activeRestroId) {
+        // SYSTEM PROMPT: Get recommended restaurants based on image
+        const systemPrompt = `
+          You are a restaurant recommendation system.
+          Given the following restaurants: ${JSON.stringify(restaurantContext)},
+          analyze the image description: "${imageDescription}" and also consider previous order choices from ${orderContextItem}
+          and return exactly one JSON object:
+            {
+              "text": "",
+              "restroIds": []
+            }
+          where:
+            - "text" is a short, relevant response.
+            - "restroIds" is an array of up to 2 matching restaurant IDs (numeric).
+
+          STRICT FORMAT RULES:
+            - Return only a valid JSON object with no extra text, explanations, or markdown.
+            - No code fences, no trailing commas, no disclaimers.
+            - Only return a valid JSON object, nothing else.
+        `;
+
+        const response = await generateLLMResponse(
+          systemPrompt,
+          200,
+          state.selectedModel,
+          0.5
+        );
+        const parsedResponse = response;
+
+        suggestRestroText = parsedResponse.text;
+        suggestRestroIds = parsedResponse.restroIds;
+
+        if (suggestRestroIds.length > 0) {
+          setRestaurants(suggestRestroIds);
+          restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
+          if (suggestRestroIds.length > 1) {
+            restaurant2Menu = await getMenuItemsByFile(suggestRestroIds[1]);
+          }
+        }
+      } else {
+        // Fetch active restaurant menu
+        activeMenu = await getMenuItemsByFile(activeRestroId);
+      }
+
+      const menuPrompt = state.selectedModel === "GROQ" ? `
+        You are an expert menu recommendation system.
+        Given the menu items from ${activeRestroId ? "a restaurant" : "two restaurants"}:
+        ${activeRestroId ? 
+          JSON.stringify(activeMenu) : 
+          JSON.stringify(restaurant1Menu) + " and " + JSON.stringify(restaurant2Menu)
+        },
+        analyze the image description: "${imageDescription}"
+        Context:  
+        - Parse the description for all relevant information
+        - Consider dietary restrictions and preferences
+        - Account for meal context and party size if evident
+        ${instructionString}
+
+        Return exactly one valid JSON object following this structure:
+        ${activeRestroId ?
+          `{ "text": "", "items1": [{ "id": number, "name": string }] }` :
+          `{ "text": "", "items1": [{ "id": number, "name": string }], "items2": [{ "id": number, "name": string }] }`
+        } 
+        where:
+          - "text" provides a small, hilarious and creative response about the image and why you recommend that in ${selectedStyle.name} style.
+          - ${activeRestroId ?
+              `"items1" contains up to 3 recommended items.` :
+              `"items1" and "items2" contain up to 3 relevant items each from their respective restaurant menus.`
+            }
+        CRITICAL RULES:
+          1. ONLY return a raw JSON object
+          2. NO code blocks
+          3. NO markdown formatting
+          4. NO explanations
+          5. NO trailing commas
+      ` : `
+        You are a menu recommendation system.
+        Given the menu items from ${activeRestroId ? "a restaurant" : "two restaurants"}:
+        ${activeRestroId ?
+          JSON.stringify(activeMenu) :
+          JSON.stringify(restaurant1Menu) + " and " + JSON.stringify(restaurant2Menu)
+        },
+        analyze the image description: "${imageDescription}" and also consider previous order choices from ${orderContextItem}
+        and return a JSON response: 
+        ${activeRestroId ?
+          `{ "text": "", "items1": [{ "id": number, "name": string }] }` :
+          `{ "text": "", "items1": [{ "id": number, "name": string }], "items2": [{ "id": number, "name": string }] }`
+        } 
+        where:
+          - "text" provides a concise and creative response in ${selectedStyle.name} style.
+          - ${activeRestroId ?
+              `"items1" contains up to 3 recommended items.` :
+              `"items1" and "items2" contain up to 3 relevant items each from their respective restaurant menus.`
+            }
+          ${instructionString}
+        STRICT FORMAT RULES:
+          - DO NOT include any markdown formatting.
+          - DO NOT include explanations or additional text.
+          - Only return a valid JSON object, nothing else.
+      `;
+
+      if (suggestRestroIds.length > 0 || activeRestroId) {
+        const menuResponse = await generateLLMResponse(
+          menuPrompt,
+          2000,
+          state.selectedModel,
+          0.5
+        );
+        const parsedMenuResponse = menuResponse;
+
+        dispatch({
+          type: "ADD_MESSAGE",
+          payload: {
+            id: Date.now() + 1,
+            text: parsedMenuResponse.text,
+            llm: {
+              output: parsedMenuResponse,
+              restroIds: activeRestroId ? [activeRestroId] : suggestRestroIds,
+            },
+            isBot: true,
+            time: new Date().toLocaleString("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+              hour12: true,
+            }),
+            queryType: QueryType.MENU_QUERY,
+          },
+        });
+      } else {
+        dispatch({
+          type: "ADD_MESSAGE",
+          payload: {
+            id: Date.now() + 1,
+            text: suggestRestroText,
+            isBot: true,
+            time: new Date().toLocaleString("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+              hour12: true,
+            }),
+            queryType: QueryType.GENERAL,
+          },
+        });
+      }
     } catch (error) {
-      console.error("Image handle error:", error);
+      console.error("Error processing image:", error);
       dispatch({
         type: "ADD_MESSAGE",
         payload: {

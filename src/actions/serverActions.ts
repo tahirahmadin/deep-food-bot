@@ -37,6 +37,28 @@ export const generateLLMResponse = async (
   }
 };
 
+export const analyzeImageWithS3 = async (file: File): Promise<string> => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axios.post(
+      `${apiUrl}/tempImg/imageAnalysisWithS3`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
+
+    if (response.data && response.data.success) {
+      return response.data.summary;
+    }
+    throw new Error("Failed to analyze image");
+  } catch (error) {
+    console.error("Error analyzing image with S3:", error);
+    throw error;
+  }
+};
 // Define types for the encryption function
 interface CipherTextResponse {
   data: string;
