@@ -59,6 +59,20 @@ export const DunkinOrderApp: React.FC = () => {
 
   const imageService = new ImageService();
 
+  // Helper function to filter out unnecessary fields from menu items
+  const filterMenuItems = (menuItems: any[]): any[] => {
+    return menuItems.map(
+      ({ image, price, available, customisation, healthinessScore, isCustomisable, sweetnessLevel, caffeineLevel, description,  ...rest }) =>
+        rest
+    );
+  };
+
+  // Function to get menuItems by file number, now with filtering applied
+  async function getMenuItemsByFile(restaurantId: number): Promise<any[]> {
+    const menu = await getMenuByRestaurantId(restaurantId, restaurantState, dispatch);
+    return filterMenuItems(menu);
+  }
+
   const handleImageUpload = async (file: File) => {
     setIsImageAnalyzing(true);
     // Create local image URL and dispatch user message
@@ -83,25 +97,22 @@ export const DunkinOrderApp: React.FC = () => {
       const imageDescription = await imageService.analyzeImage(file);
       const { activeRestroId, restaurants } = restaurantState;
       
-      let apiResponseText = null;
-      let restaurant1Menu = [];
-      let restaurant2Menu = [];
-      let activeMenu = [];
+      let restaurant1Menu: any[] = [];
+      let restaurant2Menu: any[] = [];
+      let activeMenu: any[] = [];
       let suggestRestroText = "";
-      let suggestRestroIds = [];
+      let suggestRestroIds: number[] = [];
 
-      let restaurantContext = restaurants.map((ele) => {
-        return {
-          menuSummary: ele.menuSummary,
-          name: ele.name,
-          description: ele.description,
-          id: ele.id,
-        };
-      });
+      let restaurantContext = restaurants.map((ele: any) => ({
+        menuSummary: ele.menuSummary,
+        name: ele.name,
+        description: ele.description,
+        id: ele.id,
+      }));
 
       const orderContextItem = [
         ...new Set(
-          orders?.flatMap((ele) => ele.items?.map((itemObj) => itemObj.name)) || []
+          orders?.flatMap((ele: any) => ele.items?.map((itemObj: any) => itemObj.name)) || []
         ),
       ].join(", ");
 
@@ -195,7 +206,7 @@ export const DunkinOrderApp: React.FC = () => {
           JSON.stringify(activeMenu) :
           JSON.stringify(restaurant1Menu) + " and " + JSON.stringify(restaurant2Menu)
         },
-        analyze the image description: "${imageDescription}" and also consider previous order choices from ${orderContextItem}
+        analyze the image description: "${imageDescription}" 
         and return a JSON response: 
         ${activeRestroId ?
           `{ "text": "", "items1": [{ "id": number, "name": string }] }` :
@@ -210,6 +221,8 @@ export const DunkinOrderApp: React.FC = () => {
           ${instructionString}
         STRICT FORMAT RULES:
           - DO NOT include any markdown formatting.
+          - NO code blocks (no \`\`\` or \`\`\`json).
+          - NO trailing commas.
           - DO NOT include explanations or additional text.
           - Only return a valid JSON object, nothing else.
       `;
@@ -278,21 +291,14 @@ export const DunkinOrderApp: React.FC = () => {
     }
   };
 
-  // Function to get menuItems by file number
-  async function getMenuItemsByFile(restaurantId: number): Promise<any[]> {
-    return await getMenuByRestaurantId(restaurantId, restaurantState, dispatch);
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // Always switch to chat mode during checkout
     if (state.checkout.step) {
       dispatch({ type: "SET_MODE", payload: "chat" });
     }
 
-    // Handle checkout flow
     if (state.checkout.step) {
       const userMessage = {
         id: Date.now(),
@@ -307,7 +313,6 @@ export const DunkinOrderApp: React.FC = () => {
       };
       dispatch({ type: "ADD_MESSAGE", payload: userMessage });
 
-      // Show payment form immediately after setting payment method
       if (state.checkout.paymentMethod) {
         return;
       }
@@ -416,7 +421,6 @@ export const DunkinOrderApp: React.FC = () => {
             type: "UPDATE_ORDER_DETAILS",
             payload: { cvv: input.trim() },
           });
-          // Process the order
           const total = state.cart
             .reduce(
               (sum, item) => sum + parseFloat(item.price) * item.quantity,
@@ -438,7 +442,6 @@ export const DunkinOrderApp: React.FC = () => {
               queryType: QueryType.CHECKOUT,
             },
           });
-          // Reset checkout and cart
           dispatch({ type: "SET_CHECKOUT_STEP", payload: null });
         }
       }
@@ -452,7 +455,6 @@ export const DunkinOrderApp: React.FC = () => {
       restaurantState.activeRestroId
     );
 
-    // Create user message with query type
     const userMessage = {
       id: Date.now(),
       text: input.trim(),
@@ -465,49 +467,43 @@ export const DunkinOrderApp: React.FC = () => {
       queryType,
     };
 
-    // Update state
     dispatch({ type: "ADD_MESSAGE", payload: userMessage });
     dispatch({ type: "SET_QUERY_TYPE", payload: queryType });
     setInput("");
     dispatch({ type: "SET_LOADING", payload: true });
 
     try {
-      let apiResponseText = null;
-      let restaurant1Menu = [];
-      let restaurant2Menu = [];
-      let activeMenu = [];
+      let restaurant1Menu: any[] = [];
+      let restaurant2Menu: any[] = [];
+      let activeMenu: any[] = [];
       let suggestRestroText = "";
-      let suggestRestroIds = [];
+      let suggestRestroIds: number[] = [];
       let orderContextRestro = "";
       let orderContextItem = "";
 
       const { activeRestroId, restaurants } = restaurantState;
 
-      let restaurantContext = restaurants.map((ele) => {
-        return {
-          menuSummary: ele.menuSummary,
-          name: ele.name,
-          description: ele.description,
-          id: ele.id,
-        };
-      });
+      let restaurantContext = restaurants.map((ele: any) => ({
+        menuSummary: ele.menuSummary,
+        name: ele.name,
+        description: ele.description,
+        id: ele.id,
+      }));
 
       orderContextItem = [
         ...new Set(
-          orders?.flatMap((ele) => ele.items?.map((itemObj) => itemObj.name)) ||
-            []
+          orders?.flatMap((ele: any) =>
+            ele.items?.map((itemObj: any) => itemObj.name)
+          ) || []
         ),
       ].join(", ");
 
-      console.log("orderContext");
-      console.log(orderContextItem);
+      console.log("orderContext", orderContextItem);
 
       const summary = getConversationSummary(state.messages);
-      console.log("summary");
-      console.log(summary);
+      console.log("summary", summary);
 
       if (!activeRestroId) {
-        // SYSTEM PROMPT: Get recommended restaurants based on user query
         const systemPrompt = `
         You are a restaurant recommendation system.
         Given the following restaurants: ${JSON.stringify(restaurantContext)},
@@ -766,7 +762,7 @@ export const DunkinOrderApp: React.FC = () => {
     }
   };
 
-  function getConversationSummary(messages) {
+  function getConversationSummary(messages: any[]) {
     return messages
       .filter((msg) => !msg.isBot || msg.llm?.output) // Keep user messages and bot messages with suggestions
       .map((msg) => {
@@ -774,8 +770,8 @@ export const DunkinOrderApp: React.FC = () => {
           // Extract relevant bot response text and suggested items
           const items = [
             ...new Set([
-              ...(msg.llm.output.items1?.map((item) => item.name) || []),
-              ...(msg.llm.output.items2?.map((item) => item.name) || []),
+              ...(msg.llm.output.items1?.map((item: any) => item.name) || []),
+              ...(msg.llm.output.items2?.map((item: any) => item.name) || []),
             ]),
           ].join(", ");
 
