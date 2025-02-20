@@ -158,10 +158,11 @@ export const DunkinOrderApp: React.FC = () => {
 
         if (suggestRestroIds.length > 0) {
           setRestaurants(suggestRestroIds);
-          restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
-          if (suggestRestroIds.length > 1) {
-            restaurant2Menu = await getMenuItemsByFile(suggestRestroIds[1]);
-          }
+          const menus = await Promise.all(
+            suggestRestroIds.map((id: number) => getMenuItemsByFile(id))
+          );
+          restaurant1Menu = menus[0];
+          restaurant2Menu = menus[1] || [];
         }
       } else {
         // Fetch active restaurant menu
@@ -229,7 +230,7 @@ export const DunkinOrderApp: React.FC = () => {
 
       if (suggestRestroIds.length > 0 || activeRestroId) {
         const menuResponse = await generateLLMResponse(
-          menuPrompt,
+          state.selectedModel === "GROQ" ? menuPrompt2 : menuPrompt,
           2000,
           state.selectedModel,
           0.5
@@ -563,10 +564,11 @@ export const DunkinOrderApp: React.FC = () => {
         }
         if (suggestRestroIds.length > 0) {
           setRestaurants(suggestRestroIds);
-          restaurant1Menu = await getMenuItemsByFile(suggestRestroIds[0]);
-          if (suggestRestroIds.length > 1) {
-            restaurant2Menu = await getMenuItemsByFile(suggestRestroIds[1]);
-          }
+          const menus = await Promise.all(
+            suggestRestroIds.map((id: number) => getMenuItemsByFile(id))
+          );
+          restaurant1Menu = menus[0];
+          restaurant2Menu = menus[1] || [];
         }
       } else {
         // Fetch active restaurant menu
@@ -582,9 +584,7 @@ export const DunkinOrderApp: React.FC = () => {
       // MENU PROMPT: Fetch menu items based on user query
       const menuPrompt = `
       You are a menu recommendation system.
-      Given the menu items from ${
-        activeRestroId ? "a restaurant" : "two restaurants"
-      }:
+      Given the menu items from ${activeRestroId ? "a restaurant" : "two restaurants"}:
       ${
         activeRestroId
           ? JSON.stringify(activeMenu)
