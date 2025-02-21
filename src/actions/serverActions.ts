@@ -7,8 +7,8 @@ let apiUrl: string = import.meta.env.VITE_PUBLIC_BACKEND_API_URL;
 export const generateLLMResponse = async (
   systemPrompt: string,
   maxTokens: number = 1000,
-  model: string = "openai",
-  temperature: number = temperature
+  model: string = "OPENAI",
+  temperature: number = 0.5
 ): Promise<any> => {
   try {
     const response = await axios.post(
@@ -149,7 +149,7 @@ interface ApiResponse<T> {
 export const getAllRestaurants = async (): Promise<Restaurant[]> => {
   try {
     const response = await axios.get(
-      `${apiUrl}/restaurant/getAllRestaurants?online=true`
+      `${apiUrl}/restaurant/getAllRestaurants?online=true&userLatitude=25.18&userLongitude=55.27&radius=100000`
     );
 
     if (response.data && !response.data.error) {
