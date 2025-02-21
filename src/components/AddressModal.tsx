@@ -423,7 +423,7 @@ export const AddressModal: React.FC = () => {
           rows={2}
           required
           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
-          placeholder="e.g. Home, Office, Parent's House"
+          placeholder="Enter full address"
         />
       </div>
       <div>
