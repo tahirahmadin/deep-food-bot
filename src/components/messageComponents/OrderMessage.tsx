@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2, MapPin } from "lucide-react";
+import { CheckCircle2, MapPin, CreditCard, Coins } from "lucide-react";
 import { Message, QueryType } from "../../types";
 import { useChatContext } from "../../context/ChatContext";
 
@@ -11,15 +11,20 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
   const { dispatch } = useChatContext();
 
   const handlePaymentMethodSelect = (method: "card" | "crypto") => {
+    // Set payment method in state
     dispatch({ type: "SET_PAYMENT_METHOD", payload: method });
+
+    // Set checkout step to payment
     dispatch({ type: "SET_CHECKOUT_STEP", payload: "payment" });
+
+    // Add a message to indicate payment form is ready
     dispatch({
       type: "ADD_MESSAGE",
       payload: {
         id: Date.now(),
-        text: `Please complete your ${
-          method === "card" ? "card" : "USDT"
-        } payment.`,
+        text: `Please complete your payment using ${
+          method === "card" ? "credit/debit card" : "USDT"
+        }.`,
         isBot: true,
         time: new Date().toLocaleString("en-US", {
           hour: "numeric",
@@ -73,14 +78,16 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
             <div className="flex gap-2">
               <button
                 onClick={() => handlePaymentMethodSelect("card")}
-                className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors"
+                className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
               >
+                <CreditCard className="w-4 h-4" />
                 Credit/Debit Card
               </button>
               <button
                 onClick={() => handlePaymentMethodSelect("crypto")}
-                className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors"
+                className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
               >
+                <Coins className="w-4 h-4" />
                 Pay with USDT
               </button>
             </div>

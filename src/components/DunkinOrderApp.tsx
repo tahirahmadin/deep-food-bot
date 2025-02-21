@@ -14,6 +14,7 @@ import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
 import { getRestaurantColors } from "../utils/colorUtils";
+import { generateLLMResponse } from "../actions/serverActions";
 
 export const DunkinOrderApp: React.FC = () => {
   const { toast, hideToast } = useToast();
