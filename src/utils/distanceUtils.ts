@@ -34,10 +34,6 @@ export const filterRestaurantsByDistance = (
   restaurants: any[],
   maxDistance: number = 10 // Default max distance is 10km
 ): any[] => {
-  console.log("userLat");
-  console.log(userLat);
-  console.log(userLng);
-  console.log(restaurants);
   return restaurants.filter((restaurant) => {
     if (!restaurant.location || restaurant.location?.coordinates.length !== 2) {
       return false;
@@ -48,4 +44,66 @@ export const filterRestaurantsByDistance = (
 
     return distance <= maxDistance;
   });
+};
+
+// Function to get current location
+export const getCurrentLocation = (): Promise<GeolocationPosition> => {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("Geolocation is not supported by your browser"));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => resolve(position),
+      (error) => reject(error),
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
+  });
+};
+
+// Function to get address from coordinates using Google Geocoding API
+export const getAddressFromCoordinates = async (
+  lat: number,
+  lng: number,
+  apiKey: string
+): Promise<string> => {
+  try {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+    );
+    const data = await response.json();
+
+    if (data.results && data.results[0]) {
+      return data.results[0].formatted_address;
+    }
+    throw new Error("No address found");
+  } catch (error) {
+    console.error("Error getting address:", error);
+    throw error;
+  }
+};
+
+// Function to handle location errors
+export const handleLocationError = (error: any): string => {
+  console.error("Location error:", error);
+
+  if (error instanceof GeolocationPositionError) {
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        return "Location permission denied. Please enable location access.";
+      case error.POSITION_UNAVAILABLE:
+        return "Location information is unavailable.";
+      case error.TIMEOUT:
+        return "Location request timed out.";
+      default:
+        return "An unknown error occurred getting your location.";
+    }
+  }
+
+  return "Failed to get your location. Please try again.";
 };
