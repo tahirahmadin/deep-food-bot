@@ -25,7 +25,7 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
   coordinates,
   image = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop",
 }) => {
-  const { setActiveRestaurant } = useRestaurant();
+  const { state: restaurantState, setActiveRestaurant } = useRestaurant();
   const { dispatch } = useChatContext();
   const { addresses } = useAuth();
   const selectedAddress = addresses[0];
