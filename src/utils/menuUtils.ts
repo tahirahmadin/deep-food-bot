@@ -49,3 +49,11 @@ export const getRestaurantNameById = (
   const restaurant = restaurants.find((item) => item.id === id);
   return restaurant ? restaurant.name : "Restaurant";
 };
+
+export const getRestaurantRatingById = (
+  restaurants: any[],
+  id: number
+): string => {
+  const restaurant = restaurants.find((item) => item.id === id);
+  return restaurant ? restaurant.rating : "4.7";
+};

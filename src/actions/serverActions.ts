@@ -3,6 +3,62 @@ import CryptoJS from "crypto-js";
 
 let apiUrl: string = import.meta.env.VITE_PUBLIC_BACKEND_API_URL;
 
+// LLM API function
+export const generateLLMResponse = async (
+  systemPrompt: string,
+  maxTokens: number = 1000,
+  model: string = "OPENAI",
+  temperature: number = 0.5
+): Promise<any> => {
+  try {
+    const response = await axios.post(
+      `${apiUrl}/llm/generateText`,
+      {
+        systemPrompt,
+        maxTokens,
+        model,
+        temperature,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (response.data && !response.data.error) {
+      return response.data.result;
+    }
+    throw new Error("Failed to generate LLM response");
+  } catch (error) {
+    console.error("Error generating LLM response:", error);
+    throw error;
+  }
+};
+
+export const analyzeImageWithS3 = async (file: File): Promise<string> => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axios.post(
+      `${apiUrl}/tempImg/imageAnalysisWithS3`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
+
+    if (response.data && response.data.success) {
+      return response.data.summary;
+    }
+    throw new Error("Failed to analyze image");
+  } catch (error) {
+    console.error("Error analyzing image with S3:", error);
+    throw error;
+  }
+};
 // Define types for the encryption function
 interface CipherTextResponse {
   data: string;
@@ -93,7 +149,7 @@ interface ApiResponse<T> {
 export const getAllRestaurants = async (): Promise<Restaurant[]> => {
   try {
     const response = await axios.get(
-      `${apiUrl}/restaurant/getAllRestaurants?online=true`
+      `${apiUrl}/restaurant/getAllRestaurants?online=true&userLatitude=25.18&userLongitude=55.27&radius=100000`
     );
 
     if (response.data && !response.data.error) {
