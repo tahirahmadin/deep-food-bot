@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useRef, useState } from "react";
 import { useEffect } from "react";
 import {
   loginUserFromBackendServer,
@@ -90,6 +90,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   >(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const refreshOrdersRef = useRef<boolean>(false);
+  const userDetailsRef = useRef<boolean>(false);
 
   const setAddresses = async (newAddresses: Address[]) => {
     if (user?.userId) {
@@ -128,31 +130,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const checkAndRefreshUser = async () => {
       const savedUser = localStorage.getItem("user");
-      if (savedUser) {
+      if (savedUser && !userDetailsRef.current) {
         try {
+          userDetailsRef.current = true;
           setIsLoadingAddresses(true);
           const userData = JSON.parse(savedUser);
           setInternalUser(userData);
 
           const userDetails = await getUserDetails(userData.userId);
+
           if (!userDetails.error && userDetails.result?.addresses?.length > 0) {
             setInternalAddresses(userDetails.result.addresses);
           } else {
             setIsAddressModalOpen(true);
           }
-
-          // Fetch initial orders
-          await refreshOrders();
         } catch (error) {
           console.error("Error refreshing user data:", error);
         } finally {
           setIsLoadingAddresses(false);
+          userDetailsRef.current = false;
         }
       }
     };
 
     checkAndRefreshUser();
-  }, []); // Empty dependency array since this should only run once on mount
+  }, [user?.userId]); // Only run when userId changes
 
   const setUser = (newUser: User | null) => {
     setInternalUser(newUser);
@@ -166,23 +168,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleLogout = () => {
     setUser(null);
     setInternalAddresses([]);
+    userDetailsRef.current = false;
+    refreshOrdersRef.current = false;
     setOrders([]);
     localStorage.removeItem("user");
   };
 
   const refreshOrders = async () => {
-    if (user?.userId) {
+    // Skip if already refreshing or no user ID
+    if (!user?.userId || refreshOrdersRef.current) {
+      return;
+    }
+
+    try {
+      refreshOrdersRef.current = true;
       setIsLoadingOrders(true);
-      try {
-        const response = await getUserOrders(user.userId);
-        if (!response.error && response.result) {
-          setOrders(response.result);
-        }
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-      } finally {
-        setIsLoadingOrders(false);
+      const response = await getUserOrders(user.userId);
+      if (!response.error && response.result) {
+        setOrders(response.result);
       }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setIsLoadingOrders(false);
+      refreshOrdersRef.current = false;
     }
   };
 
