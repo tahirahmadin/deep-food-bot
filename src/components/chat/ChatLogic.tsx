@@ -21,12 +21,34 @@ const llmCache = new Map<string, any>();
 const restaurantQueryCache = new Map<string, any>();
 
 const filterMenuItems = (menuItems: any[]): any[] =>
-  menuItems.map(({ image, price, available, customisation, healthinessScore, isCustomisable, sweetnessLevel, caffeineLevel, description, ...rest }) => rest);
+  menuItems.map(
+    ({
+      image,
+      price,
+      available,
+      customisation,
+      healthinessScore,
+      isCustomisable,
+      sweetnessLevel,
+      caffeineLevel,
+      description,
+      ...rest
+    }) => rest
+  );
 
-const getLLMCacheKey = (prompt: string, maxTokens: number, model: string, temperature: number) =>
-  `${prompt}-${maxTokens}-${model}-${temperature}`;
+const getLLMCacheKey = (
+  prompt: string,
+  maxTokens: number,
+  model: string,
+  temperature: number
+) => `${prompt}-${maxTokens}-${model}-${temperature}`;
 
-const getCachedLLMResponse = async (prompt: string, maxTokens: number, model: string, temperature: number) => {
+const getCachedLLMResponse = async (
+  prompt: string,
+  maxTokens: number,
+  model: string,
+  temperature: number
+) => {
   const key = getLLMCacheKey(prompt, maxTokens, model, temperature);
   if (llmCache.has(key)) return llmCache.get(key);
   const response = await generateLLMResponse(prompt, maxTokens, model, temperature);
@@ -46,11 +68,40 @@ export const useChatLogic = ({
   setRestaurants,
   addresses,
 }: ChatLogicProps) => {
-  const determineQueryType = (query: string, activeRestroId: number | null): QueryType => {
-    const restaurantKeywords = ["restaurant", "place", "where", "location", "open", "closed", "timing", "hours", "address"];
-    const menuKeywords = ["price", "cost", "how much", "menu", "order", "buy", "get", "recommend", "suggest", "what should", "what's good"];
+  const determineQueryType = (
+    query: string,
+    activeRestroId: number | null
+  ): QueryType => {
+    const restaurantKeywords = [
+      "restaurant",
+      "place",
+      "where",
+      "location",
+      "open",
+      "closed",
+      "timing",
+      "hours",
+      "address",
+    ];
+    const menuKeywords = [
+      "price",
+      "cost",
+      "how much",
+      "menu",
+      "order",
+      "buy",
+      "get",
+      "recommend",
+      "suggest",
+      "what should",
+      "what's good",
+    ];
     query = query.toLowerCase();
-    if (restaurantKeywords.some((keyword) => query.includes(keyword)) && !activeRestroId) return QueryType.RESTAURANT_QUERY;
+    if (
+      restaurantKeywords.some((keyword) => query.includes(keyword)) &&
+      !activeRestroId
+    )
+      return QueryType.RESTAURANT_QUERY;
     if (menuKeywords.some((keyword) => query.includes(keyword))) return QueryType.MENU_QUERY;
     return QueryType.GENERAL;
   };
@@ -63,18 +114,9 @@ export const useChatLogic = ({
     return filtered;
   };
 
-  const handleRestaurantQuery = async () => {
+  const handleRestaurantQuery = async (queryText?: string) => {
     const selectedAddress = addresses[0];
     let filteredRestaurants = restaurantState.restaurants;
-    // (Optional distance filtering can be enabled below)
-    // if (selectedAddress?.coordinates) {
-    //   filteredRestaurants = filterRestaurantsByDistance(
-    //     selectedAddress.coordinates.lat,
-    //     selectedAddress.coordinates.lng,
-    //     restaurantState.restaurants,
-    //     10
-    //   );
-    // }
     const restaurantContext = filteredRestaurants.map((ele: any) => ({
       menuSummary: ele.menuSummary,
       name: ele.name,
@@ -83,16 +125,28 @@ export const useChatLogic = ({
       coordinates: ele.coordinates,
     }));
     const orderContextItem = [
-      ...new Set(orders?.flatMap((ele) => ele.items?.map((itemObj) => itemObj.name)) || [])
+      ...new Set(
+        orders?.flatMap((ele) => ele.items?.map((itemObj) => itemObj.name)) || []
+      ),
     ].join(", ");
 
-    const key = `${input}-${filteredRestaurants.map((r: any) => r.id).join(",")}`;
+    const effectiveQuery = queryText !== undefined ? queryText : input;
+    const analysisText =
+      queryText !== undefined
+        ? `analyze the image description: "${effectiveQuery}"`
+        : `analyze the user's query: "${effectiveQuery}"`;
+
+    const key =
+      queryText !== undefined
+        ? `image-${effectiveQuery}-${filteredRestaurants.map((r: any) => r.id).join(",")}`
+        : `${input}-${filteredRestaurants.map((r: any) => r.id).join(",")}`;
+
     if (restaurantQueryCache.has(key)) return restaurantQueryCache.get(key);
 
     const systemPrompt = `
       You are a restaurant recommendation system.
       Given the following restaurants: ${JSON.stringify(restaurantContext)},
-      analyze the user's query: "${input}" and also consider his previous order choices from ${orderContextItem}
+      ${analysisText} and also consider previous order choices from ${orderContextItem}
       and return exactly one JSON object:
         { "text": "", "restroIds": [] }
       where:
@@ -108,7 +162,11 @@ export const useChatLogic = ({
     return response;
   };
 
-  const handleMenuQuery = async (queryType: QueryType, userInput: string) => {
+  const handleMenuQuery = async (
+    queryType: QueryType,
+    userInput: string,
+    isImageBased: boolean = false
+  ) => {
     try {
       let restaurant1Menu: any[] = [], restaurant2Menu: any[] = [], activeMenu: any[] = [];
       let suggestRestroText = "";
@@ -117,7 +175,7 @@ export const useChatLogic = ({
       const now = new Date().toLocaleString("en-US", { hour: "numeric", minute: "numeric", hour12: true });
 
       if (!activeRestroId) {
-        const response = await handleRestaurantQuery();
+        const response = await handleRestaurantQuery(isImageBased ? userInput : undefined);
         suggestRestroText = response.text;
         suggestRestroIds = response.restroIds;
         if (queryType === QueryType.RESTAURANT_QUERY) {
@@ -147,11 +205,22 @@ export const useChatLogic = ({
         activeMenu = await getMenuItemsByFile(activeRestroId);
       }
 
+      const analysisPart = isImageBased
+        ? `analyze the image description: "${userInput}"`
+        : `analyze the user's query: "${userInput}"`;
+
       const menuPrompt = `
         You are a menu recommendation system.
-        Given the menu items from ${activeRestroId ? "a restaurant" : "two restaurants"}:
-        ${activeRestroId ? JSON.stringify(activeMenu) : JSON.stringify(restaurant1Menu) + " and " + JSON.stringify(restaurant2Menu)},
-        analyze the user's query: "${userInput}"
+        Given the menu items from ${
+          activeRestroId ? "a restaurant" : "two restaurants"
+        }: ${
+        activeRestroId
+          ? JSON.stringify(activeMenu)
+          : JSON.stringify(restaurant1Menu) +
+            " and " +
+            JSON.stringify(restaurant2Menu)
+      },
+        ${analysisPart}
         and return a JSON response: ${
           activeRestroId
             ? `{ "text": "", "items1": [{ "id": number, "name": string }] }`

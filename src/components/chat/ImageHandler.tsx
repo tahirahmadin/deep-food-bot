@@ -13,10 +13,9 @@ interface ImageHandlerProps {
   setRestaurants: (ids: number[]) => void;
   getMenuItemsByFile: (restaurantId: number) => Promise<any[]>;
   handleMenuQuery: (
-    activeRestroId: number | null,
-    restaurant1Menu: any[],
-    restaurant2Menu: any[],
-    activeMenu: any[]
+    queryType: QueryType,
+    userInput: string,
+    isImageBased?: boolean
   ) => Promise<any>;
 }
 
@@ -59,41 +58,13 @@ export const useImageHandler = ({
 
     try {
       const imageDescription = await imageService.analyzeImage(file);
-      const { activeRestroId } = restaurantState;
-
-      let restaurant1Menu = [];
-      let restaurant2Menu = [];
-      let activeMenu = [];
-
-      if (activeRestroId) {
-        activeMenu = await getMenuItemsByFile(activeRestroId);
-      }
-
-      const menuResponse = await handleMenuQuery(
-        activeRestroId,
-        restaurant1Menu,
-        restaurant2Menu,
-        activeMenu
+      
+      await handleMenuQuery(
+        QueryType.MENU_QUERY,
+        imageDescription,
+        true
       );
-
-      dispatch({
-        type: "ADD_MESSAGE",
-        payload: {
-          id: Date.now() + 1,
-          text: menuResponse.text,
-          llm: {
-            output: menuResponse,
-            restroIds: activeRestroId ? [activeRestroId] : [],
-          },
-          isBot: true,
-          time: new Date().toLocaleString("en-US", {
-            hour: "numeric",
-            minute: "numeric",
-            hour12: true,
-          }),
-          queryType: QueryType.MENU_QUERY,
-        },
-      });
+      
     } catch (error) {
       console.error("Error processing image:", error);
       dispatch({
