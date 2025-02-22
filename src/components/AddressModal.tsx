@@ -19,8 +19,8 @@ export const AddressModal: React.FC = () => {
   const [address, setAddress] = useState("");
   const [mobile, setMobile] = useState("");
   const [coordinates, setCoordinates] = useState<{
-    lat: number;
     lng: number;
+    lat: number;
   } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -67,7 +67,7 @@ export const AddressModal: React.FC = () => {
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          setCoordinates({ lat: latitude, lng: longitude });
+          setCoordinates({ lng: longitude, lat: latitude });
 
           // Get address from coordinates using Geocoding API
           const response = await fetch(
