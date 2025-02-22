@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+=======
+import React, { useState, useEffect } from "react";
+>>>>>>> Stashed changes
 import { useChatLogic } from "./chat/ChatLogic";
 import { useImageHandler } from "./chat/ImageHandler";
 import { useCheckoutHandler } from "./chat/CheckoutHandler";
@@ -18,11 +22,15 @@ import { getRestaurantColors } from "../utils/colorUtils";
 export const DunkinOrderApp: React.FC = () => {
   const { toast, hideToast } = useToast();
   const { state, dispatch } = useChatContext();
+<<<<<<< Updated upstream
   const {
     state: restaurantState,
     setRestaurants,
     setRestaurantList,
   } = useRestaurant();
+=======
+  const { state: restaurantState, setRestaurants } = useRestaurant();
+>>>>>>> Stashed changes
   const colors = getRestaurantColors(restaurantState.activeRestroId);
   const { isAuthenticated, setIsAddressModalOpen, addresses, orders } =
     useAuth();
@@ -33,7 +41,44 @@ export const DunkinOrderApp: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isImageAnalyzing, setIsImageAnalyzing] = useState(false);
 
+<<<<<<< Updated upstream
   // Reset UI state when auth changes.
+=======
+  const chatLogic = useChatLogic({
+    input,
+    restaurantState,
+    state,
+    dispatch,
+    orders,
+    selectedStyle,
+    isVegOnly,
+    numberOfPeople,
+    setRestaurants,
+    addresses,
+  });
+
+  const imageHandler = useImageHandler({
+    state,
+    dispatch,
+    restaurantState,
+    selectedStyle,
+    isVegOnly,
+    numberOfPeople,
+    orders,
+    setRestaurants,
+    getMenuItemsByFile: chatLogic.getMenuItemsByFile,
+    handleMenuQuery: chatLogic.handleMenuQuery,
+  });
+
+  const checkoutHandler = useCheckoutHandler({
+    state,
+    dispatch,
+    input,
+    setInput,
+  });
+
+  // Reset UI states when auth state changes
+>>>>>>> Stashed changes
   useEffect(() => {
     if (!isAuthenticated) {
       setInput("");
@@ -69,6 +114,7 @@ export const DunkinOrderApp: React.FC = () => {
     handleMenuQuery: chatLogic.handleMenuQuery,
   });
 
+<<<<<<< Updated upstream
   const checkoutHandler = useCheckoutHandler({
     state,
     dispatch,
@@ -137,6 +183,78 @@ export const DunkinOrderApp: React.FC = () => {
   );
 
   const getInputPlaceholder = useCallback(() => {
+=======
+  const handleImageUploadWrapper = async (file: File) => {
+    await imageHandler.handleImageUpload(file, setIsImageAnalyzing);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+
+    // Always switch to chat mode during checkout
+    if (state.checkout.step) {
+      dispatch({ type: "SET_MODE", payload: "chat" });
+    }
+
+    if (state.checkout.step) {
+      dispatch({ type: "SET_MODE", payload: "chat" });
+      checkoutHandler.handleCheckoutFlow();
+      return;
+    }
+
+    // Determine query type
+    const queryType = chatLogic.determineQueryType(
+      input.trim(),
+      restaurantState.activeRestroId
+    );
+
+    // Create user message with query type
+    const userMessage = {
+      id: Date.now(),
+      text: input.trim(),
+      isBot: false,
+      time: new Date().toLocaleString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      }),
+      queryType,
+    };
+
+    // Update state
+    dispatch({ type: "ADD_MESSAGE", payload: userMessage });
+    dispatch({ type: "SET_QUERY_TYPE", payload: queryType });
+    setInput("");
+    dispatch({ type: "SET_LOADING", payload: true });
+
+    try {
+      // Process the query based on type
+      await chatLogic.handleMenuQuery(queryType, input);
+    } catch (error) {
+      console.error("Error processing AI response:", error);
+      dispatch({
+        type: "ADD_MESSAGE",
+        payload: {
+          id: Date.now() + 1,
+          text: "Sorry, I had trouble understanding your question. Please try again.",
+          isBot: true,
+          time: new Date().toLocaleString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          }),
+          queryType: QueryType.GENERAL,
+        },
+      });
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
+  };
+
+  // Get appropriate placeholder text based on current query type
+  const getInputPlaceholder = () => {
+>>>>>>> Stashed changes
     switch (state.currentQueryType) {
       case QueryType.MENU_QUERY:
         return "Ask about menu items or place an order...";
