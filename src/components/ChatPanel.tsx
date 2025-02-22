@@ -10,14 +10,10 @@ import { useRestaurant } from "../context/RestaurantContext";
 import { getMenuByRestaurantId } from "../utils/menuUtils";
 import { RestaurantCard } from "./RestaurantCard";
 import { MapPin } from "lucide-react";
-import { LogIn } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import {
-  getUserDetails,
-  loginUserFromBackendServer,
-} from "../actions/serverActions";
+import { loginUserFromBackendServer } from "../actions/serverActions";
 import { useFiltersContext } from "../context/FiltersContext";
 import * as menuUtils from "../utils/menuUtils";
 import { PaymentForm } from "./PaymentForm";
@@ -51,8 +47,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   isLoading = false,
 }) => {
   const { state, dispatch } = useChatContext();
-  const { selectedStyle, isVegOnly, isFastDelivery, numberOfPeople } =
-    useFiltersContext();
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [allMenuItems, setAllMenuItems] = useState<MenuItemFront[]>([]);
@@ -182,15 +176,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   }, [state.messages]);
 
-  // Serialize messages for maintaining memory context
-  // const serializedMemory = useMemo(() => {
-  //   return state.messages
-  //     .map((message) =>
-  //       message.isBot ? `Bot: ${message.text}` : `User: ${message.text}`
-  //     )
-  //     .join("\n");
-  // }, [state.messages]);
-
   // Handle submit and pass serialized memory
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -288,7 +273,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             </div>
           </div>
         )}
-        {console.log(state.messages)}
+
         {state.messages.map((message) => (
           <Message key={message.id} message={message} onRetry={() => {}} />
         ))}

@@ -7,8 +7,8 @@ let apiUrl: string = import.meta.env.VITE_PUBLIC_BACKEND_API_URL;
 export const generateLLMResponse = async (
   systemPrompt: string,
   maxTokens: number = 1000,
-  model: string = "openai",
-  temperature: number = temperature
+  model: string = "OPENAI",
+  temperature: number = 0.5
 ): Promise<any> => {
   try {
     const response = await axios.post(
@@ -146,11 +146,13 @@ interface ApiResponse<T> {
 // *************** RESTAURANT APIS **************************
 
 // Get all online restaurants
-export const getAllRestaurants = async (): Promise<Restaurant[]> => {
+export const getAllRestaurants = async (
+  coordinates?: { lat: number; lng: number } | null,
+  radius: number = 10
+): Promise<Restaurant[]> => {
   try {
-    const response = await axios.get(
-      `${apiUrl}/restaurant/getAllRestaurants?online=true`
-    );
+    let url = `${apiUrl}/restaurant/getAllRestaurants?online=true&userLatitude=${coordinates?.lat}&userLongitude=${coordinates?.lng}&radius=${radius}`;
+    const response = await axios.get(url);
 
     if (response.data && !response.data.error) {
       return response.data.result;
@@ -195,8 +197,8 @@ export const getUserLeaderboardData = async (
     let hmacResponse: HmacResponse | null =
       getHmacMessageFromBody(requestParams);
 
-    if (!hmacResponse) {
-      return null;
+    if (coordinates?.lat && coordinates?.lng) {
+      url += `&userLatitude=${coordinates.lat}&userLongitude=${coordinates.lng}&radius=${radius}`;
     }
 
     let axiosHeaders: { HMAC: string; Timestamp: string } = {

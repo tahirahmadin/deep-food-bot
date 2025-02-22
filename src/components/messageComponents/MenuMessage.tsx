@@ -5,6 +5,8 @@ import { useChatContext } from "../../context/ChatContext";
 import { useRestaurant } from "../../context/RestaurantContext";
 import { MenuList } from "../MenuList";
 import * as menuUtils from "../../utils/menuUtils";
+import { calculateDistance } from "../../utils/distanceUtils";
+import { useAuth } from "../../context/AuthContext";
 
 interface MenuMessageProps {
   message: Message;
@@ -17,6 +19,8 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
 }) => {
   const { dispatch } = useChatContext();
   const { state: restaurantState } = useRestaurant();
+  const { addresses } = useAuth();
+  const selectedAddress = addresses[0];
 
   const handleSelectRestro = (restroId: number) => {
     dispatch({ type: "SET_MODE", payload: "browse" });
@@ -30,6 +34,35 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
         payload: restaurantName,
       });
     }
+  };
+
+  const getRestaurantDetails = (restroId: number) => {
+    const restaurant = restaurantState.restaurants.find(
+      (r) => r.id === restroId
+    );
+    if (
+      !restaurant ||
+      !selectedAddress?.coordinates ||
+      !restaurant.location?.coordinates
+    ) {
+      return { distance: null, deliveryTime: null, rating: null };
+    }
+
+    const distance = calculateDistance(
+      selectedAddress.coordinates.lat,
+      selectedAddress.coordinates.lng,
+      restaurant.location.coordinates[1],
+      restaurant.location.coordinates[0]
+    );
+
+    // Calculate delivery time: distance * 5 minutes per km
+    const deliveryTime = Math.ceil(distance * 5);
+
+    return {
+      distance: distance.toFixed(1),
+      deliveryTime: `${deliveryTime}-${deliveryTime + 5}`,
+      rating: restaurant.rating?.toFixed(1) || "4.7",
+    };
   };
 
   if (!message.llm) {
@@ -76,9 +109,7 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
               </span>
             </button>
             <RestaurantBadges
-              rating="4.5"
-              deliveryTime="30-45"
-              distance="2.5"
+              {...getRestaurantDetails(message.llm.restroIds[0])}
             />
           </div>
 
@@ -110,9 +141,7 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
               </span>
             </button>
             <RestaurantBadges
-              rating="4.3"
-              deliveryTime="35-50"
-              distance="3.2"
+              {...getRestaurantDetails(message.llm.restroIds[1])}
             />
           </div>
 
@@ -130,9 +159,9 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
 };
 
 interface RestaurantBadgesProps {
-  rating: string;
-  deliveryTime: string;
-  distance: string;
+  rating: string | null;
+  deliveryTime: string | null;
+  distance: string | null;
 }
 
 const RestaurantBadges: React.FC<RestaurantBadgesProps> = ({
@@ -141,19 +170,25 @@ const RestaurantBadges: React.FC<RestaurantBadgesProps> = ({
   distance,
 }) => (
   <>
-    <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
-      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-      </svg>
-      <span>{rating}</span>
-    </div>
-    <div className="flex items-center gap-1 bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
-      <Bike className="w-3 h-3" />
-      <span>{deliveryTime} min</span>
-    </div>
-    <div className="flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
-      <MapPin className="w-3 h-3" />
-      <span>{distance} km</span>
-    </div>
+    {rating && (
+      <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+        </svg>
+        <span>{rating}</span>
+      </div>
+    )}
+    {deliveryTime && (
+      <div className="flex items-center gap-1 bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+        <Bike className="w-3 h-3" />
+        <span>{deliveryTime} min</span>
+      </div>
+    )}
+    {distance && (
+      <div className="flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+        <MapPin className="w-3 h-3" />
+        <span>{distance} km</span>
+      </div>
+    )}
   </>
 );
