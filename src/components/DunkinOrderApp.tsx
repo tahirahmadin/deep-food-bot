@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-=======
-import React, { useState, useEffect } from "react";
->>>>>>> Stashed changes
 import { useChatLogic } from "./chat/ChatLogic";
 import { useImageHandler } from "./chat/ImageHandler";
 import { useCheckoutHandler } from "./chat/CheckoutHandler";
@@ -22,15 +18,7 @@ import { getRestaurantColors } from "../utils/colorUtils";
 export const DunkinOrderApp: React.FC = () => {
   const { toast, hideToast } = useToast();
   const { state, dispatch } = useChatContext();
-<<<<<<< Updated upstream
-  const {
-    state: restaurantState,
-    setRestaurants,
-    setRestaurantList,
-  } = useRestaurant();
-=======
   const { state: restaurantState, setRestaurants } = useRestaurant();
->>>>>>> Stashed changes
   const colors = getRestaurantColors(restaurantState.activeRestroId);
   const { isAuthenticated, setIsAddressModalOpen, addresses, orders } =
     useAuth();
@@ -41,44 +29,7 @@ export const DunkinOrderApp: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isImageAnalyzing, setIsImageAnalyzing] = useState(false);
 
-<<<<<<< Updated upstream
   // Reset UI state when auth changes.
-=======
-  const chatLogic = useChatLogic({
-    input,
-    restaurantState,
-    state,
-    dispatch,
-    orders,
-    selectedStyle,
-    isVegOnly,
-    numberOfPeople,
-    setRestaurants,
-    addresses,
-  });
-
-  const imageHandler = useImageHandler({
-    state,
-    dispatch,
-    restaurantState,
-    selectedStyle,
-    isVegOnly,
-    numberOfPeople,
-    orders,
-    setRestaurants,
-    getMenuItemsByFile: chatLogic.getMenuItemsByFile,
-    handleMenuQuery: chatLogic.handleMenuQuery,
-  });
-
-  const checkoutHandler = useCheckoutHandler({
-    state,
-    dispatch,
-    input,
-    setInput,
-  });
-
-  // Reset UI states when auth state changes
->>>>>>> Stashed changes
   useEffect(() => {
     if (!isAuthenticated) {
       setInput("");
@@ -114,7 +65,6 @@ export const DunkinOrderApp: React.FC = () => {
     handleMenuQuery: chatLogic.handleMenuQuery,
   });
 
-<<<<<<< Updated upstream
   const checkoutHandler = useCheckoutHandler({
     state,
     dispatch,
@@ -124,7 +74,11 @@ export const DunkinOrderApp: React.FC = () => {
 
   // Helper: Get current time string once per handler.
   const getCurrentTime = () =>
-    new Date().toLocaleString("en-US", { hour: "numeric", minute: "numeric", hour12: true });
+    new Date().toLocaleString("en-US", {
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    });
 
   // Memoize handlers to avoid unnecessary re-creations.
   const handleImageUploadWrapper = useCallback(
@@ -147,7 +101,10 @@ export const DunkinOrderApp: React.FC = () => {
         return;
       }
 
-      const queryType = chatLogic.determineQueryType(trimmedInput, restaurantState.activeRestroId);
+      const queryType = chatLogic.determineQueryType(
+        trimmedInput,
+        restaurantState.activeRestroId
+      );
       const userMessage = {
         id: Date.now(),
         text: trimmedInput,
@@ -179,82 +136,17 @@ export const DunkinOrderApp: React.FC = () => {
         dispatch({ type: "SET_LOADING", payload: false });
       }
     },
-    [input, state, dispatch, checkoutHandler, chatLogic, restaurantState.activeRestroId]
+    [
+      input,
+      state,
+      dispatch,
+      checkoutHandler,
+      chatLogic,
+      restaurantState.activeRestroId,
+    ]
   );
 
   const getInputPlaceholder = useCallback(() => {
-=======
-  const handleImageUploadWrapper = async (file: File) => {
-    await imageHandler.handleImageUpload(file, setIsImageAnalyzing);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    // Always switch to chat mode during checkout
-    if (state.checkout.step) {
-      dispatch({ type: "SET_MODE", payload: "chat" });
-    }
-
-    if (state.checkout.step) {
-      dispatch({ type: "SET_MODE", payload: "chat" });
-      checkoutHandler.handleCheckoutFlow();
-      return;
-    }
-
-    // Determine query type
-    const queryType = chatLogic.determineQueryType(
-      input.trim(),
-      restaurantState.activeRestroId
-    );
-
-    // Create user message with query type
-    const userMessage = {
-      id: Date.now(),
-      text: input.trim(),
-      isBot: false,
-      time: new Date().toLocaleString("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      }),
-      queryType,
-    };
-
-    // Update state
-    dispatch({ type: "ADD_MESSAGE", payload: userMessage });
-    dispatch({ type: "SET_QUERY_TYPE", payload: queryType });
-    setInput("");
-    dispatch({ type: "SET_LOADING", payload: true });
-
-    try {
-      // Process the query based on type
-      await chatLogic.handleMenuQuery(queryType, input);
-    } catch (error) {
-      console.error("Error processing AI response:", error);
-      dispatch({
-        type: "ADD_MESSAGE",
-        payload: {
-          id: Date.now() + 1,
-          text: "Sorry, I had trouble understanding your question. Please try again.",
-          isBot: true,
-          time: new Date().toLocaleString("en-US", {
-            hour: "numeric",
-            minute: "numeric",
-            hour12: true,
-          }),
-          queryType: QueryType.GENERAL,
-        },
-      });
-    } finally {
-      dispatch({ type: "SET_LOADING", payload: false });
-    }
-  };
-
-  // Get appropriate placeholder text based on current query type
-  const getInputPlaceholder = () => {
->>>>>>> Stashed changes
     switch (state.currentQueryType) {
       case QueryType.MENU_QUERY:
         return "Ask about menu items or place an order...";
@@ -267,10 +159,22 @@ export const DunkinOrderApp: React.FC = () => {
 
   return (
     <div className="min-h-[100vh] h-[100vh] relative flex items-center justify-center bg-gray-50 overflow-hidden">
-      <div className="relative w-full h-full max-w-md transition-colors duration-300" style={{ backgroundColor: colors }}>
-        {toast.visible && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+      <div
+        className="relative w-full h-full max-w-md transition-colors duration-300"
+        style={{ backgroundColor: colors }}
+      >
+        {toast.visible && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={hideToast}
+          />
+        )}
         <div className="fixed top-0 left-0 right-0 z-[50] bg-[#FFF5F2] max-w-md mx-auto">
-          <Header onOpenPanel={() => setIsPanelOpen(true)} onCartClick={() => setIsCartOpen(!isCartOpen)} />
+          <Header
+            onOpenPanel={() => setIsPanelOpen(true)}
+            onCartClick={() => setIsCartOpen(!isCartOpen)}
+          />
           <Filters />
         </div>
         <div className="h-full pt-[160px] pb-15">
@@ -293,23 +197,34 @@ export const DunkinOrderApp: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-slide-up">
             <div className="p-4 bg-orange-50 border-b flex justify-between items-center">
               <h2 className="font-semibold text-gray-800">Your Cart</h2>
-              <button onClick={() => setIsCartOpen(false)} className="text-gray-500 hover:text-gray-700">
+              <button
+                onClick={() => setIsCartOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
                 ×
               </button>
             </div>
             <div className="max-h-[60vh] overflow-y-auto p-4 space-y-4">
               {state.cart.map((item) => (
-                <div key={item.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                <div
+                  key={item.id}
+                  className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
+                >
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-800">{item.name}</h3>
-                    <p className="text-sm text-gray-500">${item.price} × {item.quantity}</p>
+                    <p className="text-sm text-gray-500">
+                      ${item.price} × {item.quantity}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() =>
                         dispatch({
                           type: "UPDATE_CART_ITEM",
-                          payload: { ...item, quantity: Math.max(0, item.quantity - 1) },
+                          payload: {
+                            ...item,
+                            quantity: Math.max(0, item.quantity - 1),
+                          },
                         })
                       }
                       className="p-1 hover:bg-gray-200 rounded"
@@ -337,7 +252,14 @@ export const DunkinOrderApp: React.FC = () => {
                 <div className="flex justify-between mb-4">
                   <span className="font-medium">Total</span>
                   <span className="font-bold text-primary">
-                    ${state.cart.reduce((total, item) => total + parseFloat(item.price) * item.quantity, 0).toFixed(2)}
+                    $
+                    {state.cart
+                      .reduce(
+                        (total, item) =>
+                          total + parseFloat(item.price) * item.quantity,
+                        0
+                      )
+                      .toFixed(2)}
                   </span>
                 </div>
                 <button
@@ -346,9 +268,16 @@ export const DunkinOrderApp: React.FC = () => {
                     if (addresses.length > 0) {
                       dispatch({
                         type: "UPDATE_ORDER_DETAILS",
-                        payload: { name: addresses[0].name, address: addresses[0].address, phone: addresses[0].mobile },
+                        payload: {
+                          name: addresses[0].name,
+                          address: addresses[0].address,
+                          phone: addresses[0].mobile,
+                        },
                       });
-                      dispatch({ type: "SET_CHECKOUT_STEP", payload: "payment" });
+                      dispatch({
+                        type: "SET_CHECKOUT_STEP",
+                        payload: "payment",
+                      });
                     } else {
                       setIsAddressModalOpen(true);
                     }
@@ -359,7 +288,9 @@ export const DunkinOrderApp: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="p-8 text-center text-gray-500">Your cart is empty</div>
+              <div className="p-8 text-center text-gray-500">
+                Your cart is empty
+              </div>
             )}
           </div>
         </div>

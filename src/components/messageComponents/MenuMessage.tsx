@@ -51,8 +51,8 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
     const distance = calculateDistance(
       selectedAddress.coordinates.lat,
       selectedAddress.coordinates.lng,
-      restaurant.location.coordinates[0],
-      restaurant.location.coordinates[1]
+      restaurant.location.coordinates[1],
+      restaurant.location.coordinates[0]
     );
 
     // Calculate delivery time: distance * 5 minutes per km
