@@ -126,19 +126,19 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
         }`}
       >
         <div className="p-6 bg-orange-50">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-[20%] rounded-full bg-orange-100 flex items-center justify-center">
               {isAuthenticated && user?.picture ? (
                 <img
                   src={user.picture}
                   alt={user.name}
-                  className="w-16 h-16 rounded-full object-cover"
+                  className="rounded-full object-cover"
                 />
               ) : (
                 <User className="w-8 h-8 text-orange-500" />
               )}
             </div>
-            <div>
+            <div className="w-[80%]">
               <h3 className="font-semibold text-gray-800">
                 {isAuthenticated ? user?.name : "Guest User"}
               </h3>

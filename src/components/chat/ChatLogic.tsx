@@ -51,7 +51,12 @@ const getCachedLLMResponse = async (
 ) => {
   const key = getLLMCacheKey(prompt, maxTokens, model, temperature);
   if (llmCache.has(key)) return llmCache.get(key);
-  const response = await generateLLMResponse(prompt, maxTokens, model, temperature);
+  const response = await generateLLMResponse(
+    prompt,
+    maxTokens,
+    model,
+    temperature
+  );
   llmCache.set(key, response);
   return response;
 };
@@ -102,13 +107,18 @@ export const useChatLogic = ({
       !activeRestroId
     )
       return QueryType.RESTAURANT_QUERY;
-    if (menuKeywords.some((keyword) => query.includes(keyword))) return QueryType.MENU_QUERY;
+    if (menuKeywords.some((keyword) => query.includes(keyword)))
+      return QueryType.MENU_QUERY;
     return QueryType.GENERAL;
   };
 
   const getMenuItemsByFile = async (restaurantId: number): Promise<any[]> => {
     if (menuCache.has(restaurantId)) return menuCache.get(restaurantId)!;
-    const menu = await getMenuByRestaurantId(restaurantId, restaurantState, dispatch);
+    const menu = await getMenuByRestaurantId(
+      restaurantId,
+      restaurantState,
+      dispatch
+    );
     const filtered = filterMenuItems(menu);
     menuCache.set(restaurantId, filtered);
     return filtered;
@@ -126,7 +136,8 @@ export const useChatLogic = ({
     }));
     const orderContextItem = [
       ...new Set(
-        orders?.flatMap((ele) => ele.items?.map((itemObj) => itemObj.name)) || []
+        orders?.flatMap((ele) => ele.items?.map((itemObj) => itemObj.name)) ||
+          []
       ),
     ].join(", ");
 
@@ -138,7 +149,9 @@ export const useChatLogic = ({
 
     const key =
       queryText !== undefined
-        ? `image-${effectiveQuery}-${filteredRestaurants.map((r: any) => r.id).join(",")}`
+        ? `image-${effectiveQuery}-${filteredRestaurants
+            .map((r: any) => r.id)
+            .join(",")}`
         : `${input}-${filteredRestaurants.map((r: any) => r.id).join(",")}`;
 
     if (restaurantQueryCache.has(key)) return restaurantQueryCache.get(key);
@@ -157,7 +170,12 @@ export const useChatLogic = ({
         - No code fences, no trailing commas, no disclaimers.
         - Only return a valid JSON object, nothing else.
     `;
-    const response = await getCachedLLMResponse(systemPrompt, 200, state.selectedModel, 0.5);
+    const response = await getCachedLLMResponse(
+      systemPrompt,
+      200,
+      state.selectedModel,
+      0.5
+    );
     restaurantQueryCache.set(key, response);
     return response;
   };
@@ -168,14 +186,22 @@ export const useChatLogic = ({
     isImageBased: boolean = false
   ) => {
     try {
-      let restaurant1Menu: any[] = [], restaurant2Menu: any[] = [], activeMenu: any[] = [];
+      let restaurant1Menu: any[] = [],
+        restaurant2Menu: any[] = [],
+        activeMenu: any[] = [];
       let suggestRestroText = "";
       let suggestRestroIds: number[] = [];
       const { activeRestroId } = restaurantState;
-      const now = new Date().toLocaleString("en-US", { hour: "numeric", minute: "numeric", hour12: true });
+      const now = new Date().toLocaleString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
 
       if (!activeRestroId) {
-        const response = await handleRestaurantQuery(isImageBased ? userInput : undefined);
+        const response = await handleRestaurantQuery(
+          isImageBased ? userInput : undefined
+        );
         suggestRestroText = response.text;
         suggestRestroIds = response.restroIds;
         if (queryType === QueryType.RESTAURANT_QUERY) {
@@ -184,7 +210,15 @@ export const useChatLogic = ({
             payload: {
               id: Date.now() + 1,
               text: suggestRestroText,
-              llm: { output: { text: suggestRestroText, items1: [], items2: [], restroIds: suggestRestroIds }, restroIds: suggestRestroIds },
+              llm: {
+                output: {
+                  text: suggestRestroText,
+                  items1: [],
+                  items2: [],
+                  restroIds: suggestRestroIds,
+                },
+                restroIds: suggestRestroIds,
+              },
               isBot: true,
               time: now,
               queryType,
@@ -196,7 +230,9 @@ export const useChatLogic = ({
           setRestaurants(suggestRestroIds);
           const menus = await Promise.all([
             getMenuItemsByFile(suggestRestroIds[0]),
-            suggestRestroIds.length > 1 ? getMenuItemsByFile(suggestRestroIds[1]) : Promise.resolve([])
+            suggestRestroIds.length > 1
+              ? getMenuItemsByFile(suggestRestroIds[1])
+              : Promise.resolve([]),
           ]);
           restaurant1Menu = menus[0];
           restaurant2Menu = menus[1];
@@ -227,16 +263,31 @@ export const useChatLogic = ({
             : `{ "text": "", "items1": [{ "id": number, "name": string }], "items2": [{ "id": number, "name": string }] }`
         }
         where:
-          - "text" provides a concise and creative response in ${selectedStyle.name} style.
-          - ${activeRestroId ? `"items1" contains up to 3 recommended items.` : `"items1" and "items2" contain up to 3 relevant items each.`}
+          - "text" provides a concise and creative response in ${
+            selectedStyle.name
+          } style.
+          - ${
+            activeRestroId
+              ? `"items1" contains up to 3 recommended items.`
+              : `"items1" and "items2" contain up to 3 relevant items each.`
+          }
           ${isVegOnly ? " Provide only VEGETARIAN options." : ""}
-          ${numberOfPeople > 1 ? ` Show portions sufficient for ${numberOfPeople} people.` : ""}
+          ${
+            numberOfPeople > 1
+              ? ` Show portions sufficient for ${numberOfPeople} people.`
+              : ""
+          }
         STRICT FORMAT RULES:
           - DO NOT include any markdown formatting.
           - DO NOT include explanations or additional text.
           - Only return a valid JSON object, nothing else.
       `;
-      const menuResponse = await getCachedLLMResponse(menuPrompt, 1000, state.selectedModel, 0.5);
+      const menuResponse = await getCachedLLMResponse(
+        menuPrompt,
+        1000,
+        state.selectedModel,
+        0.5
+      );
 
       if ((suggestRestroIds.length > 0 || activeRestroId) && menuResponse) {
         dispatch({
@@ -244,7 +295,10 @@ export const useChatLogic = ({
           payload: {
             id: Date.now() + 1,
             text: menuResponse.text,
-            llm: { output: menuResponse, restroIds: activeRestroId ? [activeRestroId] : suggestRestroIds },
+            llm: {
+              output: menuResponse,
+              restroIds: activeRestroId ? [activeRestroId] : suggestRestroIds,
+            },
             isBot: true,
             time: now,
             queryType,
