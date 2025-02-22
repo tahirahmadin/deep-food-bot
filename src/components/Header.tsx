@@ -1,17 +1,8 @@
 import React from "react";
-import {
-  MoreHorizontal,
-  LogIn,
-  LogOut,
-  User as UserIcon,
-  MapPin,
-  ChevronDown,
-  Send,
-} from "lucide-react";
+import { MoreHorizontal, LogOut, User as UserIcon } from "lucide-react";
 import { useChatContext, QueryType } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
-import { getUserDetails } from "../actions/serverActions";
 import { loginUserFromBackendServer } from "../actions/serverActions";
 import { useGoogleLogin, googleLogout } from "@react-oauth/google";
 import axios from "axios";

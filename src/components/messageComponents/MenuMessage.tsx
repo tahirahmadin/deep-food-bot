@@ -51,17 +51,17 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
     const distance = calculateDistance(
       selectedAddress.coordinates.lat,
       selectedAddress.coordinates.lng,
-      restaurant.location.coordinates[1],
-      restaurant.location.coordinates[0]
+      restaurant.location.coordinates[0],
+      restaurant.location.coordinates[1]
     );
 
-    // Calculate delivery time: distance * 6 minutes per km
-    const deliveryTime = Math.ceil(distance * 6);
+    // Calculate delivery time: distance * 5 minutes per km
+    const deliveryTime = Math.ceil(distance * 5);
 
     return {
       distance: distance.toFixed(1),
-      deliveryTime: `${deliveryTime}-${deliveryTime + 15}`,
-      rating: restaurant.rating?.toFixed(1) || "4.5",
+      deliveryTime: `${deliveryTime}-${deliveryTime + 5}`,
+      rating: restaurant.rating?.toFixed(1) || "4.7",
     };
   };
 

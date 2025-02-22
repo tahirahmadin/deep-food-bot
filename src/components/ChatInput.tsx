@@ -1,5 +1,4 @@
-// src/components/ChatInput.tsx
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import {
   Send,
   ImageIcon,
@@ -34,6 +33,17 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
   const { addresses } = useAuth();
   const formRef = useRef<HTMLFormElement>(null);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const isKeyboardActive = window.innerHeight < screen.height * 0.7; // If height reduces significantly, keyboard is open
+      setIsKeyboardOpen(isKeyboardActive);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -42,16 +52,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const handleQuickAction = (message: string) => {
-    setInput(message); // Set the input value
-
-    // Use setTimeout to ensure the input value is set before submitting
+    setInput(message);
     setTimeout(() => {
       if (formRef.current) {
         const syntheticEvent = new SubmitEvent("submit", {
           bubbles: true,
           cancelable: true,
         });
-
         formRef.current.dispatchEvent(syntheticEvent);
       }
     }, 0);
@@ -59,11 +66,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div
-      className={`p-2 border-t border-white/200 bg-white/50 backdrop-blur-sm fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 ${className}`}
-      style={{ position: "fixed", bottom: 0 }}
+      className={`p-2 border-t border-white/200 bg-white/50 backdrop-blur-sm left-0 right-0 max-w-md mx-auto z-50 transition-all duration-300 ${className}`}
+      style={{
+        position: isKeyboardOpen ? "absolute" : "fixed",
+        bottom: isKeyboardOpen ? "10px" : "0",
+      }}
     >
       <div className="w-full">
-        {showQuickActions && !input && (
+        {showQuickActions && !input && !isKeyboardOpen && (
           <div className="grid grid-cols-2 gap-2 mb-1 max-h-[120px] overflow-y-auto">
             <button
               onClick={() => handleQuickAction("Show me lunch combos")}

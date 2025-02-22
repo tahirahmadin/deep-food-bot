@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useReducer } from "react";
+import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { getAllRestaurants } from "../actions/serverActions";
 import { SingleRestro } from "../types/menu";
+import { useAuth } from "./AuthContext";
 
 interface RestaurantState {
   selectedRestroIds: number[];
@@ -80,6 +81,7 @@ const RestaurantContext = createContext<{
 const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const { addresses, isAuthenticated } = useAuth();
   const [state, dispatch] = useReducer(restaurantReducer, initialState);
   const hasInitialFetch = React.useRef(false);
 
@@ -87,13 +89,23 @@ const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
     if (hasInitialFetch.current) return;
 
     const fetchRestaurants = async () => {
-      const restaurantData = await getAllRestaurants();
-      dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
-      hasInitialFetch.current = true;
+      // Get coordinates from selected address
+      const selectedAddress = addresses[0];
+      const coordinates = selectedAddress?.coordinates;
+
+      if (coordinates) {
+        // Fetch restaurants with coordinates if available
+        const restaurantData = await getAllRestaurants(coordinates, 10000);
+        dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
+        hasInitialFetch.current = true;
+      }
     };
 
-    fetchRestaurants();
-  }, []);
+    const selectedAddress = addresses[0];
+    if (isAuthenticated && selectedAddress?.coordinates) {
+      fetchRestaurants();
+    }
+  }, [isAuthenticated, addresses]);
 
   return (
     <RestaurantContext.Provider value={{ state, dispatch }}>
@@ -111,6 +123,7 @@ function useRestaurant() {
   // Add convenience functions
   const { state, dispatch } = context;
 
+  const { addresses } = useAuth();
   const setRestaurants = (ids: number[]) => {
     // Only dispatch if the IDs are different from current state
     if (JSON.stringify(state.selectedRestroIds) !== JSON.stringify(ids)) {
@@ -133,6 +146,17 @@ function useRestaurant() {
     dispatch({ type: "SET_RESTAURANTS", payload: restaurants });
   };
 
+  const refreshRestaurants = async () => {
+    try {
+      const selectedAddress = addresses[0];
+      const coordinates = selectedAddress?.coordinates;
+      const restaurantData = await getAllRestaurants(coordinates);
+      dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
+    } catch (error) {
+      console.error("Error refreshing restaurants:", error);
+    }
+  };
+
   const value = {
     state,
     dispatch,
@@ -140,6 +164,7 @@ function useRestaurant() {
     setActiveRestaurant,
     clearRestaurants,
     setRestaurantList,
+    refreshRestaurants,
   };
 
   return value;
