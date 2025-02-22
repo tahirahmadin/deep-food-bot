@@ -1,6 +1,7 @@
 import React from "react";
-import { Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { useChatContext } from "../context/ChatContext";
+import { useFiltersContext } from "../context/FiltersContext";
 
 interface BrowseMenuItemProps {
   name: string;
@@ -20,6 +21,7 @@ export const BrowseMenuItem: React.FC<BrowseMenuItemProps> = ({
   compact = false,
 }) => {
   const { state, dispatch } = useChatContext();
+  const { theme } = useFiltersContext();
 
   // Check if item is in cart
   const cartItem = state.cart.find((item) => item.id === id);
@@ -34,9 +36,10 @@ export const BrowseMenuItem: React.FC<BrowseMenuItemProps> = ({
 
   return (
     <div
-      className={`bg-gray-50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow ${
-        compact ? "p-1.5 h-[150px]" : "p-0.5 h-[160px]"
-      }`}
+      className={` rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow p-1.5 h-[150px] `}
+      style={{
+        backgroundColor: theme.background,
+      }}
     >
       <div className="relative h-full">
         <div
@@ -64,29 +67,24 @@ export const BrowseMenuItem: React.FC<BrowseMenuItemProps> = ({
           {name}
         </h3>
         <div
-          className={`flex items-center justify-between ${
-            compact ? "mt-1 pl-0.5" : "mt-1 pl-1"
-          }`}
+          className="text-[9px] font-medium text-gray-800 line-clamp-2 min-h-[1.5rem]"
+          style={{
+            color: theme.text,
+          }}
         >
-          <p
-            className={`text-primary font-bold ${
-              compact ? "text-[10px]" : "text-xs"
-            }`}
-          >
+          <p className="font-bold text-[8px]" style={{ color: theme.primary }}>
             {price} AED
           </p>
           <div>
             <button
               onClick={handleAddToCart}
-              className={`${
-                compact ? "p-0.5" : "p-1.5"
-              } flex items-center justify-center rounded-full transition-all ${
-                isInCart
-                  ? "bg-primary text-white hover:bg-primary-600 shadow-sm"
-                  : "bg-primary-50 text-primary-600 hover:bg-primary-100"
-              }`}
+              className={`absolute bottom-1 right-1 p-1 rounded-full transition-all `}
+              style={{
+                backgroundColor: isInCart ? theme.headerBg : theme.primary,
+                color: isInCart ? theme.primary : theme.headerBg,
+              }}
             >
-              <Plus className={compact ? "w-3.5 h-3.5" : "w-3.5 h-3.5"} />
+              <Plus className="w-3 h-3" />
             </button>
           </div>
         </div>

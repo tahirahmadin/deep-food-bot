@@ -15,7 +15,7 @@ interface MessageProps {
 
 export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
   const { state } = useChatContext();
-  const { selectedStyle } = useFiltersContext();
+  const { selectedStyle, theme } = useFiltersContext();
   const [isLoading, setIsLoading] = useState(true);
   const [showTypingEffect, setShowTypingEffect] = useState(false);
   const [typingComplete, setTypingComplete] = useState(false);
@@ -62,14 +62,21 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
 
   return (
     <div
-      className={`mb-4 flex ${message.isBot ? "justify-start" : "justify-end"}`}
+      className={`mb-4 mt-3 flex ${
+        message.isBot ? "justify-start" : "justify-end"
+      }`}
     >
       <div
         className={`max-w-[90%] rounded-2xl p-2 ${
           message.isBot
-            ? "bg-white/80 shadow-sm backdrop-blur-sm w-full sm:w-auto"
-            : "bg-orange-500 text-white"
+            ? "shadow-sm backdrop-blur-sm w-full sm:w-auto"
+            : "text-white"
         }`}
+        style={{
+          backgroundColor: message.isBot ? `${theme.cardBg}` : theme.primary,
+          color: message.isBot ? theme.text : "#FFFFFF",
+          transition: "all 0.3s ease",
+        }}
       >
         {message.isBot && isLoading && !showTypingEffect && !typingComplete ? (
           <MessageSkeleton
@@ -86,7 +93,7 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
                 className="w-8 h-8 rounded-full object-cover border-2 border-secondary mr-3"
               />
             )}
-            <div className="text-gray-800 text-[13px]">
+            <div className="text-[13px]" style={{ color: theme.text }}>
               <TypingEffect
                 text={message.text}
                 onComplete={() => setTypingComplete(true)}
@@ -96,7 +103,14 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
         ) : (
           renderContent()
         )}
-        <span className="text-xs text-gray-500 mt-1 block">{message.time}</span>
+        <span
+          className="text-xs mt-1 block opacity-60 "
+          style={{
+            color: message.isBot ? theme.cardHighlight : theme.filtersBg,
+          }}
+        >
+          {message.time}
+        </span>
       </div>
     </div>
   );

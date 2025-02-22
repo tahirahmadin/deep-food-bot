@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
+import { Theme, getThemeForStyle } from "../utils/themeUtils";
 
-interface Style {
+export interface Style {
   name: string;
   image: string;
 }
@@ -14,6 +15,7 @@ interface FiltersContextType {
   setNumberOfPeople: (value: number) => void;
   selectedStyle: Style;
   setSelectedStyle: (style: Style) => void;
+  theme: Theme;
 }
 
 const defaultStyle = {
@@ -31,6 +33,7 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isFastDelivery, setIsFastDelivery] = useState(false);
   const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [selectedStyle, setSelectedStyle] = useState<Style>(defaultStyle);
+  const theme = getThemeForStyle(selectedStyle.name);
 
   return (
     <FiltersContext.Provider
@@ -43,6 +46,7 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({
         setNumberOfPeople,
         selectedStyle,
         setSelectedStyle,
+        theme,
       }}
     >
       {children}

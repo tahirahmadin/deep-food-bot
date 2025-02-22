@@ -4,6 +4,7 @@ import { useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { getMenuByRestaurantId } from "../utils/menuUtils";
 import { useAuth } from "../context/AuthContext";
+import { useFiltersContext } from "../context/FiltersContext";
 
 export const CartSummary: React.FC = () => {
   const { state, dispatch } = useChatContext();
@@ -11,6 +12,7 @@ export const CartSummary: React.FC = () => {
   const { isAuthenticated, addresses, setIsAddressModalOpen } = useAuth();
   const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
   const [menuItems, setMenuItems] = React.useState<any[]>([]);
+  const { theme } = useFiltersContext();
 
   const { dispatch: restaurantDispatch } = useRestaurant();
 
@@ -130,7 +132,11 @@ export const CartSummary: React.FC = () => {
       <div className="flex flex-col items-end">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-2 px-2 py-2 bg-primary text-white rounded-full hover:bg-primary-600 transition-all shadow-lg mb-2"
+          className="flex items-center gap-2 px-2 py-2 text-white rounded-full transition-all shadow-lg mb-2"
+          style={{
+            backgroundColor: theme.primary,
+            color: "black",
+          }}
         >
           <ShoppingBag className="w-4 h-4" />
           <span className="font-medium text-xs">{cartTotal} AED</span>

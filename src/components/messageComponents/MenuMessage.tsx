@@ -7,6 +7,7 @@ import { MenuList } from "../MenuList";
 import * as menuUtils from "../../utils/menuUtils";
 import { calculateDistance } from "../../utils/distanceUtils";
 import { useAuth } from "../../context/AuthContext";
+import { useFiltersContext } from "../../context/FiltersContext";
 
 interface MenuMessageProps {
   message: Message;
@@ -20,6 +21,7 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
   const { dispatch } = useChatContext();
   const { state: restaurantState } = useRestaurant();
   const { addresses } = useAuth();
+  const { theme } = useFiltersContext();
   const selectedAddress = addresses[0];
 
   const handleSelectRestro = (restroId: number) => {
@@ -82,13 +84,15 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
 
   return (
     <div>
-      <div className="pr-3 flex-shrink-0 flex">
+      <div className="pr-3 flex-shrink-0 flex ">
         <img
           src={selectedStyle.image}
           alt={selectedStyle.name}
           className="w-8 h-8 rounded-full object-cover border-2 border-secondary"
         />
-        <p className="text-gray-600 text-[13px] pl-2">{message.text}</p>
+        <p className="text-[13px] pl-2" style={{ color: theme.text }}>
+          {message.text}
+        </p>
       </div>
 
       {message.llm.output.items1?.length > 0 && (
@@ -99,7 +103,7 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
                 message.llm?.restroIds?.[0] &&
                 handleSelectRestro(message.llm.restroIds[0])
               }
-              className="flex items-center gap-1.5 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-medium hover:bg-blue-600 transition-colors"
+              className="flex items-center gap-1.5 bg-blue-500 px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors"
             >
               <span>
                 {menuUtils.getRestaurantNameById(

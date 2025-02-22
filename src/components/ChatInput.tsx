@@ -20,6 +20,7 @@ interface ChatInputProps {
   placeholder?: string;
   showQuickActions?: boolean;
 }
+import { useFiltersContext } from "../context/FiltersContext";
 
 export const ChatInput: React.FC<ChatInputProps> = ({
   input,
@@ -32,6 +33,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   showQuickActions = true,
 }) => {
   const { addresses } = useAuth();
+  const { theme } = useFiltersContext();
   const formRef = useRef<HTMLFormElement>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
@@ -70,6 +72,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       style={{
         position: isKeyboardOpen ? "absolute" : "fixed",
         bottom: isKeyboardOpen ? "10px" : "0",
+        backgroundColor: `${theme.cardBg}80`,
+        borderColor: `${theme.text}10`,
       }}
     >
       <div className="w-full">
@@ -113,9 +117,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       <form
         ref={formRef}
         onSubmit={onSubmit}
-        className={`flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2 relative ${
+        className={`flex items-center gap-2 rounded-full border px-4 py-2 relative ${
           addresses.length === 0 ? "opacity-50 pointer-events-none" : ""
         }`}
+        style={{
+          backgroundColor: theme.cardBg,
+          borderColor: theme.border,
+          color: theme.text,
+        }}
       >
         <input
           type="text"
@@ -123,7 +132,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={isLoading || addresses.length === 0}
-          className="flex-1 bg-transparent focus:outline-none placeholder:text-gray-400 text-[16px] min-h-[40px]"
+          className="flex-1 bg-transparent focus:outline-none text-[16px] min-h-[40px] transition-colors duration-300"
+          style={{
+            color: theme.text,
+            "::placeholder": { color: `${theme.text}60` },
+          }}
         />
         <label className="cursor-pointer p-1 text-gray-400 hover:text-gray-600">
           <input

@@ -203,7 +203,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   return (
     <>
       <div
-        className={`h-full overflow-y-auto p-2 pb-32 bg-white/30 backdrop-blur-sm scroll-smooth overscroll-contain ${
+        className={`h-full overflow-y-auto p-2 pb-32 scroll-smooth overscroll-contain ${
           state.mode === "browse" ? "hidden" : ""
         }`}
         ref={chatContainerRef}

@@ -12,8 +12,10 @@ interface HeaderProps {
   onOpenPanel: () => void;
   onCartClick: () => void;
 }
+import { useFiltersContext } from "../context/FiltersContext";
 
 export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
+  const { theme } = useFiltersContext();
   const { dispatch: chatDispatch } = useChatContext();
   const { dispatch: restaurantDispatch } = useRestaurant();
   const {
@@ -190,27 +192,36 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
   };
 
   return (
-    <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-white">
+    <div
+      className="px-4 py-3 border-b flex items-center justify-between transition-colors duration-300"
+      style={{
+        backgroundColor: theme.headerBg || "#0B0E11",
+        borderColor: theme.border,
+      }}
+    >
       <div className="flex items-center gap-3">
-        <div className="text-2xl font-bold text-primary">gobbl</div>
+        <div
+          className="text-2xl font-bold transition-colors duration-300"
+          style={{ color: theme.primary }}
+        >
+          gobbl
+        </div>
       </div>
       <div className="flex items-center gap-2">
         {isAuthenticated ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onClick={onOpenPanel}>
+            <span
+              className="text-sm font-medium"
+              style={{ color: theme.headerText }}
+            >
+              {user?.name?.split(" ")[0]}
+            </span>{" "}
             <img
               src={user?.picture}
               alt={user?.name || "User"}
-              className="w-8 h-8 rounded-full border-2 border-primary"
+              className="w-7 h-7 rounded-full border-2"
+              style={{ borderColor: theme.primary }}
             />
-            <span className="text-sm font-medium text-gray-800">
-              {user?.name?.split(" ")[0]}
-            </span>
-            <button
-              onClick={handleLogoutClick}
-              className="ml-2 p-1.5 hover:bg-gray-50 rounded-full transition-colors"
-            >
-              <LogOut className="w-4 h-4 text-gray-600" />
-            </button>
           </div>
         ) : (
           <div className="flex items-center gap-2">
@@ -245,12 +256,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
             </button>
           </div>
         )}
-        <button
-          onClick={onOpenPanel}
-          className="p-1.5 hover:bg-gray-50 rounded-full transition-colors"
-        >
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
       </div>
     </div>
   );

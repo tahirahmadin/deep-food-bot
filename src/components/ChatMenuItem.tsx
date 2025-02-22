@@ -7,6 +7,7 @@ import { useRestaurant } from "../context/RestaurantContext";
 import * as menuUtils from "../utils/menuUtils";
 
 import { MenuItemFront } from "../types/menu";
+import { useFiltersContext } from "../context/FiltersContext";
 
 interface MenuItemProps {
   name: string;
@@ -35,7 +36,7 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
     React.useState(false);
   const [restaurantName, setRestaurantName] = React.useState("");
   const [isDetailsModalOpen, setIsDetailsModalOpen] = React.useState(false);
-
+  const { theme } = useFiltersContext();
   // Check if item is in cart
   const cartItem = state.cart.find((item) => {
     // console.log(item);
@@ -133,7 +134,12 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
   };
   return (
     <>
-      <div className="bg-[#F9FAFB] rounded-lg shadow-sm overflow-hidden flex flex-col w-[80px]">
+      <div
+        className="rounded-lg shadow-sm overflow-hidden flex flex-col w-[80px]"
+        style={{
+          backgroundColor: theme.background,
+        }}
+      >
         <div className="w-full relative">
           <img
             onClick={() => setIsDetailsModalOpen(true)}
@@ -144,11 +150,11 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
 
           <button
             onClick={handleCartAction}
-            className={`absolute bottom-1 right-1 p-1 rounded-full transition-all ${
-              isInCart
-                ? "bg-primary text-white hover:bg-primary-600 shadow-sm"
-                : "bg-white text-primary hover:bg-primary-50"
-            }`}
+            className={`absolute bottom-1 right-1 p-1 rounded-full transition-all `}
+            style={{
+              backgroundColor: isInCart ? theme.headerBg : theme.primary,
+              color: isInCart ? theme.primary : theme.headerBg,
+            }}
           >
             {isInCart ? (
               <Minus className="w-3 h-3" />
@@ -160,10 +166,17 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
 
         {/* Content Container */}
         <div className="relative p-1.5 flex flex-col">
-          <h3 className="text-[9px] font-medium text-gray-800 line-clamp-2 min-h-[1.5rem]">
+          <h3
+            className="text-[9px] font-medium text-gray-800 line-clamp-2 min-h-[1.5rem]"
+            style={{
+              color: theme.text,
+            }}
+          >
             {name}
           </h3>
-          <p className="text-primary font-bold text-[8px]">{price} AED</p>
+          <p className="font-bold text-[8px]" style={{ color: theme.primary }}>
+            {price} AED
+          </p>
         </div>
       </div>
       <CartChangeModal

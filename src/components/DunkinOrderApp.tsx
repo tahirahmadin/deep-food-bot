@@ -13,13 +13,12 @@ import { QueryType, useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
-import { getRestaurantColors } from "../utils/colorUtils";
+import { getThemeForStyle } from "../utils/themeUtils";
 
 export const DunkinOrderApp: React.FC = () => {
   const { toast, hideToast } = useToast();
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setRestaurants } = useRestaurant();
-  const colors = getRestaurantColors(restaurantState.activeRestroId);
   const { isAuthenticated, setIsAddressModalOpen, addresses, orders } =
     useAuth();
   const { selectedStyle, isVegOnly, isFastDelivery, numberOfPeople } =
@@ -157,11 +156,22 @@ export const DunkinOrderApp: React.FC = () => {
     }
   }, [state.currentQueryType]);
 
+  const { theme } = useFiltersContext();
+
   return (
-    <div className="min-h-[100vh] h-[100vh] relative flex items-center justify-center bg-gray-50 overflow-hidden">
+    <div
+      className="min-h-[100vh] h-[100vh] relative flex items-center justify-center  overflow-hidden"
+      style={{
+        backgroundColor: theme.background || "#0B0E11",
+        color: theme.text,
+      }}
+    >
       <div
-        className="relative w-full h-full max-w-md transition-colors duration-300"
-        style={{ backgroundColor: colors }}
+        className="relative w-full h-full max-w-md transition-all duration-300"
+        style={{
+          backgroundColor: theme.background || "#0B0E11",
+          color: theme.text,
+        }}
       >
         {toast.visible && (
           <Toast
