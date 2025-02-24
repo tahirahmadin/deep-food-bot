@@ -33,16 +33,32 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
   const { addresses } = useAuth();
   const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
-      const isKeyboardActive = window.innerHeight < screen.height * 0.7; // If height reduces significantly, keyboard is open
+      const isKeyboardActive = window.innerHeight < screen.height * 0.7; // Adjust threshold if needed
       setIsKeyboardOpen(isKeyboardActive);
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Auto-scroll when input is focused
+  useEffect(() => {
+    const handleFocus = () => {
+      setTimeout(() => {
+        inputRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 300); // Delay to ensure the keyboard has fully opened
+    };
+
+    inputRef.current?.addEventListener("focus", handleFocus);
+    return () => inputRef.current?.removeEventListener("focus", handleFocus);
   }, []);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +134,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         }`}
       >
         <input
+          ref={inputRef}
           type="text"
           placeholder="Ask here..."
           value={input}
