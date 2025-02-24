@@ -55,6 +55,12 @@ export interface Theme {
   cardText: string;
   cardBorder: string;
   cardHighlight: string;
+
+  // Modal
+  modalBg: string;
+  modalBgLight: string;
+  modalMainText: string;
+  modalSecondText: string;
 }
 
 export const getThemeForStyle = (styleName: string): Theme => {
@@ -117,6 +123,11 @@ export const getThemeForStyle = (styleName: string): Theme => {
         cardText: "#EAECEF",
         cardBorder: "#2B3139",
         cardHighlight: "#F0B90B",
+
+        modalBg: "#1E2026",
+        modalBgLight: "#f2dd9f",
+        modalMainText: "#EAECEF",
+        modalSecondText: "#212121",
       };
 
     case "Trump":
@@ -177,6 +188,11 @@ export const getThemeForStyle = (styleName: string): Theme => {
         cardText: "#EAECEF", // Light text
         cardBorder: "#2B3139", // Subtle gray border
         cardHighlight: "#FFD700", // Gold for premium feel
+
+        modalBg: "#002147", // Deep Blue (Presidential, authoritative)
+        modalBgLight: "#FFD700", // Gold (Luxury, premium)
+        modalMainText: "#FFFFFF", // White (High contrast, clarity)
+        modalSecondText: "#1A1A1A", // Dark contrast (Strong presence)
       };
 
     case "Gordon Ramsay":
@@ -237,6 +253,11 @@ export const getThemeForStyle = (styleName: string): Theme => {
         cardText: "#EAECEF", // Light text
         cardBorder: "#2B3139", // Subtle gray border
         cardHighlight: "#FFD700", // Gold (Michelin-star elegance)
+
+        modalBg: "#1E2026", // Dark, professional kitchen-like
+        modalBgLight: "#FFD700", // Gold (Michelin-star premium touch)
+        modalMainText: "#EAECEF", // Light text for readability
+        modalSecondText: "#212121", // Darker for contrast, serious tone
       };
 
     default: // Gobbl default theme
@@ -297,6 +318,11 @@ export const getThemeForStyle = (styleName: string): Theme => {
         cardText: "#1A1A1A",
         cardBorder: "#E5E5E5",
         cardHighlight: "#EA580B",
+
+        modalBg: "#FFF5F2", // Light warm background for a soft feel
+        modalBgLight: "#FFE5E0", // Softer peach tone to maintain harmony
+        modalMainText: "#1A1A1A", // Dark text for contrast and readability
+        modalSecondText: "#5A5A5A", // Medium-dark gray for subtle contrast
       };
   }
 };

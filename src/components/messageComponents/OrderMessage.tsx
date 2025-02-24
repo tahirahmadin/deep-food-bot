@@ -2,6 +2,7 @@ import React from "react";
 import { CheckCircle2, MapPin, CreditCard, Coins } from "lucide-react";
 import { Message, QueryType } from "../../types";
 import { useChatContext } from "../../context/ChatContext";
+import { useFiltersContext } from "../../context/FiltersContext";
 
 interface OrderMessageProps {
   message: Message;
@@ -9,6 +10,7 @@ interface OrderMessageProps {
 
 export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
   const { dispatch } = useChatContext();
+  const { theme } = useFiltersContext();
 
   const handlePaymentMethodSelect = (method: "card" | "crypto") => {
     // Set payment method in state
@@ -41,10 +43,13 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
     if (parsedContent.orderSummary) {
       const { items, total, restaurant } = parsedContent.orderSummary;
       return (
-        <div className="bg-white rounded-lg shadow-sm p-4 space-y-4">
+        <div
+          className="rounded-lg shadow-sm p-4 space-y-4"
+          style={{ backgroundColor: theme.cardBg, color: theme.cardText }}
+        >
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-gray-800">Order Summary</h3>
-            <span className="text-sm text-gray-500">{restaurant}</span>
+            <h3 className="font-semibold ">Order Summary</h3>
+            <span className="text-sm">{restaurant}</span>
           </div>
 
           <div className="space-y-2">
@@ -54,10 +59,10 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
                 className="flex justify-between items-center text-sm"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600">{item.quantity}x</span>
-                  <span className="text-gray-800 text-xs">{item.name}</span>
+                  <span className="opacity-80">{item.quantity}x</span>
+                  <span className="opacity-90 text-xs">{item.name}</span>
                 </div>
-                <span className="text-gray-600 text-xs">
+                <span className="opacity-80 text-xs">
                   {(parseFloat(item.price) * item.quantity).toFixed(2)} AED
                 </span>
               </div>
@@ -66,25 +71,31 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
 
           <div className="border-t pt-3 mt-3">
             <div className="flex justify-between items-center">
-              <span className="font-medium text-gray-800">Total Amount</span>
-              <span className="font-bold text-primary">{total} AED</span>
+              <span className="font-medium ">Total Amount</span>
+              <span className="font-bold ">{total} AED</span>
             </div>
           </div>
 
           <div className="pt-2">
-            <p className="text-sm text-gray-600 mb-3">
-              How would you like to pay?
-            </p>
+            <p className="text-sm mb-3">How would you like to pay?</p>
             <div className="flex gap-2">
               <button
                 onClick={() => handlePaymentMethodSelect("card")}
-                className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-2 px-2 rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
+                style={{
+                  backgroundColor: theme.chatBubbleBg,
+                  color: theme.chatBubbleText,
+                }}
               >
                 <CreditCard className="w-4 h-4" />
-                Credit/Debit Card
+                Credit/Debit Cards
               </button>
               <button
                 onClick={() => handlePaymentMethodSelect("crypto")}
+                style={{
+                  backgroundColor: theme.chatBubbleBg,
+                  color: theme.chatBubbleText,
+                }}
                 className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
               >
                 <Coins className="w-4 h-4" />
@@ -99,7 +110,10 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
     if (parsedContent.success && parsedContent.orderDetails) {
       const { orderDetails } = parsedContent;
       return (
-        <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-sm mb-3 relative overflow-hidden">
+        <div
+          className=" backdrop-blur-sm rounded-xl p-3 shadow-sm mb-3 relative overflow-hidden"
+          style={{ backgroundColor: theme.cardBg, color: theme.cardText }}
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-primary/10 to-green-600/5 animate-gradient" />
           <div className="relative">
             <div className="text-center mb-3">
@@ -175,7 +189,14 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
     }
   } catch (e) {
     // Not a JSON message, return simple text
-    return <p className="text-gray-800 text-sm">{message.text}</p>;
+    return (
+      <p
+        className="text-sm"
+        style={{ backgroundColor: theme.cardBg, color: theme.cardText }}
+      >
+        {message.text}
+      </p>
+    );
   }
 
   return <p className="text-gray-800 text-sm">{message.text}</p>;
