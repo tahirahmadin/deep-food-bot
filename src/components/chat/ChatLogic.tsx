@@ -61,6 +61,94 @@ const getCachedLLMResponse = async (
   return response;
 };
 
+const isGreetingOnly = (query: string): boolean => {
+  const greetings = [
+    "hi",
+    "hello",
+    "hey",
+    "good morning",
+    "good afternoon",
+    "good evening",
+    "whatsup",
+    "whats up"
+  ];
+  const cleaned = query.toLowerCase().replace(/[^a-z\s]/g, "").trim();
+  return greetings.includes(cleaned);
+};
+
+const classifyIntent = async (
+  query: string,
+  activeRestroId: number | null,
+  state: any
+): Promise<QueryType> => {
+  const restaurantKeywords = [
+    "restaurant",
+    "place",
+    "where",
+    "location",
+    "open",
+    "closed",
+    "timing",
+    "hours",
+    "address"
+  ];
+  const menuKeywords = [
+    "price",
+    "cost",
+    "how much",
+    "menu",
+    "order",
+    "buy",
+    "get",
+    "recommend",
+    "suggest",
+    "what should",
+    "what's good",
+    "something to eat"
+  ];
+
+  const lowerQuery = query.toLowerCase();
+
+  const isRestaurant = restaurantKeywords.some((keyword) => lowerQuery.includes(keyword)) && !activeRestroId;
+  const isMenu = menuKeywords.some((keyword) => lowerQuery.includes(keyword));
+
+  if (isRestaurant) return QueryType.RESTAURANT_QUERY;
+  if (isMenu) return QueryType.MENU_QUERY;
+
+  const classificationPrompt = `
+    You are an intent classifier for a food ordering system.
+    Classify the following user query into one of three types:
+    "MENU_QUERY", "RESTAURANT_QUERY", or "GENERAL".
+    Query: "${query}"
+    Respond with only the intent type as text.
+    Return your answer in a JSON object with the following format:
+      { "text": "<your answer>" }
+    STRICT FORMAT RULES:
+      - Return only a valid JSON object with no extra text, explanations, markdown or code fences.
+  `;
+  const llmResult = await getCachedLLMResponse(
+    classificationPrompt,
+    50,
+    state.selectedModel,
+    0.3
+  );
+
+  if (llmResult && llmResult.text) {
+    try {
+      const parsed = JSON.parse(llmResult.text);
+      const resultText = parsed.text.toUpperCase();
+      if (resultText.includes("MENU_QUERY")) return QueryType.MENU_QUERY;
+      if (resultText.includes("RESTAURANT_QUERY")) return QueryType.RESTAURANT_QUERY;
+      if (resultText.includes("GENERAL")) return QueryType.GENERAL;
+    } catch (e) {
+      const resultText = llmResult.text.trim().toUpperCase();
+      if (resultText.includes("MENU_QUERY")) return QueryType.MENU_QUERY;
+      if (resultText.includes("RESTAURANT_QUERY")) return QueryType.RESTAURANT_QUERY;
+    }
+  }
+  return QueryType.GENERAL;
+};
+
 export const useChatLogic = ({
   input,
   restaurantState,
@@ -181,22 +269,69 @@ export const useChatLogic = ({
   };
 
   const handleMenuQuery = async (
-    queryType: QueryType,
+    _queryType: QueryType, 
     userInput: string,
     isImageBased: boolean = false
   ) => {
     try {
+      const now = new Date().toLocaleString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+
+      const queryType = await classifyIntent(userInput, restaurantState.activeRestroId, state);
+
+      if (queryType === QueryType.GENERAL) {
+        if (isGreetingOnly(userInput)) {
+          const friendlyResponseText = "Hello! How can I help you today?";
+          dispatch({
+            type: "ADD_MESSAGE",
+            payload: {
+              id: Date.now() + 1,
+              text: JSON.stringify({ text: friendlyResponseText }),
+              isBot: true,
+              time: now,
+              queryType,
+            },
+          });
+          return;
+        } else {
+          const genericPrompt = `
+            You are a food assistant.
+            The user asked: "${userInput}"
+            Provide a concise and accurate answer.
+            Return your answer in a JSON object with the following format:
+              { "text": "<your answer>" }
+            STRICT FORMAT RULES:
+              - Return only a valid JSON object with no extra text, explanations, markdown or code fences.
+          `;
+          const genericResponse = await getCachedLLMResponse(
+            genericPrompt,
+            200,
+            state.selectedModel,
+            0.5
+          );
+          dispatch({
+            type: "ADD_MESSAGE",
+            payload: {
+              id: Date.now() + 1,
+              text: genericResponse.text,
+              isBot: true,
+              time: now,
+              queryType,
+            },
+          });
+          return;
+        }
+      }
+
       let restaurant1Menu: any[] = [],
         restaurant2Menu: any[] = [],
         activeMenu: any[] = [];
       let suggestRestroText = "";
       let suggestRestroIds: number[] = [];
       const { activeRestroId } = restaurantState;
-      const now = new Date().toLocaleString("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      });
 
       if (!activeRestroId) {
         const response = await handleRestaurantQuery(
@@ -247,7 +382,6 @@ export const useChatLogic = ({
 
       const menuPrompt = `
         You are a menu recommendation system.
-        If the user's input includes both a greeting and a request (e.g., "hey, suggest me some pizza options"), start your response with a friendly greeting, then provide a clear recommendation.
         Given the menu items from ${
           activeRestroId ? "a restaurant" : "two restaurants"
         }: ${
@@ -326,6 +460,7 @@ export const useChatLogic = ({
     getMenuItemsByFile,
     handleRestaurantQuery,
     handleMenuQuery,
-    determineQueryType,
+    determineQueryType, 
+    classifyIntent,   
   };
 };
