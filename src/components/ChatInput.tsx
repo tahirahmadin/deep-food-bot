@@ -38,7 +38,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   useEffect(() => {
     const handleResize = () => {
-      const isKeyboardActive = window.innerHeight < screen.height * 0.7; // Adjust threshold if needed
+      const isKeyboardActive = window.innerHeight < screen.height * 0.8; // Adjust threshold if needed
       setIsKeyboardOpen(isKeyboardActive);
     };
 
