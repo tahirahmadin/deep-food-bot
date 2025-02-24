@@ -381,7 +381,8 @@ export const AddressModal: React.FC = () => {
       {/* Continue Button */}
       <button
         onClick={handleNextStep}
-        className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
+        className="w-full py-2 text-white rounded-lg hover:bg-primary-600 transition-colors"
+        style={{ backgroundColor: "orange" }}
       >
         Continue
       </button>
