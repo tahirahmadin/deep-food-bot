@@ -16,6 +16,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useWallet } from "../context/WalletContext";
 import { getUserDetails } from "../actions/serverActions";
+import { useFiltersContext } from "../context/FiltersContext";
 
 interface UserDetails {
   gobblBalance: number;
@@ -58,6 +59,8 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
     totalOrdersValue: 0,
   });
   const { connected, publicKey } = useWallet();
+  const { theme } = useFiltersContext();
+
   const [retryCount, setRetryCount] = useState(0);
   const latestAddress = addresses[addresses.length - 1];
 
@@ -124,8 +127,9 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
         className={`fixed right-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-[100] ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
+        style={{ backgroundColor: theme.slideBg }}
       >
-        <div className="p-6 bg-orange-50">
+        <div className="p-6" style={{ backgroundColor: theme.slideBgLight }}>
           <div className="flex items-center gap-2 mb-4">
             <div className="w-[20%] rounded-full bg-orange-100 flex items-center justify-center">
               {isAuthenticated && user?.picture ? (
@@ -138,14 +142,14 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                 <User className="w-8 h-8 text-orange-500" />
               )}
             </div>
-            <div className="w-[80%]">
-              <h3 className="font-semibold text-gray-800">
+            <div className="w-[80%]" style={{ color: theme.slideSecondText }}>
+              <h3 className="font-semibold">
                 {isAuthenticated ? user?.name : "Guest User"}
               </h3>
               {isAuthenticated && (
-                <p className="text-xs text-gray-600">{user?.email}</p>
+                <p className="text-xs opacity-80">{user?.email}</p>
               )}
-              <div className="flex items-center gap-1 text-xs text-gray-500">
+              <div className="flex items-center gap-1 text-xs opacity-70">
                 {latestAddress && (
                   <>
                     <MapPin className="w-3 h-3" />
@@ -164,14 +168,23 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
           <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100/50 border-b">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Wallet className="w-4 h-4 text-primary" />
+                <div className="w-8 h-8 rounded-full  flex items-center justify-center">
+                  <Wallet
+                    className="w-4 h-4 "
+                    style={{ color: theme.primary }}
+                  />
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-gray-800">
+                  <h4
+                    className="text-sm font-medium "
+                    style={{ color: theme.slideMainText }}
+                  >
                     Wallet Balance
                   </h4>
-                  <p className="text-xs text-gray-500">
+                  <p
+                    className="text-xs opacity-70"
+                    style={{ color: theme.slideMainText }}
+                  >
                     {connected
                       ? `${publicKey?.slice(0, 4)}...${publicKey?.slice(-4)}`
                       : "Not connected"}
@@ -222,7 +235,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
           {/* Orders Section */}
           <button
             onClick={() => setIsOrdersExpanded(!isOrdersExpanded)}
-            className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors"
+            className="w-full flex items-center justify-between p-3 rounded-xl transition-colors"
           >
             <div className="flex items-center gap-3">
               <ShoppingBag className="w-5 h-5" />
@@ -265,22 +278,29 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                   {orders.map((order) => (
                     <div
                       key={order._id}
-                      className="bg-white rounded-lg shadow-sm overflow-hidden"
+                      className="rounded-lg shadow-sm overflow-hidden"
+                      style={{
+                        backgroundColor: theme.slideCardBg,
+                        color: theme.cardText,
+                      }}
                     >
                       <div className="p-2">
                         <div className="flex justify-between items-center">
                           <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="text-xs font-medium text-gray-900">
+                            <div className="flex items-center gap-2 opacity-90">
+                              <h4 className="text-xs font-medium">
                                 {order.restaurantName || "Restaurant"}
                               </h4>
                             </div>
-                            <p className="text-[10px] text-gray-500">
+                            <p className="text-[10px] opacity-70">
                               {formatDate(order.createdAt)}
                             </p>
                           </div>
                           <div className="flex flex-col items-end">
-                            <p className="text-xs font-medium text-primary">
+                            <p
+                              className="text-xs font-medium "
+                              style={{ color: theme.primary }}
+                            >
                               {(order.totalAmount / 100).toFixed(2)} AED
                             </p>
                             <div className="flex items-center gap-1">
@@ -317,28 +337,35 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                             </div>
                           </div>
                         </div>
-                        <div className="mt-2 pt-2 border-t border-gray-100">
+                        <div
+                          className="mt-2 pt-2 border-t "
+                          style={{ borderColor: theme.cardBorder }}
+                        >
                           {order.items.map((item, index) => (
                             <div
                               key={index}
                               className="flex justify-between items-center py-0.5"
+                              style={{ color: theme.slideCardText }}
                             >
-                              <span className="text-[10px] text-gray-600">
+                              <span className="text-[10px] opacity-90">
                                 {item.quantity}x {item.name}
                               </span>
-                              <span className="text-[11px] text-gray-500">
+                              <span className="text-[11px] opacity-80">
                                 {item.price} AED
                               </span>
                             </div>
                           ))}
-                          <div className="mt-2 pt-2 border-t border-gray-100">
-                            <div className="text-[10px] text-gray-500">
+                          <div
+                            className="mt-2 pt-2"
+                            style={{ borderColor: theme.cardBorder }}
+                          >
+                            <div className="text-[10px] opacity-80">
                               <span>Delivery to:</span>
-                              <p className="text-gray-600">
+                              <p className="opacity-70">
                                 {order.customerDetails.name} -{" "}
                                 {order.customerDetails.phone}
                               </p>
-                              <p className="text-gray-600">
+                              <p className="opacity-70">
                                 {order.customerDetails.address}
                               </p>
                             </div>
@@ -355,7 +382,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
           {/* Addresses Section */}
           <button
             onClick={() => setIsAddressesExpanded(!isAddressesExpanded)}
-            className="w-full flex items-center justify-between p-3 mt-2 hover:bg-gray-50 rounded-xl transition-colors"
+            className="w-full flex items-center justify-between p-3 mt-2 rounded-xl transition-colors"
           >
             <div className="flex items-center gap-3">
               <Home className="w-5 h-5" />
@@ -373,14 +400,16 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
               {addresses.map((addr, index) => (
                 <div
                   key={index}
-                  className="bg-white p-2 rounded-xl mb-2 shadow-sm"
+                  className=" p-2 rounded-xl mb-2 shadow-sm"
+                  style={{
+                    backgroundColor: theme.slideCardBg,
+                    color: theme.cardText,
+                  }}
                 >
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-gray-800">
-                          {addr.type}
-                        </p>
+                        <p className="text-sm font-medium">{addr.type}</p>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -392,10 +421,10 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                           Edit
                         </button>
                       </div>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs opacity-70">
                         {addr.name} - {addr.address}
                       </p>
-                      <p className="text-[11px] text-gray-400">{addr.mobile}</p>
+                      <p className="text-[11px] opacity-60">{addr.mobile}</p>
                     </div>
                     <button
                       onClick={() => {

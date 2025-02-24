@@ -282,7 +282,7 @@ export const Filters: React.FC = () => {
                       setIsStyleDropdownOpen(false);
                     }
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-500 transition-colors"
                 >
                   <img
                     src={style.image}

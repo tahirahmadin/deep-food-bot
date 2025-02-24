@@ -61,6 +61,14 @@ export interface Theme {
   modalBgLight: string;
   modalMainText: string;
   modalSecondText: string;
+
+  //Slide
+  slideBg: string;
+  slideBgLight: string;
+  slideMainText: string;
+  slideSecondText: string;
+  slideCardBg: string;
+  slideCardText: string;
 }
 
 export const getThemeForStyle = (styleName: string): Theme => {
@@ -118,16 +126,25 @@ export const getThemeForStyle = (styleName: string): Theme => {
         quickActionBorder: "#2B3139",
         quickActionHover: "#2B3139",
 
-        // Cards and modals
+        // Cards
         cardBg: "#1E2026",
         cardText: "#EAECEF",
         cardBorder: "#2B3139",
         cardHighlight: "#F0B90B",
 
+        //Modal
         modalBg: "#1E2026",
         modalBgLight: "#f2dd9f",
         modalMainText: "#EAECEF",
         modalSecondText: "#212121",
+
+        //SlidePanel
+        slideBg: "#1E2026",
+        slideBgLight: "#f2dd9f",
+        slideMainText: "#EAECEF",
+        slideSecondText: "#212121",
+        slideCardBg: "#1A1A1A",
+        slideCardText: "#f9f9f9",
       };
 
     case "Trump":
@@ -164,7 +181,7 @@ export const getThemeForStyle = (styleName: string): Theme => {
         chatBubbleBotText: "#EAECEF", // Light text
 
         // Menu item
-        menuItemBg: "#2B3139", // Dark background (consistent with theme)
+        menuItemBg: "#273e56", // Dark background (consistent with theme)
         menuItemText: "#EAECEF", // Light text for readability
         menuItemPrice: "#FFD700", // Gold price (Luxury, premium)
 
@@ -193,6 +210,13 @@ export const getThemeForStyle = (styleName: string): Theme => {
         modalBgLight: "#FFD700", // Gold (Luxury, premium)
         modalMainText: "#FFFFFF", // White (High contrast, clarity)
         modalSecondText: "#1A1A1A", // Dark contrast (Strong presence)
+
+        slideBg: "#002147", // Deep Presidential Blue (Strong, bold)
+        slideBgLight: "#FFD700", // Gold (Luxury, premium)
+        slideMainText: "#FFFFFF", // White (High contrast, clean)
+        slideSecondText: "#1A1A1A", // Dark for strong contrast
+        slideCardBg: "#0B0E11", // Dark authoritative background
+        slideCardText: "#FFD700",
       };
 
     case "Gordon Ramsay":
@@ -229,7 +253,7 @@ export const getThemeForStyle = (styleName: string): Theme => {
         chatBubbleBotText: "#EAECEF", // Light text for contrast
 
         // Menu item
-        menuItemBg: "#2B3139", // Dark background (Kitchen ambiance)
+        menuItemBg: "#2c4582", // Dark background (Kitchen ambiance)
         menuItemText: "#EAECEF", // Light text for contrast
         menuItemPrice: "#FFD700", // Gold (Michelin-star premium quality)
 
@@ -258,6 +282,13 @@ export const getThemeForStyle = (styleName: string): Theme => {
         modalBgLight: "#FFD700", // Gold (Michelin-star premium touch)
         modalMainText: "#EAECEF", // Light text for readability
         modalSecondText: "#212121", // Darker for contrast, serious tone
+
+        slideBg: "#00247D", // Deep Blue (UK Flag, strong and bold)
+        slideBgLight: "#FFD700", // Gold (Michelin-star, premium feel)
+        slideMainText: "#FFFFFF", // White (High contrast, clean)
+        slideSecondText: "#1A1A1A", // Dark text for depth and contrast
+        slideCardBg: "#CF142B", // Bold Red (UK Flag, passion, intensity)
+        slideCardText: "#FFFFFF",
       };
 
     default: // Gobbl default theme
@@ -323,6 +354,13 @@ export const getThemeForStyle = (styleName: string): Theme => {
         modalBgLight: "#FFE5E0", // Softer peach tone to maintain harmony
         modalMainText: "#1A1A1A", // Dark text for contrast and readability
         modalSecondText: "#5A5A5A", // Medium-dark gray for subtle contrast
+
+        slideBg: "#FFF5F2", // Soft warm background for a modern look
+        slideBgLight: "#FFE5E0", // Lighter peach tone for a soft touch
+        slideMainText: "#1A1A1A", // Dark text for strong contrast
+        slideSecondText: "#5A5A5A", // Medium-dark gray for subtle contrast
+        slideCardBg: "#EA580B", // Vibrant Orange (Energetic, lively)
+        slideCardText: "#FFFFFF", // White text for readabili
       };
   }
 };
