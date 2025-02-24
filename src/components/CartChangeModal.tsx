@@ -73,6 +73,7 @@ export const CartChangeModal: React.FC<CartChangeModalProps> = ({
           <button
             onClick={onConfirm}
             className="flex-1 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
+            style={{ backgroundColor: "orange" }}
           >
             Continue
           </button>
