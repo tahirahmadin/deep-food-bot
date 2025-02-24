@@ -247,6 +247,7 @@ export const useChatLogic = ({
 
       const menuPrompt = `
         You are a menu recommendation system.
+        If the user's input includes both a greeting and a request (e.g., "hey, suggest me some pizza options"), start your response with a friendly greeting, then provide a clear recommendation.
         Given the menu items from ${
           activeRestroId ? "a restaurant" : "two restaurants"
         }: ${
