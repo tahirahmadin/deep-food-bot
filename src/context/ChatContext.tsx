@@ -11,9 +11,9 @@ export enum QueryType {
 }
 
 export enum ChatModel {
+  GEMINI = "GEMINI",
   OPENAI = "OPENAI",
   GROQ = "GROQ",
-  DEEPSEEK = "DEEPSEEK",
 }
 interface LLMType {
   restroIds: number[];
