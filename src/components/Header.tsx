@@ -204,7 +204,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenPanel, onCartClick }) => {
           className="text-2xl font-bold transition-colors duration-300"
           style={{ color: theme.headerHighlight }}
         >
-          gobbl
+          gobbl - {window.innerHeight} - {screen.height * 0.8}
         </div>
       </div>
       <div className="flex items-center gap-2">
