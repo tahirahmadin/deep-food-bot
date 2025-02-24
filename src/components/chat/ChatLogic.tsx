@@ -116,16 +116,25 @@ const classifyIntent = async (
   if (isMenu) return QueryType.MENU_QUERY;
 
   const classificationPrompt = `
-    You are an intent classifier for a food ordering system.
-    Classify the following user query into one of three types:
-    "MENU_QUERY", "RESTAURANT_QUERY", or "GENERAL".
-    Query: "${query}"
-    Respond with only the intent type as text.
-    Return your answer in a JSON object with the following format:
-      { "text": "<your answer>" }
-    STRICT FORMAT RULES:
-      - Return only a valid JSON object with no extra text, explanations, markdown or code fences.
-  `;
+  You are an intent classifier for a food ordering system.
+  
+  Classify the following user query into one of three types:
+  - "MENU_QUERY": Any query specifically about ordering food items or dishes (e.g., "Do you have pasta?", "What's on the menu?", "I want to order a burger","I feel like eating something spicy")
+  - "RESTAURANT_QUERY": Any query about the restaurant itself (e.g., "What are your hours?", "Where are you located?", "Do you deliver?")
+  - "GENERAL": Any query that doesn't directly relate to ordering food or restaurant information, including:
+     * Greetings (e.g., "Hello", "Hi there")
+     * Nutritional inquiries (e.g., "How many calories in a burrito?", "What are the ingredients in your pizza?")
+     * General conversation (e.g., "Thank you", "How are you?")
+  
+  Query: "${query}"
+  
+  Respond with only the intent type as text.
+  Return your answer in a JSON object with the following format:
+  { "text": "<your answer>" }
+  
+  STRICT FORMAT RULES:
+  - Return only a valid JSON object with no extra text, explanations, markdown or code fences.
+`;
   const llmResult = await getCachedLLMResponse(
     classificationPrompt,
     50,
@@ -298,14 +307,29 @@ export const useChatLogic = ({
           return;
         } else {
           const genericPrompt = `
-            You are a food assistant.
-            The user asked: "${userInput}"
-            Provide a concise and accurate answer.
-            Return your answer in a JSON object with the following format:
-              { "text": "<your answer>" }
-            STRICT FORMAT RULES:
-              - Return only a valid JSON object with no extra text, explanations, markdown or code fences.
-          `;
+          You are Gobbl, a food recommendation bot. Your task is to handle general queries that don't directly relate to ordering food or restaurant information.
+          
+          These general queries include:
+          * Greetings (e.g., "Hello", "Hi there")
+          * Nutritional inquiries (e.g., "How many calories in a burrito?", "What are the ingredients in your pizza?") - provide general information about food nutrition
+          * General conversation (e.g., "Thank you", "How are you?")
+          The user said: "${userInput}"
+          
+          Return your answer in a JSON object with the following format:
+          { "text": "your answer" }
+          
+          where:
+          - "text" provides a brief and creative response to what user said in ${selectedStyle.name} style.
+          - For food preferences, suggest restaurants or dishes that match their preferences
+          - For nutritional inquiries, provide helpful general information
+          - For greetings, welcome them to the food recommendation service
+          
+          STRICT FORMAT RULES:
+          - DO NOT identify yourself as a cooking assistant or recipe guide
+          - DO NOT include any markdown formatting
+          - DO NOT include explanations or additional text
+          - Only return a valid JSON object, nothing else
+        `;
           const genericResponse = await getCachedLLMResponse(
             genericPrompt,
             200,
