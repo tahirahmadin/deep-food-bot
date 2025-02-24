@@ -137,7 +137,7 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
       <div
         className="rounded-lg shadow-sm overflow-hidden flex flex-col w-[80px]"
         style={{
-          backgroundColor: theme.background,
+          backgroundColor: theme.menuItemBg,
         }}
       >
         <div className="w-full relative">
@@ -169,12 +169,15 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
           <h3
             className="text-[9px] font-medium text-gray-800 line-clamp-2 min-h-[1.5rem]"
             style={{
-              color: theme.text,
+              color: theme.menuItemText,
             }}
           >
             {name}
           </h3>
-          <p className="font-bold text-[8px]" style={{ color: theme.primary }}>
+          <p
+            className="font-bold text-[8px]"
+            style={{ color: theme.menuItemPrice }}
+          >
             {price} AED
           </p>
         </div>

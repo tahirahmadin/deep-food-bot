@@ -145,7 +145,7 @@ export const Filters: React.FC = () => {
     >
       {/* Home Address Section */}
       <div className="relative w-full flex justify-between items-center gap-2 mb-1">
-        <div className="relative flex-1 max-w-[70%]">
+        <div className="relative flex-1 max-w-[60%]">
           <button
             onClick={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
             className="flex items-center gap-1 p-1 rounded-lg transition-colors w-full max-w-full"

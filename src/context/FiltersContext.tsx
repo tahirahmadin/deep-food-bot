@@ -19,9 +19,9 @@ interface FiltersContextType {
 }
 
 const defaultStyle = {
-  name: "Gobbl",
+  name: "CZ Binance",
   image:
-    "https://gobbl-bucket.s3.ap-south-1.amazonaws.com/tapAssets/gobbl_coin.webp",
+    "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSnI1JQg6mXsN66qOzLiX2n5IOgWYBXi01rzQeEQto8EiGsWnZUCvv6jN3A5KrBIhVh2VvRfI6_KbtkLRin1G0Bsg",
 };
 
 const FiltersContext = createContext<FiltersContextType | null>(null);

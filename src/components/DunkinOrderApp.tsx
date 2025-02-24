@@ -180,7 +180,7 @@ export const DunkinOrderApp: React.FC = () => {
             onClose={hideToast}
           />
         )}
-        <div className="fixed top-0 left-0 right-0 z-[50] bg-[#FFF5F2] max-w-md mx-auto">
+        <div className="fixed top-0 left-0 right-0 z-[50] max-w-md mx-auto">
           <Header
             onOpenPanel={() => setIsPanelOpen(true)}
             onCartClick={() => setIsCartOpen(!isCartOpen)}

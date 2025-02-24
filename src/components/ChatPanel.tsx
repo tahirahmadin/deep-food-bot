@@ -4,7 +4,7 @@ import { ChatInput } from "./ChatInput";
 import { useChatContext } from "../context/ChatContext";
 import { MenuItem } from "./MenuItem";
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Cookie, Map, Menu } from "lucide-react";
 import { MenuItemFront } from "../types/menu";
 import { useRestaurant } from "../context/RestaurantContext";
 import { getMenuByRestaurantId } from "../utils/menuUtils";
@@ -63,6 +63,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     setAddresses,
     setInternalAddresses,
   } = useAuth();
+
+  const { theme } = useFiltersContext();
   const [isFirstLogin, setIsFirstLogin] = useState(true);
 
   const handleSelectRestro = (restroId: number) => {
@@ -161,12 +163,16 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     return Array.from(
       new Set(allMenuItems.map((item) => item.category).filter(Boolean))
     ).sort();
-  }, [allMenuItems]);
+  }, [allMenuItems, selectedCategory]);
 
   // Filter menu items by category
-  const filteredMenuItems = selectedCategory
-    ? allMenuItems.filter((item) => item.category === selectedCategory)
-    : allMenuItems;
+  const filteredMenuItems = useMemo(() => {
+    if (selectedCategory) {
+      return allMenuItems.filter((item) => item.category === selectedCategory);
+    } else {
+      return allMenuItems;
+    }
+  }, [selectedCategory, allMenuItems]);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -331,43 +337,77 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       </div>
 
       {state.mode === "browse" && (
-        <div className="h-full flex bg-white/30 backdrop-blur-sm overflow-y-auto">
+        <div
+          className="h-full flex backdrop-blur-sm overflow-y-auto mt-4"
+          style={{ backgroundColor: theme.chatBg }}
+        >
           {!restaurantState.activeRestroId ? (
             // Restaurant List View
-            <div className="flex-1 p-4">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Available Restaurants
-              </h2>
-              <div className="grid grid-cols-2 gap-4">
-                {restaurantState.restaurants.map((restaurant) => (
-                  <RestaurantCard
-                    key={restaurant.id}
-                    id={restaurant.id}
-                    name={restaurant.name}
-                    description={restaurant.description}
-                    image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurant.id}/${restaurant.id}-0.jpg`}
+            <div className="flex-1 p-4 ">
+              {restaurantState.restaurants.length > 0 && (
+                <div className="grid grid-cols-2 gap-4 pb-10">
+                  {restaurantState.restaurants.map((restaurant) => (
+                    <RestaurantCard
+                      key={restaurant.id}
+                      id={restaurant.id}
+                      name={restaurant.name}
+                      description={restaurant.description}
+                      image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurant.id}/${restaurant.id}-0.jpg`}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {restaurantState.restaurants.length === 0 && (
+                <div className="flex flex-col justify-center items-center mt-5 px-10">
+                  <Map
+                    style={{ color: theme.primary }}
+                    className="w-12 h-12 py-1"
                   />
-                ))}
-              </div>
+                  <h4
+                    className="text-center text-lg font-bold"
+                    style={{ color: theme.menuItemText }}
+                  >
+                    No restaurant!
+                  </h4>
+                  <p
+                    className="text-center text-sm py-1"
+                    style={{ color: theme.menuItemText }}
+                  >
+                    Sorry, restaurant are not available at the moment in your
+                    region.
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <>
               {/* Categories Panel */}
               <div className="w-1/3 border-r border-white/20 overflow-y-auto">
-                <div className="p-3 bg-orange-50 border-b border-white/20">
+                <div className="p-3 border-b border-white/20">
                   <div className="flex items-center gap-2 text-orange-800">
-                    <Menu className="w-4 h-4" />
-                    <span className="font-medium">Categories</span>
+                    <Menu
+                      className="w-4 h-4"
+                      style={{ color: theme.chatBubbleBg }}
+                    />
+                    <span
+                      className="font-medium text-sm"
+                      style={{ color: theme.chatBubbleBg }}
+                    >
+                      Categories
+                    </span>
                   </div>
                 </div>
                 <div className="space-y-1 p-2">
                   <button
                     onClick={() => setSelectedCategory(null)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                      selectedCategory === null
-                        ? "bg-orange-100 text-orange-800"
-                        : "hover:bg-gray-100"
-                    }`}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors`}
+                    style={{
+                      backgroundColor:
+                        selectedCategory === null ? theme.chatBubbleBg : "",
+                      color:
+                        selectedCategory === null ? theme.chatBubbleText : "",
+                    }}
                   >
                     All Items
                   </button>
@@ -380,6 +420,16 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                           ? "bg-orange-100 text-orange-800"
                           : "hover:bg-gray-100"
                       }`}
+                      style={{
+                        backgroundColor:
+                          selectedCategory === category
+                            ? theme.chatBubbleBg
+                            : "",
+                        color:
+                          selectedCategory === category
+                            ? theme.chatBubbleText
+                            : "",
+                      }}
                     >
                       {category}
                     </button>
