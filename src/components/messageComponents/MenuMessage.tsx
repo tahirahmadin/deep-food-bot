@@ -103,7 +103,7 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
                 message.llm?.restroIds?.[0] &&
                 handleSelectRestro(message.llm.restroIds[0])
               }
-              className="flex items-center gap-1.5 bg-blue-500 px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors"
+              className="flex items-center gap-1.5 bg-blue-500 px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors text-white"
             >
               <span>
                 {menuUtils.getRestaurantNameById(

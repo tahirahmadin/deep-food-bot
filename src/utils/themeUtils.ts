@@ -65,6 +65,7 @@ export interface Theme {
   //Slide
   slideBg: string;
   slideBgLight: string;
+  slideBgOther: string;
   slideMainText: string;
   slideSecondText: string;
   slideCardBg: string;
@@ -141,6 +142,7 @@ export const getThemeForStyle = (styleName: string): Theme => {
         //SlidePanel
         slideBg: "#1E2026",
         slideBgLight: "#f2dd9f",
+        slideBgOther: "#1f2228",
         slideMainText: "#EAECEF",
         slideSecondText: "#212121",
         slideCardBg: "#1A1A1A",
@@ -213,6 +215,7 @@ export const getThemeForStyle = (styleName: string): Theme => {
 
         slideBg: "#002147", // Deep Presidential Blue (Strong, bold)
         slideBgLight: "#FFD700", // Gold (Luxury, premium)
+        slideBgOther: "#1A1A1A",
         slideMainText: "#FFFFFF", // White (High contrast, clean)
         slideSecondText: "#1A1A1A", // Dark for strong contrast
         slideCardBg: "#0B0E11", // Dark authoritative background
@@ -285,6 +288,7 @@ export const getThemeForStyle = (styleName: string): Theme => {
 
         slideBg: "#00247D", // Deep Blue (UK Flag, strong and bold)
         slideBgLight: "#FFD700", // Gold (Michelin-star, premium feel)
+        slideBgOther: "#313131",
         slideMainText: "#FFFFFF", // White (High contrast, clean)
         slideSecondText: "#1A1A1A", // Dark text for depth and contrast
         slideCardBg: "#CF142B", // Bold Red (UK Flag, passion, intensity)
@@ -294,48 +298,48 @@ export const getThemeForStyle = (styleName: string): Theme => {
     default: // Gobbl default theme
       return {
         // Base colors
-        primary: "#EA580B",
+        primary: "#F87315",
         secondary: "#FFF5F2",
-        background: "#FFFFFF",
+        background: "#FFF8F5",
         text: "#1A1A1A",
         border: "#E5E5E5",
 
         // Header specific
-        headerBg: "#FFF5F2",
+        headerBg: "#ffffff",
         headerText: "#1A1A1A",
-        headerIconColor: "#EA580B",
-        headerHighlight: "#EA580B",
+        headerIconColor: "#F87315",
+        headerHighlight: "#F87315",
         headerBorder: "#FFE5E5",
 
         // Filters section
         filtersBg: "#FFFFFF",
         filtersText: "#1A1A1A",
-        filtersIconColor: "#EA580B",
+        filtersIconColor: "#F87315",
         filtersBorder: "#E5E5E5",
         filtersButtonBg: "#F5F5F5",
         filtersButtonText: "#1A1A1A",
         filtersButtonHover: "#E5E5E5",
 
         // Chat panel
-        chatBg: "#FFFFFF",
+        chatBg: "#FFF8F5",
         chatText: "#1A1A1A",
-        chatBubbleBg: "#EA580B",
+        chatBubbleBg: "#F87315",
         chatBubbleText: "#FFFFFF",
         chatBubbleBotBg: "#FFF5F2",
         chatBubbleBotText: "#1A1A1A",
 
         // Menu item
-        menuItemBg: "#e5e5e5", // Dark background (Kitchen ambiance)
+        menuItemBg: "#F9FAFB", // Dark background (Kitchen ambiance)
         menuItemText: "#000000", // Light text for contrast
-        menuItemPrice: "#EA580B", // Gold (Michelin-star premium quality)
+        menuItemPrice: "#F87315", // Gold (Michelin-star premium quality)
 
         // Input panel
         inputBg: "#FFFFFF",
         inputText: "#1A1A1A",
         inputPlaceholder: "#757575",
         inputBorder: "#E5E5E5",
-        inputIconColor: "#EA580B",
-        inputButtonBg: "#EA580B",
+        inputIconColor: "#F87315",
+        inputButtonBg: "#F87315",
         inputButtonText: "#FFFFFF",
 
         // Quick actions
@@ -348,19 +352,20 @@ export const getThemeForStyle = (styleName: string): Theme => {
         cardBg: "#FFFFFF",
         cardText: "#1A1A1A",
         cardBorder: "#E5E5E5",
-        cardHighlight: "#EA580B",
+        cardHighlight: "#F87315",
 
         modalBg: "#FFF5F2", // Light warm background for a soft feel
         modalBgLight: "#FFE5E0", // Softer peach tone to maintain harmony
         modalMainText: "#1A1A1A", // Dark text for contrast and readability
         modalSecondText: "#5A5A5A", // Medium-dark gray for subtle contrast
 
-        slideBg: "#FFF5F2", // Soft warm background for a modern look
-        slideBgLight: "#FFE5E0", // Lighter peach tone for a soft touch
+        slideBg: "#FFF4F1", // Soft warm background for a modern look
+        slideBgLight: "#FFF7ED", // Lighter peach tone for a soft touch
+        slideBgOther: "#ffffff", // Lighter peach tone for a soft touch
         slideMainText: "#1A1A1A", // Dark text for strong contrast
         slideSecondText: "#5A5A5A", // Medium-dark gray for subtle contrast
-        slideCardBg: "#EA580B", // Vibrant Orange (Energetic, lively)
-        slideCardText: "#FFFFFF", // White text for readabili
+        slideCardBg: "#F9FAFB", // Vibrant Orange (Energetic, lively)
+        slideCardText: "#000000", // White text for readabili
       };
   }
 };

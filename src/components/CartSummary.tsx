@@ -135,12 +135,18 @@ export const CartSummary: React.FC = () => {
           className="flex items-center gap-2 px-2 py-2 text-white rounded-full transition-all shadow-lg mb-2"
           style={{
             backgroundColor: theme.primary,
-            color: "black",
+            color: theme.background,
           }}
         >
           <ShoppingBag className="w-4 h-4" />
           <span className="font-medium text-xs">{cartTotal} AED</span>
-          <span className="bg-white text-primary px-2 py-0.5 rounded-full text-xs">
+          <span
+            className="px-2 py-0.5 rounded-full text-xs"
+            style={{
+              color: theme.primary,
+              backgroundColor: theme.background,
+            }}
+          >
             {state.cart.length}
           </span>
         </button>

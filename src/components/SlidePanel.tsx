@@ -127,7 +127,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
         className={`fixed right-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-[100] ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{ backgroundColor: theme.slideBg }}
+        style={{ backgroundColor: theme.slideBgOther }}
       >
         <div className="p-6" style={{ backgroundColor: theme.slideBgLight }}>
           <div className="flex items-center gap-2 mb-4">
@@ -165,7 +165,10 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
 
         {/* Wallet Section */}
         {isAuthenticated && (
-          <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100/50 border-b">
+          <div
+            className="p-4 bg-gradient-to-br from-primary-50 to-primary-100/50 border-b"
+            style={{ backgroundColor: theme.slideBg }}
+          >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full  flex items-center justify-center">

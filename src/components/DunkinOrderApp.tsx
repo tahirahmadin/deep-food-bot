@@ -162,7 +162,7 @@ export const DunkinOrderApp: React.FC = () => {
     <div
       className="min-h-[100vh] h-[100vh] relative flex items-center justify-center  overflow-hidden"
       style={{
-        backgroundColor: theme.background || "#0B0E11",
+        backgroundColor: theme.background,
         color: theme.text,
       }}
     >
