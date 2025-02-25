@@ -44,7 +44,7 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
       const { items, total, restaurant } = parsedContent.orderSummary;
       return (
         <div
-          className="rounded-lg shadow-sm p-4 space-y-4"
+          className="rounded-lg shadow-sm p-4 space-y-4 "
           style={{ backgroundColor: theme.cardBg, color: theme.cardText }}
         >
           <div className="flex justify-between items-center">
@@ -88,9 +88,9 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
                 }}
               >
                 <CreditCard className="w-4 h-4" />
-                Credit/Debit Cards
+                Pay with your Credit/Debit Cards
               </button>
-              <button
+              {/* <button
                 onClick={() => handlePaymentMethodSelect("crypto")}
                 style={{
                   backgroundColor: theme.chatBubbleBg,
@@ -100,7 +100,7 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
               >
                 <Coins className="w-4 h-4" />
                 Pay with USDT
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
