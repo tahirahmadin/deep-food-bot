@@ -4,7 +4,6 @@ import { WalletProvider } from "../context/WalletContext";
 import { RestaurantProvider } from "../context/RestaurantContext";
 import { AuthProvider } from "../context/AuthContext";
 import { ToastProvider } from "../context/ToastContext";
-import { Toast } from "./Toast";
 import { DunkinOrderApp } from "./DunkinOrderApp";
 import { CustomizationModal } from "./CustumizationModal";
 import { AddressModal } from "./AddressModal";

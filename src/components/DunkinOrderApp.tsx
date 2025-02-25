@@ -13,7 +13,6 @@ import { QueryType, useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
-import { getThemeForStyle } from "../utils/themeUtils";
 
 export const DunkinOrderApp: React.FC = () => {
   const { toast, hideToast } = useToast();
@@ -36,7 +35,7 @@ export const DunkinOrderApp: React.FC = () => {
       setIsCartOpen(false);
     }
   }, [isAuthenticated]);
-  
+
   const chatHistory = state.messages;
 
   // Instantiate our modular hooks.
@@ -174,6 +173,7 @@ export const DunkinOrderApp: React.FC = () => {
         style={{
           backgroundColor: theme.background || "#0B0E11",
           color: theme.text,
+          border: `2px solid ${theme.headerBg}`,
         }}
       >
         {toast.visible && (
@@ -183,25 +183,28 @@ export const DunkinOrderApp: React.FC = () => {
             onClose={hideToast}
           />
         )}
-        <div className="fixed top-0 left-0 right-0 z-[50] max-w-md mx-auto">
-          <Header
-            onOpenPanel={() => setIsPanelOpen(true)}
-            onCartClick={() => setIsCartOpen(!isCartOpen)}
-          />
-          <Filters />
+        <div className="flex flex-col h-screen">
+          <div className="fixed top-0 left-0 right-0 z-[50] max-w-md mx-auto">
+            <Header
+              onOpenPanel={() => setIsPanelOpen(true)}
+              onCartClick={() => setIsCartOpen(!isCartOpen)}
+            />
+            <Filters />
+          </div>
+          <div className="flex-1 mt-[150px] overflow-auto pb-25">
+            <ChatPanel
+              input={input}
+              setInput={setInput}
+              onSubmit={handleSubmit}
+              placeholder={getInputPlaceholder()}
+              onImageUpload={handleImageUploadWrapper}
+              isImageAnalyzing={isImageAnalyzing}
+              isLoading={state.isLoading}
+              queryType={state.currentQueryType}
+            />
+          </div>
         </div>
-        <div className="h-full pt-[160px] pb-15">
-          <ChatPanel
-            input={input}
-            setInput={setInput}
-            onSubmit={handleSubmit}
-            placeholder={getInputPlaceholder()}
-            onImageUpload={handleImageUploadWrapper}
-            isImageAnalyzing={isImageAnalyzing}
-            isLoading={state.isLoading}
-            queryType={state.currentQueryType}
-          />
-        </div>
+
         <CartSummary />
       </div>
       <SlidePanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} />
