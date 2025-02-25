@@ -171,6 +171,7 @@ export const DunkinOrderApp: React.FC = () => {
         style={{
           backgroundColor: theme.background || "#0B0E11",
           color: theme.text,
+          border: `3px solid ${theme.headerBg}`,
         }}
       >
         {toast.visible && (

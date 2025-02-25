@@ -142,7 +142,10 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
         <div className="w-full relative">
           <img
             onClick={() => setIsDetailsModalOpen(true)}
-            src={image || "https://via.placeholder.com/100"}
+            src={
+              image ||
+              "https://i.pinimg.com/originals/da/4f/c2/da4fc2360e1dcc5c85cf5eeaee4b107f.gif"
+            }
             alt={name}
             className="w-full h-[55px] object-cover"
           />
