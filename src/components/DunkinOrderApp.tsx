@@ -36,6 +36,8 @@ export const DunkinOrderApp: React.FC = () => {
       setIsCartOpen(false);
     }
   }, [isAuthenticated]);
+  
+  const chatHistory = state.messages;
 
   // Instantiate our modular hooks.
   const chatLogic = useChatLogic({
@@ -49,6 +51,7 @@ export const DunkinOrderApp: React.FC = () => {
     numberOfPeople,
     setRestaurants,
     addresses,
+    chatHistory,
   });
 
   const imageHandler = useImageHandler({
