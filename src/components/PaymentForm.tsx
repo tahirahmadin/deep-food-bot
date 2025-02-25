@@ -644,12 +644,6 @@ const CheckoutForm: React.FC<{
                 {(parseFloat(total) * 0.27).toFixed(2)} USDT
               </span>
             </div>
-            <div className="text-xs text-gray-500">
-              <p>Recipient Address:</p>
-              <p className="font-mono text-[10px] break-all">
-                0xeBB825f034519927D2c54171d36B4801DEf2A6B1
-              </p>
-            </div>
           </div>
 
           {/* Connect/Pay Button */}
