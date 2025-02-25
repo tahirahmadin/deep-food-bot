@@ -31,7 +31,8 @@ import { useFiltersContext } from "../context/FiltersContext";
 const cardStyle = {
   style: {
     base: {
-      color: "#424770",
+      color: "#f9f9f9",
+
       letterSpacing: "0.025em",
       fontFamily: "Source Code Pro, monospace",
       fontSmoothing: "antialiased",
@@ -578,7 +579,7 @@ const CheckoutForm: React.FC<{
                 Select Network
               </p>
               <div className="flex gap-2">
-                <button
+                {/* <button
                   onClick={() => switchNetwork("0x2105")}
                   className={`px-3 py-1.5 rounded text-xs font-medium`}
                   style={{
@@ -591,7 +592,7 @@ const CheckoutForm: React.FC<{
                   }}
                 >
                   Base Chain
-                </button>
+                </button> */}
                 <button
                   onClick={() => switchNetwork("0x61")}
                   className={`px-3 py-1.5 rounded text-xs font-medium ${
@@ -615,8 +616,7 @@ const CheckoutForm: React.FC<{
                 currentNetwork !== "0x2105" &&
                 currentNetwork !== "0x61" && (
                   <p className="text-xs text-red-500 mt-1">
-                    Please switch to either Base Chain or BSC Testnet to
-                    continue
+                    Please switch to BSC Testnet to continue
                   </p>
                 )}
             </div>

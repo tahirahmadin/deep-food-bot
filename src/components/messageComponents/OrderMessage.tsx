@@ -120,7 +120,10 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg animate-success-bounce">
                 <CheckCircle2 className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-0.5">
+              <h3
+                className="text-xl font-bold mb-0.5"
+                style={{ color: theme.text }}
+              >
                 Order Confirmed!
               </h3>
               <p className="text-primary font-medium">
@@ -129,15 +132,21 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
             </div>
 
             {/* Order details and payment info */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 mb-2 shadow-inner">
+            <div
+              className="rounded-lg p-3 mb-2 shadow-inner"
+              style={{
+                backgroundColor: theme.slideCardBg,
+                color: theme.cardText,
+              }}
+            >
               {/* Order items */}
               <div className="space-y-1 mb-3">
                 {orderDetails.items.map((item: any, index: number) => (
                   <div key={index} className="flex justify-between text-xs">
-                    <span className="text-gray-600">
+                    <span className="opacity-90">
                       {item.quantity}x {item.name}
                     </span>
-                    <span className="text-gray-800 font-medium">
+                    <span className="opacity-90 font-medium">
                       {(parseFloat(item.price) * item.quantity).toFixed(2)} AED
                     </span>
                   </div>
@@ -147,13 +156,13 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
               {/* Payment details */}
               <div className="border-t pt-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Total Amount</span>
-                  <span className="text-lg font-bold text-primary">
+                  <span className="text-sm opacity-80">Total Amount</span>
+                  <span className="text-lg font-bold ">
                     {orderDetails.total} AED
                   </span>
                 </div>
                 <div className="flex justify-between items-center mt-1">
-                  <span className="text-sm text-gray-600">Payment Method</span>
+                  <span className="text-sm opacity-80">Payment Method</span>
                   <span className="text-xs font-medium text-gray-800 bg-white px-2 py-0.5 rounded-full shadow-sm">
                     {orderDetails.paymentMethod === "card"
                       ? "Credit Card"
@@ -164,9 +173,18 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
             </div>
 
             {/* Delivery details */}
-            <div className="bg-white rounded-lg px-3 py-2 border border-gray-100">
+            <div
+              className="rounded-lg px-3 py-2"
+              style={{
+                backgroundColor: theme.primary,
+                color: theme.background,
+              }}
+            >
               <div className="flex items-center gap-1.5 mb-1">
-                <MapPin className="w-4 h-4 text-gray-400" />
+                <MapPin
+                  className="w-4 h-4 text-gray-400"
+                  style={{ color: theme.background }}
+                />
                 <p className="text-sm font-medium text-gray-700">
                   Delivery Details
                 </p>
