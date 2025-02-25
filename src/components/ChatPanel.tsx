@@ -185,7 +185,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   // Handle submit and pass serialized memory
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(e); // Pass serialized memory along with form submission
+    if (!isLoading) {
+      onSubmit(e); // Pass serialized memory along with form submission
+    }
   };
 
   const loadingMessage = () => {
