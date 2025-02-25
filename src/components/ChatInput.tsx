@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, FormEvent } from "react";
 import {
   Send,
   ImageIcon,
@@ -167,7 +167,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           placeholder="Ask here..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          disabled={isLoading || addresses.length === 0}
+          disabled={addresses.length === 0}
           className="flex-1 bg-transparent focus:outline-none text-[16px] min-h-[40px] transition-colors duration-300"
           style={{
             color: theme.text,
