@@ -4,6 +4,7 @@ import { useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { getMenuByRestaurantId } from "../utils/menuUtils";
 import { useAuth } from "../context/AuthContext";
+import { useFiltersContext } from "../context/FiltersContext";
 
 export const CartSummary: React.FC = () => {
   const { state, dispatch } = useChatContext();
@@ -11,6 +12,7 @@ export const CartSummary: React.FC = () => {
   const { isAuthenticated, addresses, setIsAddressModalOpen } = useAuth();
   const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
   const [menuItems, setMenuItems] = React.useState<any[]>([]);
+  const { theme } = useFiltersContext();
 
   const { dispatch: restaurantDispatch } = useRestaurant();
 
@@ -130,29 +132,48 @@ export const CartSummary: React.FC = () => {
       <div className="flex flex-col items-end">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-2 px-2 py-2 bg-primary text-white rounded-full hover:bg-primary-600 transition-all shadow-lg mb-2"
+          className="flex items-center gap-2 px-2 py-2 text-white rounded-full transition-all shadow-lg mb-2"
+          style={{
+            backgroundColor: theme.primary,
+            color: theme.background,
+          }}
         >
           <ShoppingBag className="w-4 h-4" />
           <span className="font-medium text-xs">{cartTotal} AED</span>
-          <span className="bg-white text-primary px-2 py-0.5 rounded-full text-xs">
+          <span
+            className="px-2 py-0.5 rounded-full text-xs"
+            style={{
+              color: theme.primary,
+              backgroundColor: theme.background,
+            }}
+          >
             {state.cart.length}
           </span>
         </button>
 
         {isExpanded && (
-          <div className="bg-white rounded-lg shadow-xl w-full overflow-hidden animate-slide-up">
-            <div className="px-4 py-2 flex justify-between items-center border-b p-3 bg-orange-50 border-b">
-              <h3 className="font-semibold text-gray-800">Your Cart</h3>
+          <div
+            className=" rounded-lg shadow-xl w-full overflow-hidden animate-slide-up"
+            style={{ backgroundColor: theme.modalBg }}
+          >
+            <div
+              className="px-4 py-2 flex justify-between items-center border-b p-3 border-b"
+              style={{ backgroundColor: theme.modalBgLight }}
+            >
+              <h3
+                className="font-semibold "
+                style={{ color: theme.modalSecondText }}
+              >
+                Your Cart
+              </h3>
               <X
+                style={{ color: theme.modalSecondText }}
                 className="w-4 h-4 text-gray-500"
                 onClick={() => setIsExpanded(!isExpanded)}
               />
             </div>
             <div className="max-h-64 overflow-y-auto">
               {state.cart.map((item) => {
-                const menuItem = menuItems.find(
-                  (menuItem) => menuItem.id === item.id
-                );
                 return (
                   <div
                     key={item.id}
@@ -164,7 +185,12 @@ export const CartSummary: React.FC = () => {
                       className="w-12 h-12 object-cover rounded-lg"
                     />
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-xs text-gray-800 truncate">
+                      <h4
+                        className="font-medium text-xs truncate"
+                        style={{
+                          color: theme.modalMainText,
+                        }}
+                      >
                         {item.name}
                         <div className="mt-0.5">
                           {item.customizations?.map((customization, index) => (
@@ -177,7 +203,12 @@ export const CartSummary: React.FC = () => {
                               </span>{" "}
                               {customization.selection.name}
                               {customization.selection.price > 0 && (
-                                <span className="text-primary ml-1">
+                                <span
+                                  className="ml-1 opacity-80"
+                                  style={{
+                                    color: theme.modalMainText,
+                                  }}
+                                >
                                   (+{customization.selection.price} AED)
                                 </span>
                               )}
@@ -185,18 +216,35 @@ export const CartSummary: React.FC = () => {
                           ))}
                         </div>
                       </h4>
-                      <p className="text-xs text-gray-500">{item.price} AED</p>
+                      <p
+                        className="text-xs opacity-70"
+                        style={{
+                          color: theme.modalMainText,
+                        }}
+                      >
+                        {item.price} AED
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() =>
                           updateQuantity(item.id, item.name, item.price, -1)
                         }
-                        className="p-1 hover:bg-gray-100 rounded-full"
+                        className={`p-1  rounded-full`}
+                        style={{
+                          backgroundColor: theme.modalBg,
+                          ":hover": { backgroundColor: theme.modalBgLight },
+                        }}
                       >
-                        <Minus className="w-4 h-4" />
+                        <Minus
+                          className="w-4 h-4"
+                          style={{ color: theme.chatBubbleBg }}
+                        />
                       </button>
-                      <span className="text-sm font-medium w-6 text-center">
+                      <span
+                        className="text-sm font-medium w-6 text-center"
+                        style={{ color: theme.modalMainText }}
+                      >
                         {item.quantity}
                       </span>
                       <button
@@ -205,21 +253,34 @@ export const CartSummary: React.FC = () => {
                         }
                         className="p-1 hover:bg-gray-100 rounded-full"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus
+                          className="w-4 h-4"
+                          style={{ color: theme.chatBubbleBg }}
+                        />
                       </button>
                     </div>
                   </div>
                 );
               })}
             </div>
-            <div className="p-4 bg-white border-t">
+            <div
+              className="p-4  border-t"
+              style={{
+                backgroundColor: theme.modalBg,
+                color: theme.modalMainText,
+              }}
+            >
               <div className="flex justify-between mb-4">
-                <span className="font-medium text-gray-800">Total</span>
-                <span className="font-bold text-primary">{cartTotal} AED</span>
+                <span className="font-medium ">Total</span>
+                <span className="font-bold ">{cartTotal} AED</span>
               </div>
               <button
                 onClick={handleCheckout}
-                className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-2 text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
+                style={{
+                  backgroundColor: theme.chatBubbleBg,
+                  color: theme.chatBubbleText,
+                }}
               >
                 <ShoppingBag className="w-4 h-4" />
                 Checkout

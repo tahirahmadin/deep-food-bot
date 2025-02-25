@@ -17,6 +17,7 @@ export const RestaurantMessage: React.FC<RestaurantMessageProps> = ({
   const { dispatch } = useChatContext();
   const { state: restaurantState } = useRestaurant();
   const { selectedStyle } = useFiltersContext();
+  const { theme } = useFiltersContext();
   const { addresses } = useAuth();
   const selectedAddress = addresses[0];
 
@@ -101,49 +102,86 @@ export const RestaurantMessage: React.FC<RestaurantMessageProps> = ({
                     <img
                       src={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurant.id}/${restaurant.id}-0.jpg`}
                       alt={restaurant.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 rounded-t-lg"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div
+                      className="absolute inset-0 bg-gradient-to-t to-transparent rounded-t-lg"
+                      style={{
+                        from: `${theme.cardBg}99`,
+                      }}
+                    />
                   </div>
-                  <div className="p-1">
+                  <div
+                    className="p-1"
+                    style={{
+                      backgroundColor: theme.cardBg,
+                      color: theme.cardText,
+                    }}
+                  >
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="text-[12px] font-medium text-gray-900">
                         {restaurant.name}
                       </h3>
                       <div className="flex items-center gap-1 bg-green-50 px-1 py-0.5 rounded-full">
                         <svg
-                          className="w-3 h-3 text-green-600 fill-current"
+                          className="w-3 h-3 fill-current"
+                          style={{ color: theme.primary }}
                           viewBox="0 0 24 24"
                         >
                           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                         </svg>
-                        <span className="text-[9px] font-medium text-green-600">
+                        <span
+                          className="text-[9px] font-medium"
+                          style={{ color: theme.primary }}
+                        >
                           {rating}
                         </span>
                       </div>
                     </div>
-                    <p className="text-[10px] text-gray-500 line-clamp-2 text-left">
+                    <p
+                      className="text-[10px] line-clamp-2 text-left"
+                      style={{ color: `${theme.cardText}99` }}
+                    >
                       {restaurant.description}
                     </p>
                     <div className="flex items-center gap-2 mt-3">
                       {deliveryTime && (
-                        <div className="flex items-center gap-1 bg-orange-50 px-1 py-0.5 rounded-full">
-                          <Bike className="w-2.5 h-2.5 text-orange-600" />
-                          <span className="text-[8px] font-medium text-orange-600">
+                        <div
+                          className="flex items-center gap-1 px-1 py-0.5 rounded-full"
+                          style={{
+                            backgroundColor: `${theme.primary}20`,
+                            color: theme.primary,
+                          }}
+                        >
+                          <Bike className="w-2.5 h-2.5" />
+                          <span className="text-[8px] font-medium">
                             {deliveryTime} min
                           </span>
                         </div>
                       )}
                       {distance && (
-                        <div className="flex items-center gap-1 bg-blue-50 px-1 py-0.5 rounded-full">
-                          <MapPin className="w-2.5 h-2.5 text-blue-600" />
-                          <span className="text-[8px] font-medium text-blue-600">
+                        <div
+                          className="flex items-center gap-1 px-1 py-0.5 rounded-full"
+                          style={{
+                            backgroundColor: `${theme.primary}20`,
+                            color: theme.primary,
+                          }}
+                        >
+                          <MapPin className="w-2.5 h-2.5" />
+                          <span className="text-[8px] font-medium">
                             {distance} km
                           </span>
                         </div>
                       )}
                     </div>
-                    <button className="mt-3 w-full py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-sm font-medium transition-colors">
+                    <button
+                      className="mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: `${theme.primary}20`,
+                        color: theme.primary,
+                        ":hover": { backgroundColor: `${theme.primary}30` },
+                      }}
+                    >
                       View Menu
                     </button>
                   </div>

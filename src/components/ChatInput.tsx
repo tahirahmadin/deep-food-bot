@@ -20,6 +20,7 @@ interface ChatInputProps {
   placeholder?: string;
   showQuickActions?: boolean;
 }
+import { useFiltersContext } from "../context/FiltersContext";
 
 export const ChatInput: React.FC<ChatInputProps> = ({
   input,
@@ -32,18 +33,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   showQuickActions = true,
 }) => {
   const { addresses } = useAuth();
+  const { theme } = useFiltersContext();
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
-      const isKeyboardActive = window.innerHeight < screen.height * 0.8; // Adjust threshold if needed
+      const isKeyboardActive = window.visualViewport?.height
+        ? window.visualViewport.height < window.innerHeight * 0.9
+        : window.innerHeight < screen.height * 0.9;
       setIsKeyboardOpen(isKeyboardActive);
     };
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.visualViewport?.addEventListener("resize", handleResize);
+    return () =>
+      window.visualViewport?.removeEventListener("resize", handleResize);
   }, []);
 
   // Auto-scroll when input is focused
@@ -86,6 +91,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       style={{
         position: isKeyboardOpen ? "absolute" : "fixed",
         bottom: isKeyboardOpen ? "10px" : "0",
+        backgroundColor: `${theme.cardBg}80`,
+        borderColor: `${theme.text}10`,
       }}
     >
       <div className="w-full">
@@ -94,6 +101,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <button
               onClick={() => handleQuickAction("Show me lunch combos")}
               className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
+              style={{
+                backgroundColor: theme.inputButtonBg,
+                color: theme.inputButtonText,
+              }}
             >
               <Timer className="w-3.5 h-3.5" />
               <span>Lunch combos ?</span>
@@ -102,6 +113,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <button
               onClick={() => handleQuickAction("Show me best veg options")}
               className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
+              style={{
+                backgroundColor: theme.inputButtonBg,
+                color: theme.inputButtonText,
+              }}
             >
               <Leaf className="w-3.5 h-3.5" />
               <span>Best veg options ?</span>
@@ -110,6 +125,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <button
               onClick={() => handleQuickAction("What are best chicken meals?")}
               className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
+              style={{
+                backgroundColor: theme.inputButtonBg,
+                color: theme.inputButtonText,
+              }}
             >
               <Pizza className="w-3.5 h-3.5" />
               <span>Best chicken meals?</span>
@@ -118,6 +137,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <button
               onClick={() => handleQuickAction("Show me Healthy drinks option")}
               className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
+              style={{
+                backgroundColor: theme.inputButtonBg,
+                color: theme.inputButtonText,
+              }}
             >
               <Zap className="w-3.5 h-3.5" />
               <span>Healthy drinks ?</span>
@@ -129,9 +152,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       <form
         ref={formRef}
         onSubmit={onSubmit}
-        className={`flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2 relative ${
+        className={`flex items-center gap-2 rounded-full border px-4 py-2 relative ${
           addresses.length === 0 ? "opacity-50 pointer-events-none" : ""
         }`}
+        style={{
+          backgroundColor: theme.cardBg,
+          borderColor: theme.border,
+          color: theme.text,
+        }}
       >
         <input
           ref={inputRef}
@@ -140,7 +168,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={isLoading || addresses.length === 0}
-          className="flex-1 bg-transparent focus:outline-none placeholder:text-gray-400 text-[16px] min-h-[40px]"
+          className="flex-1 bg-transparent focus:outline-none text-[16px] min-h-[40px] transition-colors duration-300"
+          style={{
+            color: theme.text,
+            "::placeholder": { color: `${theme.text}60` },
+          }}
         />
         <label className="cursor-pointer p-1 text-gray-400 hover:text-gray-600">
           <input

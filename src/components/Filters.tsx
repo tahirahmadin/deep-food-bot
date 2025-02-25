@@ -23,6 +23,7 @@ import { ChatModel } from "../context/ChatContext";
 
 export const Filters: React.FC = () => {
   const {
+    theme,
     isVegOnly,
     setIsVegOnly,
     isFastDelivery,
@@ -135,17 +136,35 @@ export const Filters: React.FC = () => {
   };
 
   return (
-    <div className="px-4 py-1 bg-white border-b border-gray-100">
+    <div
+      className="px-4 py-1 border-b"
+      style={{
+        backgroundColor: theme.filtersBg || "#0B0E11",
+        borderColor: theme.border,
+      }}
+    >
       {/* Home Address Section */}
       <div className="relative w-full flex justify-between items-center gap-2 mb-1">
-        <div className="relative flex-1 max-w-[70%]">
+        <div className="relative flex-1 max-w-[60%]">
           <button
             onClick={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
-            className="flex items-center gap-1 hover:bg-gray-50 p-1 rounded-lg transition-colors w-full max-w-full"
+            className="flex items-center gap-1 p-1 rounded-lg transition-colors w-full max-w-full"
+            style={{
+              backgroundColor: theme.cardBg,
+              color: theme.text,
+              borderColor: theme.border,
+              ":hover": { backgroundColor: theme.hover },
+            }}
             disabled={!isAuthenticated}
           >
-            <MapPin className="w-3.5 h-3.5 text-gray-600" />
-            <div className="text-[10px] text-gray-900 font-medium truncate max-w-[200px]">
+            <MapPin
+              className="w-3.5 h-3.5"
+              style={{ color: theme.filtersIconColor }}
+            />
+            <div
+              className="text-[10px] font-medium truncate max-w-[200px]"
+              style={{ color: theme.text }}
+            >
               <span className="font-bold">
                 {isAuthenticated
                   ? addresses[selectedAddressIndex]?.type || ""
@@ -157,29 +176,53 @@ export const Filters: React.FC = () => {
                   "Add delivery address"
                 : "Sign in to add address..."}
             </div>
-            <ChevronDown className="w-3 h-3 text-gray-400" />
+            <ChevronDown className="w-3 h-3" style={{ color: theme.text }} />
           </button>
 
           {/* Address Dropdown */}
           {isAddressDropdownOpen && (
-            <div className="absolute top-full left-0 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+            <div
+              className="absolute top-full left-0 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50"
+              style={{
+                backgroundColor: theme.filtersBg,
+                borderColor: theme.filtersBorder,
+              }}
+            >
               {addresses.map((addr, index) => (
                 <button
                   key={index}
                   onClick={() => handleAddressSelect(index)}
-                  className={`flex items-start gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors ${
-                    selectedAddressIndex === index ? "bg-orange-50" : ""
-                  }`}
+                  className={`flex items-start gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors`}
+                  style={{
+                    backgroundColor:
+                      selectedAddressIndex === index
+                        ? theme.filtersButtonHover
+                        : theme.filtersBg,
+                  }}
                 >
-                  <Home className="w-3.5 h-3.5 mt-0.5 text-gray-400" />
+                  <Home
+                    className="w-3.5 h-3.5 mt-0.5 text-gray-400"
+                    style={{ color: theme.filtersIconColor }}
+                  />
                   <div className="text-left flex-1 min-w-0">
-                    <p className="text-[11px] font-medium text-gray-900 line-clamp-1">
+                    <p
+                      className="text-[11px] font-medium line-clamp-1"
+                      style={{ color: theme.filtersText }}
+                    >
                       {addr.name}
                     </p>
-                    <p className="text-[10px] text-gray-500 line-clamp-1 max-w-[180px]">
+                    <p
+                      className="text-[10px]  line-clamp-1 max-w-[180px] opacity-80"
+                      style={{ color: theme.filtersText }}
+                    >
                       {addr.address}
                     </p>
-                    <p className="text-[9px] text-gray-400">{addr.type}</p>
+                    <p
+                      className="text-[9px] opacity-70"
+                      style={{ color: theme.filtersText }}
+                    >
+                      {addr.type}
+                    </p>
                   </div>
                 </button>
               ))}
@@ -188,10 +231,18 @@ export const Filters: React.FC = () => {
                   setIsAddressModalOpen(true);
                   setIsAddressDropdownOpen(false);
                 }}
-                className="flex items-center gap-2 w-full px-3 py-2 text-primary hover:bg-gray-50 transition-colors border-t"
+                className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors border-t"
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span className="text-[11px] font-medium">Add New Address</span>
+                <Plus
+                  className="w-3.5 h-3.5"
+                  style={{ color: theme.primary }}
+                />
+                <span
+                  className="text-[11px] font-medium"
+                  style={{ color: theme.primary }}
+                >
+                  Add New Address
+                </span>
               </button>
             </div>
           )}
@@ -202,6 +253,7 @@ export const Filters: React.FC = () => {
           <button
             onClick={() => setIsStyleDropdownOpen(!isStyleDropdownOpen)}
             className="flex items-center gap-2 text-xs hover:bg-gray-50 p-1.5 rounded-lg transition-colors"
+            style={{ backgroundColor: theme.cardBg }}
           >
             <img
               src={selectedStyle.image}
@@ -213,7 +265,13 @@ export const Filters: React.FC = () => {
           </button>
 
           {isStyleDropdownOpen && (
-            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 py-1 w-48 z-50">
+            <div
+              className="absolute right-0 top-full mt-1 rounded-lg shadow-lg border border-gray-100 py-1 w-48 z-50"
+              style={{
+                backgroundColor: theme.filtersBg,
+                borderColor: theme.filtersBorder,
+              }}
+            >
               {conversationStyles.map((style) => (
                 <button
                   key={style.name}
@@ -224,14 +282,21 @@ export const Filters: React.FC = () => {
                       setIsStyleDropdownOpen(false);
                     }
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-500 transition-colors"
                 >
                   <img
                     src={style.image}
                     alt={style.name}
                     className="w-6 h-6 rounded-full object-cover"
                   />
-                  <span className="text-sm">{style.name}</span>
+                  <span
+                    className="text-sm"
+                    style={{
+                      color: theme.filtersText,
+                    }}
+                  >
+                    {style.name}
+                  </span>
                 </button>
               ))}
             </div>
@@ -242,24 +307,43 @@ export const Filters: React.FC = () => {
       {/* Filters Section */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-2 flex-1">
-          <span className="text-xs text-gray-600">For</span>
-          <div className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-1">
+          <span className="text-xs" style={{ color: theme.text }}>
+            For
+          </span>
+          <div
+            className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-1"
+            style={{
+              backgroundColor: theme.cardBg,
+              color: theme.text,
+            }}
+          >
             <button
               disabled
               onClick={() => setNumberOfPeople(Math.max(1, numberOfPeople - 1))}
-              className="w-4 h-4 flex items-center justify-center hover:bg-gray-200 rounded-full text-gray-600"
+              className="w-4 h-4 flex items-center justify-center rounded-full"
+              style={{
+                backgroundColor: theme.cardBg,
+                color: theme.filtersText,
+              }}
             >
               <Minus className="w-3 h-3" />
             </button>
             <div className="flex items-center gap-1">
-              <span className="text-xs font-medium text-gray-700">
+              <span
+                className="text-xs font-medium"
+                style={{ color: theme.filtersText }}
+              >
                 {numberOfPeople}
               </span>
             </div>
             <button
               disabled
               onClick={() => setNumberOfPeople(numberOfPeople + 1)}
-              className="w-4 h-4 flex items-center justify-center hover:bg-gray-200 rounded-full text-gray-600"
+              className="w-4 h-4 flex items-center justify-center rounded-full "
+              style={{
+                backgroundColor: theme.cardBg,
+                color: theme.filtersText,
+              }}
             >
               <Plus className="w-3 h-3" />
             </button>
@@ -268,10 +352,13 @@ export const Filters: React.FC = () => {
           <button
             onClick={() => setIsVegOnly(!isVegOnly)}
             className={`flex items-center gap-1 px-2 py-1 rounded-full border ${
-              isVegOnly
-                ? "bg-primary/10 border-primary text-primary"
-                : "border-gray-200 text-gray-600"
+              isVegOnly ? "border-primary" : "border-gray-200"
             } transition-colors`}
+            style={{
+              backgroundColor: isVegOnly ? `${theme.primary}20` : theme.cardBg,
+              color: isVegOnly ? theme.primary : theme.text,
+              borderColor: isVegOnly ? theme.primary : theme.border,
+            }}
           >
             <Leaf className="w-3 h-3" />
             <span className="text-xs">Vegetarian </span>
@@ -294,8 +381,15 @@ export const Filters: React.FC = () => {
           <button
             onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
             className="flex items-center gap-1 hover:bg-gray-50 p-1.5 rounded-lg transition-colors"
+            style={{
+              backgroundColor: theme.cardBg,
+              color: theme.text,
+            }}
           >
-            <Bot className="w-3.5 h-3.5 text-gray-600" />
+            <Bot
+              className="w-3.5 h-3.5 text-gray-600"
+              style={{ color: theme.filtersIconColor }}
+            />
             <span className="text-[10px] font-medium">
               {chatState.selectedModel.toUpperCase()}
             </span>
@@ -303,7 +397,13 @@ export const Filters: React.FC = () => {
           </button>
 
           {isModelDropdownOpen && (
-            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 py-1 w-32 z-50">
+            <div
+              className="absolute right-0 top-full mt-1  rounded-lg shadow-lg border border-gray-100 py-1 w-32 z-50"
+              style={{
+                backgroundColor: theme.filtersBg,
+                borderColor: theme.filtersBorder,
+              }}
+            >
               {Object.values(ChatModel).map((model) => (
                 <button
                   key={model}
@@ -314,6 +414,12 @@ export const Filters: React.FC = () => {
                   className={`flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors ${
                     chatState.selectedModel === model ? "text-primary" : ""
                   }`}
+                  style={{
+                    backgroundColor:
+                      chatState.selectedModel === model
+                        ? theme.filtersButtonHover
+                        : theme.filtersBg,
+                  }}
                 >
                   <Bot className="w-3.5 h-3.5" />
                   <span className="text-xs">{model.toUpperCase()}</span>
@@ -344,9 +450,10 @@ export const Filters: React.FC = () => {
       <div className="flex justify-between items-center gap-4 mt-2 border-t border-gray-100 pt-2">
         <button
           onClick={() => dispatch({ type: "SET_MODE", payload: "chat" })}
-          className={`flex items-center gap-1 ${
-            state.mode === "chat" ? "text-primary" : "text-gray-400"
-          }`}
+          className="flex items-center gap-1 transition-colors"
+          style={{
+            color: theme.text,
+          }}
         >
           <MessageSquare className="w-4 h-4" />
           <span className="text-sm">CHAT</span>
@@ -354,11 +461,15 @@ export const Filters: React.FC = () => {
 
         <button
           onClick={handleClearRestaurant}
-          className={`flex items-center gap-1 ${
-            !state.selectedRestaurant
-              ? "text-primary"
-              : "text-gray-100 px-2 py-0.5 bg-blue-600 rounded-full"
-          }`}
+          className="flex items-center gap-1 transition-colors"
+          style={{
+            color: !state.selectedRestaurant ? theme.primary : theme.filtersBg,
+            backgroundColor: state.selectedRestaurant
+              ? theme.filtersIconColor
+              : "transparent",
+            padding: state.selectedRestaurant ? "0.125rem 0.5rem" : "0",
+            borderRadius: state.selectedRestaurant ? "9999px" : "0",
+          }}
         >
           <Store className="w-4 h-4" />
           <span className="text-sm">
@@ -371,9 +482,10 @@ export const Filters: React.FC = () => {
 
         <button
           onClick={() => dispatch({ type: "SET_MODE", payload: "browse" })}
-          className={`flex items-center gap-1 ${
-            state.mode === "browse" ? "text-primary" : "text-gray-400"
-          }`}
+          className="flex items-center gap-1 transition-colors"
+          style={{
+            color: state.mode === "browse" ? theme.primary : theme.text,
+          }}
         >
           <Menu className="w-4 h-4" />
           <span className="text-sm">BROWSE</span>

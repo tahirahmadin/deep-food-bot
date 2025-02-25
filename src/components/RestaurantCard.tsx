@@ -5,6 +5,7 @@ import { useChatContext } from "../context/ChatContext";
 import { useAuth } from "../context/AuthContext";
 import { calculateDistance } from "../utils/distanceUtils";
 import { MapPin, Bike } from "lucide-react";
+import { useFiltersContext } from "../context/FiltersContext";
 
 interface RestaurantCardProps {
   id: number;
@@ -26,6 +27,8 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
   image = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop",
 }) => {
   const { state: restaurantState, setActiveRestaurant } = useRestaurant();
+  const { theme } = useFiltersContext();
+
   const { dispatch } = useChatContext();
   const { addresses } = useAuth();
   const selectedAddress = addresses[0];
@@ -69,7 +72,10 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
       tabIndex={0}
       onClick={(e) => handleSelectRestaurant(e)}
       onKeyDown={(e) => e.key === "Enter" && handleSelectRestaurant(e)}
-      className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group"
+      className="rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group"
+      style={{
+        backgroundColor: theme.menuItemBg,
+      }}
     >
       {/* Image Section */}
       <div className="aspect-[16/9] w-full relative">
@@ -82,19 +88,26 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
       </div>
 
       {/* Content Section */}
-      <div className="p-4">
+      <div className="p-2">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-medium text-gray-900 line-clamp-1">{name}</h3>
+          <h3
+            className="font-medium text-gray-900 line-clamp-2 text-md"
+            style={{
+              color: theme.menuItemText,
+            }}
+          >
+            {name}
+          </h3>
           <div className="flex items-center gap-1">
-            <div className="flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded-full">
-              <Star className="w-3 h-3 text-green-600 fill-current" />
-              <span className="text-xs font-medium text-green-600">
+            <div className="flex items-center gap-1 bg-green-50 px-1 py-0.5 rounded-full">
+              <Star className="w-1.5 h-1.5 text-green-600 fill-current" />
+              <span className="text-[9px] font-medium text-green-600">
                 {rating}
               </span>
             </div>
             {deliveryTime && (
               <div className="flex items-center gap-1 bg-orange-50 px-2 py-0.5 rounded-full">
-                <Bike className="w-3 h-3 text-orange-600" />
+                <Bike className="w-2 h-2 text-orange-600" />
                 <span className="text-xs font-medium text-orange-600">
                   {deliveryTime} min
                 </span>
@@ -102,7 +115,7 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
             )}
             {distance && (
               <div className="flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full">
-                <MapPin className="w-3 h-3 text-blue-600" />
+                <MapPin className="w-2 h-2 text-blue-600" />
                 <span className="text-xs font-medium text-blue-600">
                   {distance} km
                 </span>
@@ -118,8 +131,21 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
             )}
           </div>
         </div>
-        <p className="text-xs text-gray-500 line-clamp-2">{description}</p>
-        <button className="mt-3 w-full py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-sm font-medium transition-colors">
+        <p
+          className="text-xs line-clamp-2 opacity-70"
+          style={{
+            color: theme.text,
+          }}
+        >
+          {description}
+        </p>
+        <button
+          className="mt-3 w-full py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-sm font-medium transition-colors"
+          style={{
+            color: theme.background,
+            backgroundColor: theme.primary,
+          }}
+        >
           View Menu
         </button>
       </div>

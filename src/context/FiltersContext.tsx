@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
+import { Theme, getThemeForStyle } from "../utils/themeUtils";
 
-interface Style {
+export interface Style {
   name: string;
   image: string;
 }
@@ -14,12 +15,13 @@ interface FiltersContextType {
   setNumberOfPeople: (value: number) => void;
   selectedStyle: Style;
   setSelectedStyle: (style: Style) => void;
+  theme: Theme;
 }
 
 const defaultStyle = {
-  name: "Gobbl",
+  name: "CZ Binance",
   image:
-    "https://gobbl-bucket.s3.ap-south-1.amazonaws.com/tapAssets/gobbl_coin.webp",
+    "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSnI1JQg6mXsN66qOzLiX2n5IOgWYBXi01rzQeEQto8EiGsWnZUCvv6jN3A5KrBIhVh2VvRfI6_KbtkLRin1G0Bsg",
 };
 
 const FiltersContext = createContext<FiltersContextType | null>(null);
@@ -31,6 +33,7 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isFastDelivery, setIsFastDelivery] = useState(false);
   const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [selectedStyle, setSelectedStyle] = useState<Style>(defaultStyle);
+  const theme = getThemeForStyle(selectedStyle.name);
 
   return (
     <FiltersContext.Provider
@@ -43,6 +46,7 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({
         setNumberOfPeople,
         selectedStyle,
         setSelectedStyle,
+        theme,
       }}
     >
       {children}

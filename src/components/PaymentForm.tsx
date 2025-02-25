@@ -20,6 +20,7 @@ import {
 import { loadStripe } from "@stripe/stripe-js";
 import { useRestaurant } from "../context/RestaurantContext";
 import Web3 from "web3";
+import { useFiltersContext } from "../context/FiltersContext";
 
 // Initialize Stripe
 // const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, {
@@ -56,6 +57,7 @@ const CheckoutForm: React.FC<{
   const stripe = useStripe();
   const elements = useElements();
   const { dispatch, state } = useChatContext();
+  const { theme } = useFiltersContext();
   const { refreshOrders } = useAuth();
   const { state: restaurantState } = useRestaurant();
   const { user } = useAuth();
@@ -500,7 +502,10 @@ const CheckoutForm: React.FC<{
   }
 
   return (
-    <div className="bg-white/80 rounded-lg p-2.5 shadow-sm backdrop-blur-sm mb-3 max-w-sm mx-auto">
+    <div
+      className=" rounded-lg p-2.5 shadow-sm backdrop-blur-sm mb-3 max-w-sm mx-auto"
+      style={{ backgroundColor: theme.cardBg, color: theme.cardText }}
+    >
       {/* Loading Overlay */}
       {isCheckingStatus && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
@@ -513,25 +518,29 @@ const CheckoutForm: React.FC<{
       )}
 
       {/* Order Summary Card */}
-      <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg overflow-hidden p-2.5 text-white">
+      <div
+        className="relative  rounded-lg overflow-hidden p-2.5 text-white"
+        style={{
+          color: theme.background,
+          backgroundColor: theme.primary,
+        }}
+      >
         <div className="absolute right-2 top-2">
-          <Lock className="w-4 h-4 text-orange-200" />
+          <Lock className="w-4 h-4 " />
         </div>
 
         <div className="relative z-10 flex items-center justify-between mb-2">
           <div>
-            <p className="text-orange-100 text-[10px]">Order Total</p>
+            <p className="text-[10px]">Order Total</p>
             <p className="text-lg font-bold">{total} AED</p>
           </div>
-          <p className="text-xs bg-white/10 px-2 py-0.5 rounded-full">
-            30-45 min delivery
-          </p>
+          <p className="text-xs px-2 py-0.5 rounded-full">30-45 min delivery</p>
         </div>
 
         <div className="relative z-10 grid grid-cols-2 gap-1.5 text-xs border-t border-white/10 pt-2">
           <div className="flex items-center gap-1.5">
             <div>
-              <p className="text-orange-100 text-[10px]">Address</p>
+              <p className=" text-[10px]">Address</p>
               <p className="font-medium text-[10px] line-clamp-1">
                 {orderDetails.address}
               </p>
@@ -540,7 +549,7 @@ const CheckoutForm: React.FC<{
 
           <div className="flex items-center gap-1.5">
             <div>
-              <p className="text-orange-100 text-[10px]">Contact</p>
+              <p className="text-[10px]">Contact</p>
               <p className="font-medium text-[10px]">{orderDetails.phone}</p>
             </div>
           </div>
@@ -551,9 +560,7 @@ const CheckoutForm: React.FC<{
       {selectedPaymentMethod === "card" ? (
         <form onSubmit={handleSubmit} className="mt-3 space-y-4">
           <div>
-            <label className="block text-xs text-gray-600 mb-1">
-              Card Details
-            </label>
+            <label className="block text-xs mb-1">Card Details</label>
             <div className="w-full p-3 border border-gray-200 rounded-lg">
               <CardElement
                 options={cardStyle}
@@ -573,11 +580,15 @@ const CheckoutForm: React.FC<{
               <div className="flex gap-2">
                 <button
                   onClick={() => switchNetwork("0x2105")}
-                  className={`px-3 py-1.5 rounded text-xs font-medium ${
-                    currentNetwork === "0x2105"
-                      ? "bg-primary text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
+                  className={`px-3 py-1.5 rounded text-xs font-medium`}
+                  style={{
+                    color:
+                      currentNetwork != "0x2105"
+                        ? theme.primary
+                        : theme.background,
+                    backgroundColor:
+                      currentNetwork != "0x2105" ? "" : theme.primary,
+                  }}
                 >
                   Base Chain
                 </button>
@@ -588,6 +599,14 @@ const CheckoutForm: React.FC<{
                       ? "bg-primary text-white"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
+                  style={{
+                    color:
+                      currentNetwork != "0x61"
+                        ? theme.primary
+                        : theme.background,
+                    backgroundColor:
+                      currentNetwork != "0x61" ? "" : theme.primary,
+                  }}
                 >
                   BSC Testnet
                 </button>
@@ -639,7 +658,11 @@ const CheckoutForm: React.FC<{
           {!connected ? (
             <button
               onClick={connectWallet}
-              className="w-full p-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm"
+              className="w-full p-2 rounded-lg hover:bg-primary-600 transition-colors text-sm"
+              style={{
+                color: theme.background,
+                backgroundColor: theme.primary,
+              }}
             >
               Connect Metamask
             </button>
@@ -652,7 +675,11 @@ const CheckoutForm: React.FC<{
                 currentNetwork !== "0x61" ||
                 (balance || 0) < parseFloat(total) * 0.27
               }
-              className="w-full p-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm disabled:opacity-50"
+              className="w-full p-2  rounded-lg hover:bg-primary-600 transition-colors text-sm disabled:opacity-50"
+              style={{
+                color: theme.background,
+                backgroundColor: theme.primary,
+              }}
             >
               {isProcessing
                 ? "Processing..."
@@ -677,7 +704,11 @@ const CheckoutForm: React.FC<{
           <button
             type="submit"
             disabled={!stripe || !cardComplete || !clientSecret || isProcessing}
-            className="w-full p-2.5 bg-primary text-white rounded-lg hover:bg-primary-600 transition-all shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 text-sm"
+            className="w-full p-2.5  rounded-lg hover:bg-primary-600 transition-all shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 text-sm"
+            style={{
+              color: theme.background,
+              backgroundColor: theme.primary,
+            }}
           >
             <Wallet className="w-3.5 h-3.5" />
             {isProcessing ? "Processing..." : `Pay ${total} AED & Place Order`}
@@ -686,7 +717,12 @@ const CheckoutForm: React.FC<{
       )}
 
       {/* Security Notice */}
-      <p className="text-[10px] text-center text-gray-500">
+      <p
+        className="text-[10px] text-center"
+        style={{
+          color: theme.text,
+        }}
+      >
         <Lock className="w-3 h-3 inline-block mr-1" />
         Payments are secure and encrypted
       </p>

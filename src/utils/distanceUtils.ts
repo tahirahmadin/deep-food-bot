@@ -19,7 +19,7 @@ export const calculateDistance = (
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
 
-  return distance > 10 ? 9.9 : distance; // Returns distance in kilometers
+  return distance > 10 ? 9.9 : distance / 1.05; // Returns distance in kilometers
 };
 
 // Helper function to convert degrees to radians
