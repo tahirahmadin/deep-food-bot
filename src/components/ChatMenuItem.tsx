@@ -133,9 +133,8 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
     setIsCartChangeModalOpen(false);
   };
   return (
-    <>
+    <div className="rounded-lg shadow-sm overflow-hidden flex flex-col w-[80px]">
       <div
-        className="rounded-lg shadow-sm overflow-hidden flex flex-col w-[80px]"
         style={{
           backgroundColor: theme.menuItemBg,
         }}
@@ -205,6 +204,6 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
         isCustomisable={isCustomisable}
         customisation={customisation}
       />
-    </>
+    </div>
   );
 };

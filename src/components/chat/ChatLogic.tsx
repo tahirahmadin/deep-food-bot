@@ -269,8 +269,8 @@ export const useChatLogic = ({
           } style.
           - ${
             activeRestroId
-              ? `"items1" contains up to 3 recommended items.`
-              : `"items1" and "items2" contain up to 3 relevant items each.`
+              ? `"items1" contains up to 5 recommended items.`
+              : `"items1" and "items2" contain up to 5 relevant items each.`
           }
           ${isVegOnly ? " Provide only VEGETARIAN options." : ""}
           ${

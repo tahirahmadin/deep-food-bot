@@ -34,15 +34,6 @@ export const MenuList: React.FC<MenuListProps> = ({ items, restroId }) => {
     fetchMenuItems();
   }, [restroId, restaurantState, restaurantDispatch]);
 
-  // Get serialized memory for chat context
-  const serializedMemory = React.useMemo(() => {
-    return state.messages
-      .map((message) =>
-        message.isBot ? `Bot: ${message.text}` : `User: ${message.text}`
-      )
-      .join("\n");
-  }, [state.messages]);
-
   const filteredMenuItems = useMemo(() => {
     // Create a map from the items array for quick lookup
     const itemMap = new Map(items.map((item) => [item.id, item.name]));
@@ -57,19 +48,23 @@ export const MenuList: React.FC<MenuListProps> = ({ items, restroId }) => {
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-1">
-        {filteredMenuItems.map((meal, index) => (
-          <ChatMenuItem
-            key={index}
-            id={meal.id}
-            name={meal.name}
-            price={meal.price}
-            image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restroId}/${restroId}-${meal.id}.jpg`}
-            restroId={restroId}
-            isCustomisable={meal.isCustomisable}
-            customisation={meal.customisation}
-          />
-        ))}
+      {/* Scrollable container with dynamic width */}
+      <div className="overflow-x-auto w-[250px]">
+        {/* Flex container that takes exact width of menu items */}
+        <div className="flex items-center gap-1 w-max">
+          {filteredMenuItems.map((meal, index) => (
+            <ChatMenuItem
+              key={index}
+              id={meal.id}
+              name={meal.name}
+              price={meal.price}
+              image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restroId}/${restroId}-${meal.id}.jpg`}
+              restroId={restroId}
+              isCustomisable={meal.isCustomisable}
+              customisation={meal.customisation}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

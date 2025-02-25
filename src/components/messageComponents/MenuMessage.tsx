@@ -117,7 +117,7 @@ export const MenuMessage: React.FC<MenuMessageProps> = ({
             />
           </div>
 
-          <div className="mt-2 pl-3 flex items-center gap-2">
+          <div className="mt-2 pl-3 flex items-center gap-2 relative">
             <MenuList
               messageId={message.id}
               items={message.llm.output.items1}
