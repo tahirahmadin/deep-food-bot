@@ -313,7 +313,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         )}
 
         {state.isLoading && (
-          <div className="flex items-center space-x-2 text-gray-500">
+          <div
+            className="flex items-center space-x-2"
+            style={{ color: theme.chatText }}
+          >
             <span
               className="font-sans animate-pulse inline-block ml-4 text-sm"
               style={{ transform: "skew(-10deg)" }}

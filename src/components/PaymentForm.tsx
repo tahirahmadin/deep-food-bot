@@ -612,13 +612,11 @@ const CheckoutForm: React.FC<{
                   BSC Testnet
                 </button>
               </div>
-              {currentNetwork &&
-                currentNetwork !== "0x2105" &&
-                currentNetwork !== "0x61" && (
-                  <p className="text-xs text-red-500 mt-1">
-                    Please switch to BSC Testnet to continue
-                  </p>
-                )}
+              {currentNetwork && currentNetwork !== "0x61" && (
+                <p className="text-xs text-red-500 mt-1">
+                  Please switch to BSC Testnet to continue
+                </p>
+              )}
             </div>
             {/* Wallet Info */}
             {connected && (
