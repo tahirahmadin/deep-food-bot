@@ -288,7 +288,8 @@ export const CustomizationModal: React.FC = () => {
           </div>
           <button
             onClick={handleAddToCart}
-            className="w-full py-2.5 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
+            className="w-full py-2.5 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
+            style={{ backgroundColor: "orange" }}
           >
             Add to Cart
           </button>
