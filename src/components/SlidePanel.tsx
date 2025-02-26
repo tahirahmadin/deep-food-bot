@@ -20,7 +20,6 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useWallet } from "../context/WalletContext";
 import { getUserDetails } from "../actions/serverActions";
-import { OrderDetailsModal } from "./OrderDetailsModal";
 import { useFiltersContext } from "../context/FiltersContext";
 
 interface UserDetails {
