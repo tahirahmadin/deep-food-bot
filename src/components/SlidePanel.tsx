@@ -12,10 +12,15 @@ import {
   Coins,
   Gift,
   Wallet,
+  Package,
+  Truck,
+  CheckCircle,
+  ChevronLeft,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useWallet } from "../context/WalletContext";
 import { getUserDetails } from "../actions/serverActions";
+import { OrderDetailsModal } from "./OrderDetailsModal";
 import { useFiltersContext } from "../context/FiltersContext";
 
 interface UserDetails {
@@ -58,11 +63,56 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
     totalOrders: 0,
     totalOrdersValue: 0,
   });
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const { connected, publicKey } = useWallet();
   const { theme } = useFiltersContext();
+  const [showMainPanel, setShowMainPanel] = useState(true);
 
   const [retryCount, setRetryCount] = useState(0);
   const latestAddress = addresses[addresses.length - 1];
+
+  const getStatusStep = (status: string): number => {
+    switch (status) {
+      case "PROCESSING":
+        return 1;
+      case "COOKING":
+        return 2;
+      case "OUT_FOR_DELIVERY":
+        return 3;
+      case "COMPLETED":
+        return 4;
+      default:
+        return 0;
+    }
+  };
+
+  const statusSteps = [
+    {
+      title: "Order Placed",
+      description: "Your order has been received",
+      icon: Package,
+      step: 1,
+    },
+    {
+      title: "Preparing",
+      description: "Chef is preparing your food",
+      icon: Clock,
+      step: 2,
+    },
+    {
+      title: "Out for Delivery",
+      description: (order: any) =>
+        `Estimated delivery in ${order.estimatedDeliveryTime} mins`,
+      icon: Truck,
+      step: 3,
+    },
+    {
+      title: "Delivered",
+      description: "Order has been delivered",
+      icon: CheckCircle,
+      step: 4,
+    },
+  ];
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -129,39 +179,238 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
         }`}
         style={{ backgroundColor: theme.slideBgOther }}
       >
-        <div className="p-6" style={{ backgroundColor: theme.slideBgLight }}>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-[20%] rounded-full bg-orange-100 flex items-center justify-center">
-              {isAuthenticated && user?.picture ? (
-                <img
-                  src={user.picture}
-                  alt={user.name}
-                  className="rounded-full object-cover"
-                />
-              ) : (
-                <User className="w-8 h-8 text-orange-500" />
-              )}
-            </div>
-            <div className="w-[80%]" style={{ color: theme.slideSecondText }}>
-              <h3 className="font-semibold">
-                {isAuthenticated ? user?.name : "Guest User"}
-              </h3>
-              {isAuthenticated && (
-                <p className="text-xs opacity-80">{user?.email}</p>
-              )}
-              <div className="flex items-center gap-1 text-xs opacity-70">
-                {latestAddress && (
-                  <>
-                    <MapPin className="w-3 h-3" />
-                    <span className="line-clamp-1">
-                      {latestAddress.address}
-                    </span>
-                  </>
+        {showMainPanel ? (
+          <div className="p-6" style={{ backgroundColor: theme.slideBgLight }}>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-[20%] rounded-full bg-orange-100 flex items-center justify-center">
+                {isAuthenticated && user?.picture ? (
+                  <img
+                    src={user.picture}
+                    alt={user.name}
+                    className="rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="w-8 h-8 text-orange-500" />
                 )}
+              </div>
+              <div className="w-[80%]" style={{ color: theme.slideSecondText }}>
+                <h3 className="font-semibold">
+                  {isAuthenticated ? user?.name : "Guest User"}
+                </h3>
+                {isAuthenticated && (
+                  <p className="text-xs opacity-80">{user?.email}</p>
+                )}
+                <div className="flex items-center gap-1 text-xs opacity-70">
+                  {latestAddress && (
+                    <>
+                      <MapPin className="w-3 h-3" />
+                      <span className="line-clamp-1">
+                        {latestAddress.address}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="h-full overflow-y-auto">
+            {/* Order Details Header */}
+            <div
+              className="p-4 border-b"
+              style={{ backgroundColor: theme.slideBgLight }}
+            >
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => {
+                    setShowMainPanel(true);
+                    setSelectedOrder(null);
+                  }}
+                  className="flex items-center gap-2 text-sm"
+                  style={{ color: theme.slideSecondText }}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Back
+                </button>
+                <div>
+                  <h3
+                    className="text-lg font-semibold"
+                    style={{ color: theme.slideSecondText }}
+                  >
+                    Order #{selectedOrder?.orderId.slice(-6)}
+                  </h3>
+                  <p
+                    className="text-sm opacity-70"
+                    style={{ color: theme.slideSecondText }}
+                  >
+                    {selectedOrder?.restaurantName}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Status Timeline */}
+            <div className="p-4">
+              <div className="space-y-6">
+                {statusSteps.map((step, index) => {
+                  const isActive =
+                    getStatusStep(selectedOrder?.status) >= step.step;
+                  const StepIcon = step.icon;
+                  return (
+                    <div
+                      key={step.step}
+                      className="flex items-start gap-3 relative"
+                    >
+                      {index !== statusSteps.length - 1 && (
+                        <div
+                          className="absolute left-[14px] top-8 w-0.5 h-12"
+                          style={{
+                            backgroundColor: isActive
+                              ? theme.primary
+                              : `${theme.slideMainText}20`,
+                          }}
+                        />
+                      )}
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                        style={{
+                          backgroundColor: isActive
+                            ? theme.primary
+                            : `${theme.slideMainText}20`,
+                          color: isActive
+                            ? theme.background
+                            : theme.slideMainText,
+                        }}
+                      >
+                        <StepIcon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4
+                          className="font-medium"
+                          style={{ color: theme.slideMainText }}
+                        >
+                          {step.title}
+                        </h4>
+                        <p
+                          className="text-sm opacity-70"
+                          style={{ color: theme.slideMainText }}
+                        >
+                          {typeof step.description === "function"
+                            ? step.description(selectedOrder)
+                            : step.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Order Details */}
+            <div
+              className="p-4 border-t"
+              style={{ backgroundColor: theme.slideBgLight }}
+            >
+              <div className="space-y-4">
+                {/* Items */}
+                <div>
+                  <h4
+                    className="text-sm font-medium mb-2"
+                    style={{ color: theme.slideSecondText }}
+                  >
+                    Order Items
+                  </h4>
+                  <div className="space-y-2">
+                    {selectedOrder?.items.map((item: any, index: number) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="text-xs opacity-70"
+                            style={{ color: theme.slideSecondText }}
+                          >
+                            {item.quantity}x
+                          </span>
+                          <span
+                            className="text-sm"
+                            style={{ color: theme.slideSecondText }}
+                          >
+                            {item.name}
+                          </span>
+                        </div>
+                        <span
+                          className="text-sm font-medium"
+                          style={{ color: theme.slideSecondText }}
+                        >
+                          {item.price} AED
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Delivery Details */}
+                <div>
+                  <h4
+                    className="text-sm font-medium mb-2"
+                    style={{ color: theme.slideSecondText }}
+                  >
+                    Delivery Details
+                  </h4>
+                  <div
+                    className="p-3 rounded-lg space-y-2"
+                    style={{ backgroundColor: theme.slideBg }}
+                  >
+                    <div className="flex items-start gap-2">
+                      <MapPin
+                        className="w-4 h-4 mt-0.5 shrink-0"
+                        style={{ color: theme.slideMainText }}
+                      />
+                      <div>
+                        <p
+                          className="text-sm font-medium"
+                          style={{ color: theme.slideMainText }}
+                        >
+                          {selectedOrder?.customerDetails.name}
+                        </p>
+                        <p
+                          className="text-xs opacity-70"
+                          style={{ color: theme.slideMainText }}
+                        >
+                          {selectedOrder?.customerDetails.address}
+                        </p>
+                        <p
+                          className="text-xs opacity-70"
+                          style={{ color: theme.slideMainText }}
+                        >
+                          {selectedOrder?.customerDetails.phone}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div className="flex justify-between items-center pt-2 border-t">
+                  <span
+                    className="text-sm"
+                    style={{ color: theme.slideSecondText }}
+                  >
+                    Total Amount
+                  </span>
+                  <span
+                    className="text-lg font-bold"
+                    style={{ color: theme.primary }}
+                  >
+                    {(selectedOrder?.totalAmount / 100).toFixed(2)} AED
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Wallet Section */}
         {isAuthenticated && (
@@ -282,6 +531,10 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                     <div
                       key={order._id}
                       className="rounded-lg shadow-sm overflow-hidden"
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setShowMainPanel(false);
+                      }}
                       style={{
                         backgroundColor: theme.slideCardBg,
                         color: theme.cardText,
