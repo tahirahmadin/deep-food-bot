@@ -166,7 +166,8 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (selectedOrder && selectedOrder._id) {
-      const ws = new WebSocket("wss://paymentstest.gobbl.ai/ws");
+      let socketUrl = import.meta.env.VITE_PUBLIC_BACKEND_SOCKET_URL;
+      const ws = new WebSocket(socketUrl);
       ws.onopen = () => {
         console.log("Order WebSocket connected for order", selectedOrder._id);
       };
@@ -202,7 +203,8 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const ws = new WebSocket("wss://paymentstest.gobbl.ai/ws");
+      let socketUrl = import.meta.env.VITE_PUBLIC_BACKEND_SOCKET_URL;
+      const ws = new WebSocket(socketUrl);
       ws.onopen = () => {
         console.log("Global orders WebSocket connected");
       };
@@ -230,7 +232,6 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
       };
     }
   }, [isAuthenticated, updateOrder]);
-  
 
   return (
     <>
