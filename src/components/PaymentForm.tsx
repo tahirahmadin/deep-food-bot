@@ -62,8 +62,15 @@ const CheckoutForm: React.FC<{
   const { refreshOrders } = useAuth();
   const { state: restaurantState } = useRestaurant();
   const { user } = useAuth();
-  const { connectWallet, transferUSDT, connected, publicKey, balance } =
-    useWallet();
+  const {
+    connectWallet,
+    disconnectWallet,
+    transferUSDT,
+    connected,
+    publicKey,
+    balance,
+    switchNetwork: walletSwitchNetwork,
+  } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -140,53 +147,11 @@ const CheckoutForm: React.FC<{
 
   const switchNetwork = async (chainId: string) => {
     try {
-      if (!window.ethereum) throw new Error("No crypto wallet found");
-
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId }],
-      });
-
+      await walletSwitchNetwork(chainId);
       setCurrentNetwork(chainId);
-    } catch (err: any) {
-      // This error code indicates that the chain has not been added to MetaMask
-      if (err.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [
-              chainId === "0x61"
-                ? {
-                    chainId: "0x61",
-                    chainName: "BSC Testnet",
-                    nativeCurrency: {
-                      name: "BNB",
-                      symbol: "BNB",
-                      decimals: 18,
-                    },
-                    rpcUrls: [
-                      "https://data-seed-prebsc-1-s1.binance.org:8545/",
-                    ],
-                    blockExplorerUrls: ["https://testnet.bscscan.com/"],
-                  }
-                : {
-                    chainId: "0x2105",
-                    chainName: "Base",
-                    nativeCurrency: {
-                      name: "ETH",
-                      symbol: "ETH",
-                      decimals: 18,
-                    },
-                    rpcUrls: ["https://mainnet.base.org"],
-                    blockExplorerUrls: ["https://basescan.org"],
-                  },
-            ],
-          });
-        } catch (addError) {
-          console.error("Error adding network:", addError);
-        }
-      }
-      console.error("Error switching network:", err);
+    } catch (error) {
+      console.error("Error switching network:", error);
+      throw error;
     }
   };
 
@@ -561,7 +526,9 @@ const CheckoutForm: React.FC<{
       {selectedPaymentMethod === "card" ? (
         <form onSubmit={handleSubmit} className="mt-3 space-y-4">
           <div>
-            <label className="block text-xs mb-1">Card Details</label>
+            <label className="block text-xs mb-1" style={{ color: theme.text }}>
+              Card Details
+            </label>
             <div className="w-full p-3 border border-gray-200 rounded-lg">
               <CardElement
                 options={cardStyle}
@@ -573,51 +540,65 @@ const CheckoutForm: React.FC<{
       ) : (
         <div className="mt-3 space-y-4">
           <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
-            {/* Network Selection */}
-            <div className="mb-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                Select Network
-              </p>
-              <div className="flex gap-2">
-                {/* <button
-                  onClick={() => switchNetwork("0x2105")}
-                  className={`px-3 py-1.5 rounded text-xs font-medium`}
-                  style={{
-                    color:
-                      currentNetwork != "0x2105"
-                        ? theme.primary
-                        : theme.background,
-                    backgroundColor:
-                      currentNetwork != "0x2105" ? "" : theme.primary,
-                  }}
-                >
-                  Base Chain
-                </button> */}
-                <button
-                  onClick={() => switchNetwork("0x61")}
-                  className={`px-3 py-1.5 rounded text-xs font-medium ${
-                    currentNetwork === "0x61"
-                      ? "bg-primary text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                  style={{
-                    color:
-                      currentNetwork != "0x61"
-                        ? theme.primary
-                        : theme.background,
-                    backgroundColor:
-                      currentNetwork != "0x61" ? "" : theme.primary,
-                  }}
-                >
-                  BSC Testnet
-                </button>
+            {/* Connected Wallet Info */}
+            {connected && (
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={disconnectWallet}
+                    className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium transition-colors"
+                    style={{
+                      backgroundColor: `${theme.primary}20`,
+                      color: theme.primary,
+                    }}
+                  >
+                    <Wallet className="w-3 h-3" />
+                    Disconnect
+                  </button>
+                </div>
+                {currentNetwork !== "0x61" && (
+                  <button
+                    onClick={() => switchNetwork("0x61")}
+                    className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium"
+                    style={{
+                      backgroundColor: theme.primary,
+                      color: theme.background,
+                    }}
+                  >
+                    <svg
+                      className="w-3 h-3"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M12 16L16 12L12 8"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M8 12H16"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Switch to BSC Testnet
+                  </button>
+                )}
               </div>
-              {currentNetwork && currentNetwork !== "0x61" && (
-                <p className="text-xs text-red-500 mt-1">
-                  Please switch to BSC Testnet to continue
-                </p>
-              )}
-            </div>
+            )}
+
             {/* Wallet Info */}
             {connected && (
               <div className="mb-4 p-3 bg-white/50 rounded-lg border border-gray-200">
@@ -646,17 +627,24 @@ const CheckoutForm: React.FC<{
             </div>
           </div>
 
-          {/* Connect/Pay Button */}
+          {/* Payment Button */}
           {!connected ? (
             <button
-              onClick={connectWallet}
+              onClick={async () => {
+                if (currentNetwork && currentNetwork !== "0x61") {
+                  await switchNetwork("0x61");
+                }
+                await connectWallet();
+              }}
               className="w-full p-2 rounded-lg hover:bg-primary-600 transition-colors text-sm"
               style={{
                 color: theme.background,
                 backgroundColor: theme.primary,
               }}
             >
-              Connect Metamask
+              {currentNetwork && currentNetwork !== "0x61"
+                ? "Switch to BSC Testnet & Connect"
+                : "Connect Metamask"}
             </button>
           ) : (
             <button
