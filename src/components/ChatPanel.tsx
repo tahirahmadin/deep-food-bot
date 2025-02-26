@@ -423,7 +423,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       className={`w-full text-left px-2 py-2 rounded-lg text-xs transition-colors ${
                         selectedCategory === category
                           ? "bg-orange-100 text-orange-800"
-                          : "hover:bg-gray-100"
+                          : "hover:bg-gray-400"
                       }`}
                       style={{
                         backgroundColor:
