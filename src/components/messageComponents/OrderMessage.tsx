@@ -88,9 +88,9 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
                 }}
               >
                 <CreditCard className="w-4 h-4" />
-                Pay with your Credit/Debit Cards
+                Credit/Debit Cards
               </button>
-              {/* <button
+              <button
                 onClick={() => handlePaymentMethodSelect("crypto")}
                 style={{
                   backgroundColor: theme.chatBubbleBg,
@@ -100,7 +100,7 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
               >
                 <Coins className="w-4 h-4" />
                 Pay with USDT
-              </button> */}
+              </button>
             </div>
           </div>
         </div>
