@@ -454,7 +454,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       restaurant={
                         state.selectedRestaurant ? state.selectedRestaurant : ""
                       }
-                      image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurantState.activeRestroId}/${restaurantState.activeRestroId}-${item.id}.jpg`}
+                      image={
+                        item.image && item.image != ""
+                          ? item.image
+                          : "https://i.pinimg.com/originals/da/4f/c2/da4fc2360e1dcc5c85cf5eeaee4b107f.gif"
+                      }
                       quantity={0}
                       isCustomisable={item.isCustomisable}
                       customisation={item.customisation}

@@ -17,7 +17,11 @@ import { useFiltersContext } from "../context/FiltersContext";
 export const DunkinOrderApp: React.FC = () => {
   const { toast, hideToast } = useToast();
   const { state, dispatch } = useChatContext();
-  const { state: restaurantState, setRestaurants } = useRestaurant();
+  const {
+    state: restaurantState,
+    setRestaurants,
+    dispatch: restaurantDispatch,
+  } = useRestaurant();
   const { isAuthenticated, setIsAddressModalOpen, addresses, orders } =
     useAuth();
   const { selectedStyle, isVegOnly, isFastDelivery, numberOfPeople } =
@@ -27,6 +31,29 @@ export const DunkinOrderApp: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isImageAnalyzing, setIsImageAnalyzing] = useState(false);
 
+  // Set initial restaurant if needed
+  React.useEffect(() => {
+    const initialRestroId = 204;
+    const initialRestroName = "Boost Juice";
+    const backImageUrl =
+      "https://diningtas.com.au/wp-content/uploads/2023/02/306165598_459400956233846_1473752187276104953_n-150x150.jpg";
+
+    if (initialRestroId && restaurantState.singleMode) {
+      restaurantDispatch({
+        type: "SET_BACKGROUND_IMAGE",
+        payload: backImageUrl,
+      });
+      restaurantDispatch({
+        type: "SET_ACTIVE_RESTRO",
+        payload: initialRestroId,
+      });
+      dispatch({ type: "SET_SELECTED_RESTAURANT", payload: initialRestroName });
+    }
+  }, [restaurantState.singleMode]);
+
+  console.log("Testing");
+  console.log(state.selectedRestaurant);
+  console.log(restaurantState.singleMode);
   // Reset UI state when auth changes.
   useEffect(() => {
     if (!isAuthenticated) {
@@ -164,16 +191,33 @@ export const DunkinOrderApp: React.FC = () => {
     <div
       className="min-h-[100vh] h-[100vh] relative flex items-center justify-center  overflow-hidden"
       style={{
-        backgroundColor: theme.background,
+        backgroundColor: theme.background, // 80% background color
         color: theme.text,
+        position: "relative", // Required for pseudo-element positioning
       }}
     >
+      {/* Pseudo-element for the background image with 20% opacity */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundImage: `url(${restaurantState.backgroundImage})`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "300px", // Adjust the size of the logo
+          opacity: 0.1, // 20% opacity for the logo
+          zIndex: 1, // Ensure it stays behind the content
+        }}
+      ></div>
       <div
         className="relative w-full h-full max-w-md transition-all duration-300"
         style={{
           backgroundColor: theme.background || "#0B0E11",
           color: theme.text,
           border: `3px solid ${theme.headerBg}`,
+          zIndex: 2,
         }}
       >
         {toast.visible && (

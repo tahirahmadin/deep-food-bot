@@ -460,7 +460,9 @@ export const Filters: React.FC = () => {
         </button>
 
         <button
-          onClick={handleClearRestaurant}
+          onClick={
+            !restaurantState.singleMode ? handleClearRestaurant : () => {}
+          }
           className="flex items-center gap-1 transition-colors"
           style={{
             color: !state.selectedRestaurant ? theme.primary : theme.filtersBg,
@@ -477,7 +479,9 @@ export const Filters: React.FC = () => {
               ? state.selectedRestaurant
               : "All Restaurants"}
           </span>
-          {state.selectedRestaurant && <X className="w-3.5 h-3.5" />}
+          {state.selectedRestaurant && !restaurantState.singleMode && (
+            <X className="w-3.5 h-3.5" />
+          )}
         </button>
 
         <button
