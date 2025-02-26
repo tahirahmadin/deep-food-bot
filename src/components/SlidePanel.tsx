@@ -200,6 +200,38 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
     }
   }, [selectedOrder?._id]);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      const ws = new WebSocket("wss://paymentstest.gobbl.ai/ws");
+      ws.onopen = () => {
+        console.log("Global orders WebSocket connected");
+      };
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log("Global WS message received:", data);
+          if (data.type === "orderUpdated" && data.order) {
+            // Update the global orders list automatically
+            updateOrder && updateOrder(data.order);
+          }
+        } catch (error) {
+          console.error("Error parsing global order update:", error);
+        }
+      };
+      ws.onerror = (err) => {
+        console.error("Global orders WS error:", err);
+        ws.close();
+      };
+      ws.onclose = () => {
+        console.log("Global orders WS closed");
+      };
+      return () => {
+        ws.close();
+      };
+    }
+  }, [isAuthenticated, updateOrder]);
+  
+
   return (
     <>
       <div
