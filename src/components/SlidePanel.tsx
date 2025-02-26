@@ -53,6 +53,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
     orders,
     isLoadingOrders,
     refreshOrders,
+    updateOrder,
   } = useAuth();
   const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
   const [isAddressesExpanded, setIsAddressesExpanded] = useState(false);
@@ -163,6 +164,42 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  useEffect(() => {
+    if (selectedOrder && selectedOrder._id) {
+      const ws = new WebSocket("wss://paymentstest.gobbl.ai/ws");
+      ws.onopen = () => {
+        console.log("Order WebSocket connected for order", selectedOrder._id);
+      };
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log("SlidePanel Order WS message:", data);
+          if (
+            data.type === "orderUpdated" &&
+            data.order &&
+            data.order._id === selectedOrder._id
+          ) {
+            console.log("Updating selected order:", data.order);
+            setSelectedOrder({ ...data.order });
+            updateOrder && updateOrder(data.order);
+          }
+        } catch (error) {
+          console.error("Error parsing order update:", error);
+        }
+      };
+      ws.onerror = (err) => {
+        console.error("Order WebSocket error:", err);
+        ws.close();
+      };
+      ws.onclose = () => {
+        console.log("Order WebSocket closed");
+      };
+      return () => {
+        ws.close();
+      };
+    }
+  }, [selectedOrder?._id]);
+
   return (
     <>
       <div
@@ -252,8 +289,8 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
             <div className="p-4">
               <div className="space-y-6">
                 {statusSteps.map((step, index) => {
-                  const isActive =
-                    getStatusStep(selectedOrder?.status) >= step.step;
+                  const currentStep = getStatusStep(selectedOrder?.status);
+                  const isActive = currentStep >= step.step;
                   const StepIcon = step.icon;
                   return (
                     <div
