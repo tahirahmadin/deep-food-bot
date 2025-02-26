@@ -198,7 +198,7 @@ export const CartSummary: React.FC = () => {
                               key={index}
                               className="text-[10px] text-gray-500"
                             >
-                              <span className="font-semibold text-gray-800">
+                              <span className="font-semibold text-gray-500">
                                 {customization.categoryName}:
                               </span>{" "}
                               {customization.selection.name}
