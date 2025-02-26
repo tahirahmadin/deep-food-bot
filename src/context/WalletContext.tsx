@@ -161,7 +161,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Convert amount to proper decimals (usually 18 for USDT on BSC)
       const tokenDecimals = decimals || 18;
-      const amountInUnits = parseUnits(amount.toString(), tokenDecimals);
+      const amountInUnits = parseUnits((amount / 10).toString(), tokenDecimals);
 
       // Execute the transfer
       const hash = await writeContractAsync({
