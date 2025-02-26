@@ -68,6 +68,7 @@ interface ChatState {
       };
       restaurant?: string;
     } | null;
+    isEditing: boolean;
   };
   cart: CartItem[];
   checkout: {
@@ -157,6 +158,7 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
         customization: {
           isOpen: action.payload.isOpen,
           item: action.payload.item,
+          isEditing: action.payload.isEditing || false,
         },
       };
     case "SET_SELECTED_RESTAURANT":
