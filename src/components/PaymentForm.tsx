@@ -307,6 +307,7 @@ const CheckoutForm: React.FC<{
         restaurantState.activeRestroId
       );
 
+      console.log(paymentStatus);
       if (paymentStatus) {
         // Show success animation
         setShowSuccessAnimation(true);
