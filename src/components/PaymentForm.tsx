@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Lock,
   CheckCircle2,
@@ -19,33 +19,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useRestaurant } from "../context/RestaurantContext";
-import Web3 from "web3";
 import { useFiltersContext } from "../context/FiltersContext";
-
-// Initialize Stripe
-// const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, {
-//   stripeAccount: "acct_1QnDfMRsmaUdhKRS",
-// });
-
-// Card Element styles
-const cardStyle = {
-  style: {
-    base: {
-      color: "#f9f9f9",
-
-      letterSpacing: "0.025em",
-      fontFamily: "Source Code Pro, monospace",
-      fontSmoothing: "antialiased",
-      fontSize: "16px",
-      "::placeholder": {
-        color: "#aab7c4",
-      },
-    },
-    invalid: {
-      color: "#9e2146",
-    },
-  },
-};
 
 // Checkout Form Component
 const CheckoutForm: React.FC<{
@@ -320,6 +294,33 @@ const CheckoutForm: React.FC<{
     }
   };
 
+  const handleCashPayment = async () => {
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      let paymentStatus = await stripeService.createCashIntent(
+        cart,
+        orderDetails,
+        state.selectedRestaurant || "Unknown Restaurant",
+        user.userId,
+        restaurantState.activeRestroId
+      );
+
+      if (paymentStatus) {
+        // Show success animation
+        setShowSuccessAnimation(true);
+        setIsSuccess(true);
+        handlePaymentSuccess();
+      }
+    } catch (error) {
+      console.error("Payment failed:", error);
+      setError(error instanceof Error ? error.message : "Payment failed");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedPaymentMethod === "card") {
@@ -328,6 +329,8 @@ const CheckoutForm: React.FC<{
         return;
       }
       await handleCardPayment();
+    } else if (selectedPaymentMethod === "cash") {
+      await handleCashPayment();
     } else {
       if (!connected) {
         await connectWallet();
@@ -467,6 +470,24 @@ const CheckoutForm: React.FC<{
     );
   }
 
+  const getCardStyle = (color: string) => ({
+    style: {
+      base: {
+        color: color || "#f9f9f9", // Default to white if no color is provided
+        letterSpacing: "0.025em",
+        fontFamily: "Source Code Pro, monospace",
+        fontSmoothing: "antialiased",
+        fontSize: "16px",
+        "::placeholder": {
+          color: "#aab7c4",
+        },
+      },
+      invalid: {
+        color: "#9e2146",
+      },
+    },
+  });
+
   return (
     <div
       className=" rounded-lg p-2.5 shadow-sm backdrop-blur-sm mb-3 max-w-sm mx-auto"
@@ -523,7 +544,7 @@ const CheckoutForm: React.FC<{
       </div>
 
       {/* Payment Method Forms */}
-      {selectedPaymentMethod === "card" ? (
+      {selectedPaymentMethod === "card" && (
         <form onSubmit={handleSubmit} className="mt-3 space-y-4">
           <div>
             <label className="block text-xs mb-1" style={{ color: theme.text }}>
@@ -531,13 +552,15 @@ const CheckoutForm: React.FC<{
             </label>
             <div className="w-full p-3 border border-gray-200 rounded-lg">
               <CardElement
-                options={cardStyle}
+                options={getCardStyle(theme.text)}
                 onChange={(e) => setCardComplete(e.complete)}
               />
             </div>
           </div>
         </form>
-      ) : (
+      )}
+
+      {selectedPaymentMethod === "crypto" && (
         <div className="mt-3 space-y-4">
           <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
             {/* Connected Wallet Info */}
@@ -668,6 +691,30 @@ const CheckoutForm: React.FC<{
                 : `Pay ${(parseFloat(total) * 0.27).toFixed(2)} USDT`}
             </button>
           )}
+        </div>
+      )}
+      {selectedPaymentMethod === "cash" && (
+        <div className="mt-3 space-y-4">
+          <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
+            {/* Payment Button */}
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-600">Amount to Pay</span>
+              <span className="font-bold text-gray-900">
+                {parseFloat(total).toFixed(2)} AED
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            className="w-full p-2  rounded-lg hover:bg-primary-600 transition-colors text-sm disabled:opacity-50"
+            style={{
+              color: theme.background,
+              backgroundColor: theme.primary,
+            }}
+          >
+            Confirm order
+          </button>
         </div>
       )}
 

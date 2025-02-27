@@ -68,11 +68,12 @@ interface ChatState {
       };
       restaurant?: string;
     } | null;
+    isEditing: boolean;
   };
   cart: CartItem[];
   checkout: {
     step: "details" | "payment" | null;
-    paymentMethod: "card" | "crypto" | null;
+    paymentMethod: "card" | "crypto" | "cash" | null;
     orderDetails: {
       name: string;
       address: string;
@@ -116,7 +117,7 @@ type ChatAction =
   | { type: "REMOVE_FROM_CART"; payload: number }
   | { type: "UPDATE_CART_ITEM"; payload: CartItem }
   | { type: "SET_CHECKOUT_STEP"; payload: "details" | "payment" | null }
-  | { type: "SET_PAYMENT_METHOD"; payload: "card" | "crypto" }
+  | { type: "SET_PAYMENT_METHOD"; payload: "card" | "crypto" | "cash" }
   | {
       type: "UPDATE_ORDER_DETAILS";
       payload: Partial<ChatState["checkout"]["orderDetails"]>;
@@ -157,6 +158,7 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
         customization: {
           isOpen: action.payload.isOpen,
           item: action.payload.item,
+          isEditing: action.payload.isEditing || false,
         },
       };
     case "SET_SELECTED_RESTAURANT":

@@ -128,6 +128,74 @@ class StripeService {
     }
   }
 
+  async createCashIntent(
+    cart: any[],
+    orderDetails: any,
+    restaurantName: string,
+    userId: string,
+    restaurantId: number
+  ) {
+    try {
+      console.log("Creating payment intent with Cas:");
+
+      const lineItems = cart.map((item) => ({
+        price_data: {
+          currency: "aed",
+          product_data: {
+            name: item.name,
+          },
+          unit_amount: Math.round(parseFloat(item.price) * 100), // Convert to cents
+        },
+        quantity: item.quantity,
+      }));
+
+      const response = await fetch(`${this.apiUrl}/payment/create-cash-order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Origin: window.location.origin,
+        },
+        body: JSON.stringify({
+          lineItems,
+          userId,
+          restaurantName,
+          restaurantId,
+          cart,
+          customerDetails: {
+            name: orderDetails.name,
+            email: orderDetails.email,
+            address: orderDetails.address,
+            phone: orderDetails.phone,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData.message || "Failed to create payment intent");
+      }
+
+      const data = await response.json();
+      console.log("Payment intent response:", data);
+
+      if (!data.clientSecret) {
+        throw new Error(
+          "No client secret returned from payment intent creation"
+        );
+      }
+
+      if (data.error) {
+        throw new Error(data.error.message || "Payment intent creation failed");
+      }
+
+      return data.clientSecret;
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      throw error;
+    }
+  }
+
   async getStripe() {
     return await this.stripe;
   }

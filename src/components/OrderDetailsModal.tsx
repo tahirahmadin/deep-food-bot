@@ -69,7 +69,10 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
     },
     {
       title: "Out for Delivery",
-      description: `Estimated delivery in ${order.estimatedDeliveryTime} mins`,
+      description:
+        order.estimatedDeliveryTime === 0
+          ? `Waiting for delivery agent.`
+          : `Estimated delivery in ${order.estimatedDeliveryTime} mins`,
       icon: Truck,
       step: 3,
     },
