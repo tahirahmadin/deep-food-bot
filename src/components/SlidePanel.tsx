@@ -245,41 +245,63 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
       />
 
       <div
-        className={`fixed right-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-[100] ${
+        className={`fixed right-0 top-0 h-full w-full bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-[100] ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
         style={{ backgroundColor: theme.slideBgOther }}
       >
         {showMainPanel ? (
-          <div className="p-6" style={{ backgroundColor: theme.slideBgLight }}>
-            <div className="flex items-center gap-2 mb-4">
+          <div className="p-2" style={{ backgroundColor: theme.slideBgLight }}>
+            <div
+              className="flex justify-between mb-4"
+              style={{ color: theme.slideMainText }}
+            >
+              <div>
+                <button onClick={onClose} className="flex items-center text-sm">
+                  <ChevronLeft className="w-4 h-4" />
+                  Back
+                </button>
+              </div>
+              <div>Profile</div>
+              <div></div>
+            </div>
+            <div
+              className="flex items-center gap-2 mb-4 rounded-xl p-4"
+              style={{
+                backgroundColor: theme.primary,
+                color: theme.slideCardBg,
+              }}
+            >
               <div className="w-[20%] rounded-full bg-orange-100 flex items-center justify-center">
                 {isAuthenticated && user?.picture ? (
                   <img
                     src={user.picture}
                     alt={user.name}
-                    className="rounded-full object-cover"
+                    className="rounded-full object-cover border border-white"
                   />
                 ) : (
                   <User className="w-8 h-8 text-orange-500" />
                 )}
               </div>
-              <div className="w-[80%]" style={{ color: theme.slideSecondText }}>
+              <div className="w-[80%]" style={{ color: theme.slideCardText }}>
                 <h3 className="font-semibold">
                   {isAuthenticated ? user?.name : "Guest User"}
                 </h3>
                 {isAuthenticated && (
                   <p className="text-xs opacity-80">{user?.email}</p>
                 )}
-                <div className="flex items-center gap-1 text-xs opacity-70">
-                  {latestAddress && (
-                    <>
-                      <MapPin className="w-3 h-3" />
-                      <span className="line-clamp-1">
-                        {latestAddress.address}
-                      </span>
-                    </>
-                  )}
+                <div className="flex items-center justify-between rounded-lg border w-fit px-3 mt-1">
+                  <div className="flex items-center gap-1">
+                    <div className="w-5 h-5 rounded-full  flex items-center justify-center">
+                      <Wallet
+                        className="w-4 h-4"
+                        style={{ color: theme.slideCardText }}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-primary">$0.00</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -489,34 +511,6 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
             className="p-4 bg-gradient-to-br from-primary-50 to-primary-100/50 border-b"
             style={{ backgroundColor: theme.slideBg }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full  flex items-center justify-center">
-                  <Wallet
-                    className="w-4 h-4 "
-                    style={{ color: theme.primary }}
-                  />
-                </div>
-                <div>
-                  <h4
-                    className="text-sm font-medium "
-                    style={{ color: theme.slideMainText }}
-                  >
-                    Wallet Balance
-                  </h4>
-                  <p
-                    className="text-xs opacity-70"
-                    style={{ color: theme.slideMainText }}
-                  >
-                    {connected
-                      ? `${publicKey?.slice(0, 4)}...${publicKey?.slice(-4)}`
-                      : "Not connected"}
-                  </p>
-                </div>
-              </div>
-              <p className="text-lg font-bold text-primary">$0.00</p>
-            </div>
-
             <div className="flex items-stretch gap-3">
               <div className="flex-1 bg-white rounded-xl p-3 shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
