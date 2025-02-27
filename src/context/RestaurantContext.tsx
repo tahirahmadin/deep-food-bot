@@ -25,7 +25,7 @@ type RestaurantAction =
 
 const initialState: RestaurantState = {
   selectedRestroIds: [],
-  singleMode: true,
+  singleMode: false,
   backgroundImage: null,
   activeRestroId: null,
   restaurants: [],

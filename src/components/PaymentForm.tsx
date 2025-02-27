@@ -27,26 +27,6 @@ import { useFiltersContext } from "../context/FiltersContext";
 //   stripeAccount: "acct_1QnDfMRsmaUdhKRS",
 // });
 
-// Card Element styles
-const cardStyle = {
-  style: {
-    base: {
-      color: "#f9f9f9",
-
-      letterSpacing: "0.025em",
-      fontFamily: "Source Code Pro, monospace",
-      fontSmoothing: "antialiased",
-      fontSize: "16px",
-      "::placeholder": {
-        color: "#aab7c4",
-      },
-    },
-    invalid: {
-      color: "#9e2146",
-    },
-  },
-};
-
 // Checkout Form Component
 const CheckoutForm: React.FC<{
   orderDetails: any;
@@ -467,6 +447,24 @@ const CheckoutForm: React.FC<{
     );
   }
 
+  const getCardStyle = (color: string) => ({
+    style: {
+      base: {
+        color: color || "#f9f9f9", // Default to white if no color is provided
+        letterSpacing: "0.025em",
+        fontFamily: "Source Code Pro, monospace",
+        fontSmoothing: "antialiased",
+        fontSize: "16px",
+        "::placeholder": {
+          color: "#aab7c4",
+        },
+      },
+      invalid: {
+        color: "#9e2146",
+      },
+    },
+  });
+
   return (
     <div
       className=" rounded-lg p-2.5 shadow-sm backdrop-blur-sm mb-3 max-w-sm mx-auto"
@@ -531,7 +529,7 @@ const CheckoutForm: React.FC<{
             </label>
             <div className="w-full p-3 border border-gray-200 rounded-lg">
               <CardElement
-                options={cardStyle}
+                options={getCardStyle(theme.text)}
                 onChange={(e) => setCardComplete(e.complete)}
               />
             </div>

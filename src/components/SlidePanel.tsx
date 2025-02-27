@@ -102,7 +102,9 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
     {
       title: "Out for Delivery",
       description: (order: any) =>
-        `Estimated delivery in ${order.estimatedDeliveryTime} mins`,
+        order.estimatedDeliveryTime === 0
+          ? `Waiting for delivery agent.`
+          : `Estimated delivery in ${order.estimatedDeliveryTime} mins`,
       icon: Truck,
       step: 3,
     },
