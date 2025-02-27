@@ -251,7 +251,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
         style={{ backgroundColor: theme.slideBgOther }}
       >
         {showMainPanel ? (
-          <div className="p-2" style={{ backgroundColor: theme.slideBgLight }}>
+          <div className="p-2" style={{ backgroundColor: theme.slideBg }}>
             <div
               className="flex justify-between mb-4"
               style={{ color: theme.slideMainText }}

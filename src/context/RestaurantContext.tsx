@@ -7,6 +7,7 @@ interface RestaurantState {
   selectedRestroIds: number[];
   activeRestroId: number | null;
   singleMode: boolean | false;
+  cashMode: boolean | false;
   backgroundImage: string | null;
   restaurants: SingleRestro[];
   menus: {
@@ -26,6 +27,7 @@ type RestaurantAction =
 const initialState: RestaurantState = {
   selectedRestroIds: [],
   singleMode: false,
+  cashMode: true,
   backgroundImage: null,
   activeRestroId: null,
   restaurants: [],
