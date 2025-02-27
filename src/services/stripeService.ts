@@ -171,25 +171,13 @@ class StripeService {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData.message || "Failed to create payment intent");
-      }
-
       const data = await response.json();
+      if (data.error) {
+        throw new Error("Failed to create payment intent");
+      }
       console.log("Payment intent response:", data);
 
-      if (!data.clientSecret) {
-        throw new Error(
-          "No client secret returned from payment intent creation"
-        );
-      }
-
-      if (data.error) {
-        throw new Error(data.error.message || "Payment intent creation failed");
-      }
-
-      return data.clientSecret;
+      return data?.result;
     } catch (error) {
       console.error("Error creating payment intent:", error);
       throw error;
