@@ -56,7 +56,6 @@ const filterMenuItems = (menuItems: any[]): any[] =>
       isCustomisable,
       sweetnessLevel,
       caffeineLevel,
-      description,
       ...rest
     }) => rest
   );
