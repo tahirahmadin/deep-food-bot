@@ -31,9 +31,9 @@ interface ChatLogicProps {
   chatHistory: Message[];
 }
 
-const MENU_CACHE_TTL = 10 * 60 * 1000;
-const LLM_CACHE_TTL = 5 * 60 * 1000;
-const RESTAURANT_QUERY_CACHE_TTL = 5 * 60 * 1000; 
+const MENU_CACHE_TTL = 2 * 60 * 1000;
+const LLM_CACHE_TTL = 1 * 60 * 1000;
+const RESTAURANT_QUERY_CACHE_TTL = 1 * 60 * 1000; 
 
 interface CacheEntry<T> {
   value: T | null;
@@ -127,8 +127,12 @@ const classifyIntent = async (
   query: string,
   activeRestroId: number | null,
   state: any,
-  chatHistory: Message[]
+  chatHistory: Message[],
+  isImageBased: boolean = false
 ): Promise<QueryType> => {
+
+  if (isImageBased) return QueryType.MENU_QUERY;
+
   const restaurantKeywords = [
     "restaurant",
     "place",
@@ -376,15 +380,16 @@ export const useChatLogic = ({
         hour12: true,
       });
 
-      
-      const queryType = await classifyIntent(
+      const queryType = isImageBased
+      ? QueryType.MENU_QUERY
+      : await classifyIntent(
         userInput,
         restaurantState.activeRestroId,
         state,
         chatHistory
       );
-
       
+    
       const conversationContext = buildConversationContext(
         chatHistory.filter((msg) => !msg.isBot)
       );
