@@ -333,7 +333,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                     className="text-lg font-semibold"
                     style={{ color: theme.slideSecondText }}
                   >
-                    Order #{selectedOrder?.orderId.slice(-6)}
+                    Order #{selectedOrder?.orderId}
                   </h3>
                   <p
                     className="text-sm opacity-70"

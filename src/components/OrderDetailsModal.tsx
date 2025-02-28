@@ -109,7 +109,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 className="text-lg font-semibold"
                 style={{ color: theme.modalMainText }}
               >
-                Order #{order.orderId.slice(-6)}
+                Order #{order.orderId}
               </h3>
               <p
                 className="text-sm opacity-70"
