@@ -31,9 +31,9 @@ interface ChatLogicProps {
   chatHistory: Message[];
 }
 
-const MENU_CACHE_TTL = 10 * 60 * 1000;
-const LLM_CACHE_TTL = 5 * 60 * 1000;
-const RESTAURANT_QUERY_CACHE_TTL = 5 * 60 * 1000; 
+const MENU_CACHE_TTL = 2 * 60 * 1000;
+const LLM_CACHE_TTL = 1 * 60 * 1000;
+const RESTAURANT_QUERY_CACHE_TTL = 1 * 60 * 1000; 
 
 interface CacheEntry<T> {
   value: T | null;
