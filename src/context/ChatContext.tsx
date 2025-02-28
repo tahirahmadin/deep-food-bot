@@ -249,7 +249,7 @@ const initialState: ChatState = {
   error: null,
   currentQueryType: QueryType.GENERAL,
   mode: "chat",
-  selectedModel: ChatModel.GEMINI,
+  selectedModel: ChatModel.OPENAI,
   selectedRestaurant: null,
   customization: {
     isOpen: false,
