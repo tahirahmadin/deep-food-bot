@@ -290,7 +290,10 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({ isOpen, onClose }) => {
                 {isAuthenticated && (
                   <p className="text-xs opacity-80">{user?.email}</p>
                 )}
-                <div className="flex items-center justify-between rounded-lg border w-fit px-3 mt-1">
+                <div
+                  className="flex items-center justify-between rounded-lg border w-fit px-3 mt-1"
+                  style={{ border: `1px solid ${theme.slideSecondText}` }}
+                >
                   <div className="flex items-center gap-1">
                     <div className="w-5 h-5 rounded-full  flex items-center justify-center">
                       <Wallet

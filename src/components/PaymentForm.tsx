@@ -522,7 +522,13 @@ const CheckoutForm: React.FC<{
             <p className="text-[10px]">Order Total</p>
             <p className="text-lg font-bold">{total} AED</p>
           </div>
-          <p className="text-xs px-2 py-0.5 rounded-full">30-45 min delivery</p>
+
+          <p className="text-xs px-2 py-0.5 rounded-full">
+            {" "}
+            {selectedPaymentMethod === "cash"
+              ? "In store order"
+              : "30-45 min delivery"}
+          </p>
         </div>
 
         <div className="relative z-10 grid grid-cols-2 gap-1.5 text-xs border-t border-white/10 pt-2">
