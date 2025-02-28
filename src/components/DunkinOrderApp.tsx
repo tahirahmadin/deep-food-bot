@@ -33,10 +33,10 @@ export const DunkinOrderApp: React.FC = () => {
 
   // Set initial restaurant if needed
   React.useEffect(() => {
-    const initialRestroId = 204;
-    const initialRestroName = "Boost Juice";
+    const initialRestroId = 205;
+    const initialRestroName = "Hungry Wolves";
     const backImageUrl =
-      "https://diningtas.com.au/wp-content/uploads/2023/02/306165598_459400956233846_1473752187276104953_n-150x150.jpg";
+      "https://images.deliveryhero.io/image/talabat/restaurants/logo_(25)_637813953644256218.jpg?width=300";
 
     if (initialRestroId && restaurantState.singleMode) {
       restaurantDispatch({
