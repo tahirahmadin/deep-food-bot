@@ -36,7 +36,7 @@ export const DunkinOrderApp: React.FC = () => {
     const initialRestroId = 205;
     const initialRestroName = "Hungry Wolves";
     const backImageUrl =
-      "https://images.deliveryhero.io/image/talabat/restaurants/logo_(25)_637813953644256218.jpg?width=300";
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4jOHl2IQswMq9Na2ZmVTxv8GoWXb31iLZyQ&s";
 
     if (initialRestroId && restaurantState.singleMode) {
       restaurantDispatch({
