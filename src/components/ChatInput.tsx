@@ -7,6 +7,9 @@ import {
   Zap,
   Tag,
   Pizza,
+  Heart,
+  Dumbbell,
+  Sun
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -99,19 +102,43 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         {showQuickActions && !input && !isKeyboardOpen && (
           <div className="grid grid-cols-2 gap-2 mb-1 max-h-[120px] overflow-y-auto">
             <button
-              onClick={() => handleQuickAction("Show me lunch combos")}
+              onClick={() => handleQuickAction("Suggest me low sugar smoothies")}
               className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
               style={{
                 backgroundColor: theme.inputButtonBg,
                 color: theme.inputButtonText,
               }}
             >
-              <Timer className="w-3.5 h-3.5" />
-              <span>Lunch combos ?</span>
+              <Heart className="w-3.5 h-3.5" />
+              <span>Low-sugar smoothies?</span>
             </button>
 
             <button
-              onClick={() => handleQuickAction("Show me best veg options")}
+              onClick={() => handleQuickAction("Suggest me something high in protein")}
+              className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
+              style={{
+                backgroundColor: theme.inputButtonBg,
+                color: theme.inputButtonText,
+              }}
+            >
+              <Dumbbell className="w-3.5 h-3.5" />
+              <span>Protein-packed blends?</span>
+            </button>
+
+            <button
+              onClick={() => handleQuickAction("suggest something having seasonal fruits")}
+              className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
+              style={{
+                backgroundColor: theme.inputButtonBg,
+                color: theme.inputButtonText,
+              }}
+            >
+              <Sun className="w-3.5 h-3.5" />
+              <span>Seasonal fruit fusions?</span>
+            </button>
+
+            <button
+              onClick={() => handleQuickAction("Suggest me Healthy drinks option")}
               className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
               style={{
                 backgroundColor: theme.inputButtonBg,
@@ -119,30 +146,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               }}
             >
               <Leaf className="w-3.5 h-3.5" />
-              <span>Best veg options ?</span>
-            </button>
-
-            <button
-              onClick={() => handleQuickAction("What are best chicken meals?")}
-              className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
-              style={{
-                backgroundColor: theme.inputButtonBg,
-                color: theme.inputButtonText,
-              }}
-            >
-              <Pizza className="w-3.5 h-3.5" />
-              <span>Best chicken meals?</span>
-            </button>
-
-            <button
-              onClick={() => handleQuickAction("Show me Healthy drinks option")}
-              className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
-              style={{
-                backgroundColor: theme.inputButtonBg,
-                color: theme.inputButtonText,
-              }}
-            >
-              <Zap className="w-3.5 h-3.5" />
               <span>Healthy drinks ?</span>
             </button>
           </div>
