@@ -99,7 +99,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         {showQuickActions && !input && !isKeyboardOpen && (
           <div className="grid grid-cols-2 gap-2 mb-1 max-h-[120px] overflow-y-auto">
             <button
-              onClick={() => handleQuickAction("Suggest me something high in protein")}
+              onClick={() => handleQuickAction("Show me lunch combos")}
               className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
               style={{
                 backgroundColor: theme.inputButtonBg,
@@ -107,11 +107,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               }}
             >
               <Timer className="w-3.5 h-3.5" />
-              <span>Protein-packed blends?</span>
+              <span>Lunch combos ?</span>
             </button>
 
             <button
-              onClick={() => handleQuickAction("Suggest me low sugar smoothies")}
+              onClick={() => handleQuickAction("Show me best veg options")}
               className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
               style={{
                 backgroundColor: theme.inputButtonBg,
@@ -119,11 +119,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               }}
             >
               <Leaf className="w-3.5 h-3.5" />
-              <span>Low-sugar smoothies?</span>
+              <span>Best veg options ?</span>
             </button>
 
             <button
-              onClick={() => handleQuickAction("Suggest something having seasonal fruits")}
+              onClick={() => handleQuickAction("What are best chicken meals?")}
               className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
               style={{
                 backgroundColor: theme.inputButtonBg,
@@ -131,11 +131,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               }}
             >
               <Pizza className="w-3.5 h-3.5" />
-              <span>Seasonal fruit fusions?</span>
+              <span>Best chicken meals?</span>
             </button>
 
             <button
-              onClick={() => handleQuickAction("Suggest me Healthy drinks option")}
+              onClick={() => handleQuickAction("Show me Healthy drinks option")}
               className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
               style={{
                 backgroundColor: theme.inputButtonBg,
