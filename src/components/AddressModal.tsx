@@ -457,6 +457,7 @@ export const AddressModal: React.FC = () => {
       <button
         type="submit"
         className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
+        style={{ backgroundColor: "orange" }}
       >
         Save Address
       </button>
