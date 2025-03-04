@@ -1,5 +1,6 @@
 import React from "react";
 import { X, ArrowRight } from "lucide-react";
+import { useFiltersContext } from "../context/FiltersContext";
 
 interface StyleChangeModalProps {
   isOpen: boolean;
@@ -18,16 +19,28 @@ export const StyleChangeModal: React.FC<StyleChangeModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const { theme } = useFiltersContext();
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
+        style={{ backgroundColor: theme.modalBg }}
       />
-      <div className="relative bg-white rounded-xl shadow-lg w-full max-w-sm animate-slide-up overflow-hidden">
-        <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 border-b">
+      <div
+        className="relative rounded-xl shadow-lg w-full max-w-sm animate-slide-up overflow-hidden"
+        style={{ backgroundColor: theme.modalBg }}
+      >
+        <div
+          className="p-4 border-b"
+          style={{ backgroundColor: theme.modalBgLight }}
+        >
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3
+              className="text-lg font-semibold"
+              style={{ color: theme.modalSecondText }}
+            >
               Change Conversation Style
             </h3>
             <button
@@ -39,7 +52,7 @@ export const StyleChangeModal: React.FC<StyleChangeModalProps> = ({
           </div>
         </div>
 
-        <div className="p-4 bg-gradient-to-br from-white to-gray-50/50">
+        <div className="p-4 " style={{ backgroundColor: theme.modalBg }}>
           <div className="flex items-center justify-between gap-6 mb-6">
             {/* Current Style */}
             <div className="flex-1 text-center relative">
@@ -58,10 +71,15 @@ export const StyleChangeModal: React.FC<StyleChangeModalProps> = ({
                   className="w-full h-full object-cover"
                 />
               </div>
-              <p className="text-sm font-semibold text-gray-800">
+              <p
+                className="text-sm font-semibold"
+                style={{ color: theme.primary }}
+              >
                 {currentStyle}
               </p>
-              <p className="text-xs text-gray-500">Current Style</p>
+              <p className="text-xs" style={{ color: theme.modalMainText }}>
+                Current Style
+              </p>
             </div>
 
             {/* Arrow */}
@@ -88,12 +106,25 @@ export const StyleChangeModal: React.FC<StyleChangeModalProps> = ({
                   className="w-full h-full object-cover"
                 />
               </div>
-              <p className="text-sm font-semibold text-gray-800">{newStyle}</p>
-              <p className="text-xs text-gray-500">New Style</p>
+              <p
+                className="text-sm font-semibold"
+                style={{ color: theme.primary }}
+              >
+                {newStyle}
+              </p>
+              <p
+                className="text-xs text-gray-500"
+                style={{ color: theme.modalMainText }}
+              >
+                New Style
+              </p>
             </div>
           </div>
-          <div className="bg-orange-50 rounded-lg p-3 text-center">
-            <p className="text-gray-700 text-sm">
+          <div
+            className="rounded-lg p-3 text-center"
+            style={{ backgroundColor: theme.modalBgLight }}
+          >
+            <p className=" text-sm" style={{ color: theme.modalSecondText }}>
               Changing the conversation style will clear your current chat
               history.
             </p>
@@ -113,7 +144,7 @@ export const StyleChangeModal: React.FC<StyleChangeModalProps> = ({
           <button
             onClick={onConfirm}
             className="flex-1 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
-            style={{ backgroundColor: "orange" }}
+            style={{ backgroundColor: theme.primary, color: theme.background }}
           >
             Continue
           </button>

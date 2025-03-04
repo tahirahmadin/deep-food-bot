@@ -13,12 +13,15 @@ import { QueryType, useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
-import { getThemeForStyle } from "../utils/themeUtils";
 
 export const DunkinOrderApp: React.FC = () => {
   const { toast, hideToast } = useToast();
   const { state, dispatch } = useChatContext();
-  const { state: restaurantState, setRestaurants } = useRestaurant();
+  const {
+    state: restaurantState,
+    setRestaurants,
+    dispatch: restaurantDispatch,
+  } = useRestaurant();
   const { isAuthenticated, setIsAddressModalOpen, addresses, orders } =
     useAuth();
   const { selectedStyle, isVegOnly, isFastDelivery, numberOfPeople } =
@@ -28,6 +31,29 @@ export const DunkinOrderApp: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isImageAnalyzing, setIsImageAnalyzing] = useState(false);
 
+  // Set initial restaurant if needed
+  React.useEffect(() => {
+    const initialRestroId = 205;
+    const initialRestroName = "Hungry Wolves";
+    const backImageUrl =
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4jOHl2IQswMq9Na2ZmVTxv8GoWXb31iLZyQ&s";
+
+    if (initialRestroId && restaurantState.singleMode) {
+      restaurantDispatch({
+        type: "SET_BACKGROUND_IMAGE",
+        payload: backImageUrl,
+      });
+      restaurantDispatch({
+        type: "SET_ACTIVE_RESTRO",
+        payload: initialRestroId,
+      });
+      dispatch({ type: "SET_SELECTED_RESTAURANT", payload: initialRestroName });
+    }
+  }, [restaurantState.singleMode]);
+
+  console.log("Testing");
+  console.log(state.selectedRestaurant);
+  console.log(restaurantState.singleMode);
   // Reset UI state when auth changes.
   useEffect(() => {
     if (!isAuthenticated) {
@@ -36,6 +62,8 @@ export const DunkinOrderApp: React.FC = () => {
       setIsCartOpen(false);
     }
   }, [isAuthenticated]);
+
+  const chatHistory = state.messages;
 
   // Instantiate our modular hooks.
   const chatLogic = useChatLogic({
@@ -49,6 +77,7 @@ export const DunkinOrderApp: React.FC = () => {
     numberOfPeople,
     setRestaurants,
     addresses,
+    chatHistory,
   });
 
   const imageHandler = useImageHandler({
@@ -162,16 +191,33 @@ export const DunkinOrderApp: React.FC = () => {
     <div
       className="min-h-[100vh] h-[100vh] relative flex items-center justify-center  overflow-hidden"
       style={{
-        backgroundColor: theme.background,
+        backgroundColor: theme.background, // 80% background color
         color: theme.text,
+        position: "relative", // Required for pseudo-element positioning
       }}
     >
+      {/* Pseudo-element for the background image with 20% opacity */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundImage: `url(${restaurantState.backgroundImage})`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "300px", // Adjust the size of the logo
+          opacity: 0.1, // 20% opacity for the logo
+          zIndex: 1, // Ensure it stays behind the content
+        }}
+      ></div>
       <div
         className="relative w-full h-full max-w-md transition-all duration-300"
         style={{
           backgroundColor: theme.background || "#0B0E11",
           color: theme.text,
           border: `3px solid ${theme.headerBg}`,
+          zIndex: 2,
         }}
       >
         {toast.visible && (
@@ -181,25 +227,28 @@ export const DunkinOrderApp: React.FC = () => {
             onClose={hideToast}
           />
         )}
-        <div className="fixed top-0 left-0 right-0 z-[50] max-w-md mx-auto">
-          <Header
-            onOpenPanel={() => setIsPanelOpen(true)}
-            onCartClick={() => setIsCartOpen(!isCartOpen)}
-          />
-          <Filters />
+        <div className="flex flex-col h-screen">
+          <div className="fixed top-0 left-0 right-0 z-[50] max-w-md mx-auto">
+            <Header
+              onOpenPanel={() => setIsPanelOpen(true)}
+              onCartClick={() => setIsCartOpen(!isCartOpen)}
+            />
+            <Filters />
+          </div>
+          <div className="flex-1 mt-[150px] overflow-auto pb-25">
+            <ChatPanel
+              input={input}
+              setInput={setInput}
+              onSubmit={handleSubmit}
+              placeholder={getInputPlaceholder()}
+              onImageUpload={handleImageUploadWrapper}
+              isImageAnalyzing={isImageAnalyzing}
+              isLoading={state.isLoading}
+              queryType={state.currentQueryType}
+            />
+          </div>
         </div>
-        <div className="h-full pt-[160px] pb-15">
-          <ChatPanel
-            input={input}
-            setInput={setInput}
-            onSubmit={handleSubmit}
-            placeholder={getInputPlaceholder()}
-            onImageUpload={handleImageUploadWrapper}
-            isImageAnalyzing={isImageAnalyzing}
-            isLoading={state.isLoading}
-            queryType={state.currentQueryType}
-          />
-        </div>
+
         <CartSummary />
       </div>
       <SlidePanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} />

@@ -3,6 +3,7 @@ import { CheckCircle2, MapPin, CreditCard, Coins } from "lucide-react";
 import { Message, QueryType } from "../../types";
 import { useChatContext } from "../../context/ChatContext";
 import { useFiltersContext } from "../../context/FiltersContext";
+import { useRestaurant } from "../../context/RestaurantContext";
 
 interface OrderMessageProps {
   message: Message;
@@ -10,9 +11,10 @@ interface OrderMessageProps {
 
 export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
   const { dispatch } = useChatContext();
+  const { state: restaurantState } = useRestaurant();
   const { theme } = useFiltersContext();
 
-  const handlePaymentMethodSelect = (method: "card" | "crypto") => {
+  const handlePaymentMethodSelect = (method: "card" | "crypto" | "cash") => {
     // Set payment method in state
     dispatch({ type: "SET_PAYMENT_METHOD", payload: method });
 
@@ -25,7 +27,11 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
       payload: {
         id: Date.now(),
         text: `Please complete your payment using ${
-          method === "card" ? "credit/debit card" : "USDT"
+          method === "card"
+            ? "credit/debit card"
+            : method === "crypto"
+            ? "USDT"
+            : "Cash at Store"
         }.`,
         isBot: true,
         time: new Date().toLocaleString("en-US", {
@@ -79,28 +85,45 @@ export const OrderMessage: React.FC<OrderMessageProps> = ({ message }) => {
           <div className="pt-2">
             <p className="text-sm mb-3">How would you like to pay?</p>
             <div className="flex gap-2">
-              <button
-                onClick={() => handlePaymentMethodSelect("card")}
-                className="flex-1 py-2 px-2 rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
-                style={{
-                  backgroundColor: theme.chatBubbleBg,
-                  color: theme.chatBubbleText,
-                }}
-              >
-                <CreditCard className="w-4 h-4" />
-                Credit/Debit Cards
-              </button>
-              <button
-                onClick={() => handlePaymentMethodSelect("crypto")}
-                style={{
-                  backgroundColor: theme.chatBubbleBg,
-                  color: theme.chatBubbleText,
-                }}
-                className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
-              >
-                <Coins className="w-4 h-4" />
-                Pay with USDT
-              </button>
+              {!restaurantState.cashMode && (
+                <button
+                  onClick={() => handlePaymentMethodSelect("card")}
+                  className="flex-1 py-2 px-2 rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
+                  style={{
+                    backgroundColor: theme.chatBubbleBg,
+                    color: theme.chatBubbleText,
+                  }}
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Credit/Debit Cards
+                </button>
+              )}{" "}
+              {!restaurantState.cashMode && (
+                <button
+                  onClick={() => handlePaymentMethodSelect("crypto")}
+                  style={{
+                    backgroundColor: theme.chatBubbleBg,
+                    color: theme.chatBubbleText,
+                  }}
+                  className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Coins className="w-4 h-4" />
+                  Pay with USDT
+                </button>
+              )}
+              {restaurantState.cashMode && (
+                <button
+                  onClick={() => handlePaymentMethodSelect("cash")}
+                  style={{
+                    backgroundColor: theme.chatBubbleBg,
+                    color: theme.chatBubbleText,
+                  }}
+                  className="flex-1 py-2 px-4 bg-primary text-white rounded-lg text-sm hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Coins className="w-4 h-4" />
+                  Cash at Store
+                </button>
+              )}
             </div>
           </div>
         </div>

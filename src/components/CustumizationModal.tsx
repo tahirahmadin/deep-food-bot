@@ -10,7 +10,7 @@ interface SelectedOption {
 
 export const CustomizationModal: React.FC = () => {
   const { state, dispatch } = useChatContext();
-  const { isOpen, item } = state.customization;
+  const { isOpen, item, isEditing } = state.customization;
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, SelectedOption[]>
@@ -27,23 +27,47 @@ export const CustomizationModal: React.FC = () => {
 
   // Initialize default selections
   useEffect(() => {
-    if (item?.customisation) {
+    if (item) {
       const defaults: Record<string, SelectedOption[]> = {};
-      item.customisation.categories.forEach((category) => {
-        if (category.minQuantity > 0 && category.items.length > 0) {
+  
+      if (item.customizations) {
+        item.customizations.forEach((cust) => {
+          const { categoryName, selection } = cust;
+          if (defaults[categoryName]) {
+            defaults[categoryName].push({
+              name: selection.name,
+              price: selection.price,
+              categoryName,
+            });
+          } else {
+            defaults[categoryName] = [
+              {
+                name: selection.name,
+                price: selection.price,
+                categoryName,
+              },
+            ];
+          }
+        });
+      } else if (item.customisation) {
+        // Fallback: Use default values from full configuration
+        item.customisation.categories.forEach((category) => {
+          if (category.minQuantity > 0 && category.items.length > 0) {
           // For required categories, select the minimum number of default options
-          defaults[category.categoryName] = [
-            {
-              name: category.items[0].name,
-              price: category.items[0].price,
-              categoryName: category.categoryName,
-            },
-          ];
-        }
-      });
+            defaults[category.categoryName] = [
+              {
+                name: category.items[0].name,
+                price: category.items[0].price,
+                categoryName: category.categoryName,
+              },
+            ];
+          }
+        });
+      }
       setSelectedOptions(defaults);
     }
   }, [item]);
+  
 
   const handleOptionSelect = (
     category: NonNullable<typeof item>["customisation"]["categories"][0],
@@ -160,18 +184,34 @@ export const CustomizationModal: React.FC = () => {
         }))
     );
 
-    dispatch({
-      type: "ADD_TO_CART",
-      payload: {
-        id: item.id,
-        name: item.name,
-        price: calculateTotal(),
-        quantity,
-        restaurant: item.restaurant ? item.restaurant : "",
-        customizations,
-      },
-    });
-
+    if (isEditing) {
+      dispatch({
+        type: "UPDATE_CART_ITEM",
+        payload: {
+          id: item.id,
+          name: item.name,
+          price: calculateTotal(),
+          quantity,
+          restaurant: item.restaurant ? item.restaurant : "",
+          customizations,
+          customisation: item.customisation,
+        },
+      });
+    } else {
+      dispatch({
+        type: "ADD_TO_CART",
+        payload: {
+          id: item.id,
+          name: item.name,
+          price: calculateTotal(),
+          quantity,
+          restaurant: item.restaurant ? item.restaurant : "",
+          customizations,
+          customisation: item.customisation,
+        },
+      });
+    }
+  
     handleClose();
   };
 
@@ -291,7 +331,7 @@ export const CustomizationModal: React.FC = () => {
             className="w-full py-2.5 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
             style={{ backgroundColor: "orange" }}
           >
-            Add to Cart
+            {isEditing ? "Update Cart" : "Add to Cart"}
           </button>
         </div>
       </div>

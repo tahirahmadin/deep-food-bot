@@ -214,6 +214,20 @@ export const CartSummary: React.FC = () => {
                               )}
                             </div>
                           ))}
+                          {/* Render the Edit button if customizations exist */}
+                          {item.customizations && item.customizations.length > 0 && (
+                            <button
+                              onClick={() =>
+                                dispatch({
+                                  type: "SET_CUSTOMIZATION_MODAL",
+                                  payload: { isOpen: true, item, isEditing: true },
+                                })
+                              }
+                              className="text-grey-400 font-bold text-xs mt-1"
+                            >
+                              Edit ▶
+                            </button>
+                          )}
                         </div>
                       </h4>
                       <p

@@ -361,7 +361,7 @@ export const getThemeForStyle = (styleName: string): Theme => {
 
         slideBg: "#FFF4F1", // Soft warm background for a modern look
         slideBgLight: "#FFF7ED", // Lighter peach tone for a soft touch
-        slideBgOther: "#ffffff", // Lighter peach tone for a soft touch
+        slideBgOther: "#ffffff", // White tone for a soft touch
         slideMainText: "#1A1A1A", // Dark text for strong contrast
         slideSecondText: "#5A5A5A", // Medium-dark gray for subtle contrast
         slideCardBg: "#F9FAFB", // Vibrant Orange (Energetic, lively)

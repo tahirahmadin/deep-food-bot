@@ -71,6 +71,7 @@ interface AuthContextType {
   setOrders: (orders: Order[]) => void;
   isLoadingOrders: boolean;
   refreshOrders: () => Promise<void>;
+  updateOrder: (updatedOrder: Order) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -195,6 +196,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const updateOrder = (updatedOrder: Order) => {
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order._id === updatedOrder._id ? updatedOrder : order
+      )
+    );
+  };
+
   const value = {
     user,
     setUser,
@@ -213,6 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setOrders,
     isLoadingOrders,
     refreshOrders,
+    updateOrder,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

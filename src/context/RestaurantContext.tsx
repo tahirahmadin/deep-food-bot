@@ -6,6 +6,9 @@ import { useAuth } from "./AuthContext";
 interface RestaurantState {
   selectedRestroIds: number[];
   activeRestroId: number | null;
+  singleMode: boolean | false;
+  cashMode: boolean | false;
+  backgroundImage: string | null;
   restaurants: SingleRestro[];
   menus: {
     [key: string]: any[];
@@ -15,6 +18,7 @@ interface RestaurantState {
 type RestaurantAction =
   | { type: "SET_RESTRO_IDS"; payload: number[] }
   | { type: "SET_ACTIVE_RESTRO"; payload: number | null }
+  | { type: "SET_BACKGROUND_IMAGE"; payload: string | null }
   | { type: "CLEAR_RESTRO_IDS" }
   | { type: "SET_RESTAURANTS"; payload: SingleRestro[] }
   | { type: "SET_MENU"; payload: { restaurantId: string; menu: any[] } }
@@ -22,6 +26,9 @@ type RestaurantAction =
 
 const initialState: RestaurantState = {
   selectedRestroIds: [],
+  singleMode: false,
+  cashMode: false,
+  backgroundImage: null,
   activeRestroId: null,
   restaurants: [],
   menus: {},
@@ -43,6 +50,12 @@ const restaurantReducer = (
         ...state,
         activeRestroId: action.payload,
       };
+    case "SET_BACKGROUND_IMAGE":
+      return {
+        ...state,
+        backgroundImage: action.payload,
+      };
+
     case "SET_RESTAURANTS":
       return {
         ...state,
