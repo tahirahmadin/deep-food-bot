@@ -108,7 +108,7 @@ const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (coordinates) {
         // Fetch restaurants with coordinates if available
-        const restaurantData = await getAllRestaurants(coordinates, 5);
+        const restaurantData = await getAllRestaurants(coordinates, 3);
         dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
         hasInitialFetch.current = true;
       }
