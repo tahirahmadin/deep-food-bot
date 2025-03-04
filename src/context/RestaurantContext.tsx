@@ -6,8 +6,8 @@ import { useAuth } from "./AuthContext";
 interface RestaurantState {
   selectedRestroIds: number[];
   activeRestroId: number | null;
-  singleMode: boolean | false;
-  cashMode: boolean | false;
+  singleMode: boolean;
+  cashMode: boolean;
   backgroundImage: string | null;
   restaurants: SingleRestro[];
   menus: {
@@ -55,7 +55,6 @@ const restaurantReducer = (
         ...state,
         backgroundImage: action.payload,
       };
-
     case "SET_RESTAURANTS":
       return {
         ...state,
@@ -96,29 +95,26 @@ const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const { addresses, isAuthenticated } = useAuth();
   const [state, dispatch] = useReducer(restaurantReducer, initialState);
-  const hasInitialFetch = React.useRef(false);
 
-  React.useEffect(() => {
-    if (hasInitialFetch.current) return;
-
+  useEffect(() => {
     const fetchRestaurants = async () => {
-      // Get coordinates from selected address
+      // Get coordinates from the selected (first) address
       const selectedAddress = addresses[0];
       const coordinates = selectedAddress?.coordinates;
 
       if (coordinates) {
-        // Fetch restaurants with coordinates if available
+        // Fetch restaurants based on coordinates.
+        // Adjust the second parameter (limit) as needed.
         const restaurantData = await getAllRestaurants(coordinates, 5);
         dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
-        hasInitialFetch.current = true;
       }
     };
 
-    const selectedAddress = addresses[0];
-    if (isAuthenticated && selectedAddress?.coordinates) {
+    // If the user is authenticated and a valid address with coordinates exists, fetch restaurants.
+    if (isAuthenticated && addresses.length > 0 && addresses[0]?.coordinates) {
       fetchRestaurants();
     }
-  }, [isAuthenticated, addresses]);
+  }, [isAuthenticated, addresses, dispatch]);
 
   return (
     <RestaurantContext.Provider value={{ state, dispatch }}>
@@ -133,19 +129,16 @@ function useRestaurant() {
     throw new Error("useRestaurant must be used within a RestaurantProvider");
   }
 
-  // Add convenience functions
   const { state, dispatch } = context;
-
   const { addresses } = useAuth();
+
   const setRestaurants = (ids: number[]) => {
-    // Only dispatch if the IDs are different from current state
     if (JSON.stringify(state.selectedRestroIds) !== JSON.stringify(ids)) {
       dispatch({ type: "SET_RESTRO_IDS", payload: ids });
     }
   };
 
   const setActiveRestaurant = (id: number | null) => {
-    // Only dispatch if the ID is different from current active ID
     if (state.activeRestroId !== id) {
       dispatch({ type: "SET_ACTIVE_RESTRO", payload: id });
     }
@@ -163,8 +156,10 @@ function useRestaurant() {
     try {
       const selectedAddress = addresses[0];
       const coordinates = selectedAddress?.coordinates;
-      const restaurantData = await getAllRestaurants(coordinates);
-      dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
+      if (coordinates) {
+        const restaurantData = await getAllRestaurants(coordinates);
+        dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
+      }
     } catch (error) {
       console.error("Error refreshing restaurants:", error);
     }
