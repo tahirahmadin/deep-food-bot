@@ -343,7 +343,7 @@ const CheckoutForm: React.FC<{
 
     // Get first item image for the success card
     const firstItemImage = cart[0]
-      ? `https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurantState.activeRestroId}/${restaurantState.activeRestroId}-${cart[0].id}.jpg`
+      ? `https://gobbl-restaurant-images-bucket.s3.ap-south-1.amazonaws.com/${restaurantState.activeRestroId}/${restaurantState.activeRestroId}-${cart[0].id}.jpg`
       : null;
 
     dispatch({

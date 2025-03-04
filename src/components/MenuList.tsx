@@ -58,7 +58,7 @@ export const MenuList: React.FC<MenuListProps> = ({ items, restroId }) => {
               id={meal.id}
               name={meal.name}
               price={meal.price}
-              image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restroId}/${restroId}-${meal.id}.jpg`}
+              image={`https://gobbl-restaurant-images-bucket.s3.ap-south-1.amazonaws.com/${restroId}/${restroId}-${meal.id}.jpg`}
               restroId={restroId}
               isCustomisable={meal.isCustomisable}
               customisation={meal.customisation}

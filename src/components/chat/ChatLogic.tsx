@@ -127,10 +127,21 @@ export const useChatLogic = ({
   const handleRestaurantQuery = async (queryText?: string) => {
     const selectedAddress = addresses[0];
     let filteredRestaurants = restaurantState.restaurants;
+
+    if (selectedAddress?.coordinates) {
+      console.log("selectedAddress");
+      console.log(selectedAddress);
+      filteredRestaurants = filterRestaurantsByDistance(
+        selectedAddress.coordinates.lat,
+        selectedAddress.coordinates.lng,
+        restaurantState.restaurants,
+        5 // 10km radius
+      );
+    }
+
     const restaurantContext = filteredRestaurants.map((ele: any) => ({
       menuSummary: ele.menuSummary,
       name: ele.name,
-      description: ele.description,
       id: ele.id,
       coordinates: ele.coordinates,
     }));
