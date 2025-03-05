@@ -50,6 +50,7 @@ const filterMenuItems = (menuItems: any[]): any[] =>
     ({
       image,
       available,
+      category,
       customisation,
       healthinessScore,
       isCustomisable,
