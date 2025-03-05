@@ -343,7 +343,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
       {state.mode === "browse" && (
         <div
-          className="h-full flex backdrop-blur-sm overflow-y-auto mt-4"
+          className="h-full flex backdrop-blur-sm mt-4"
           style={{ backgroundColor: theme.chatBg }}
         >
           {!restaurantState.activeRestroId ? (
@@ -357,7 +357,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       id={restaurant.id}
                       name={restaurant.name}
                       description={restaurant.description}
-                      image={`https://gobbl-restaurant-images-bucket.s3.ap-south-1.amazonaws.com/${restaurant.id}/${restaurant.id}-0.jpg`}
+                      image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurant.id}/${restaurant.id}-0.jpg`}
                     />
                   ))}
                 </div>

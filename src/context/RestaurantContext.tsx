@@ -105,7 +105,7 @@ const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
       if (coordinates) {
         // Fetch restaurants based on coordinates.
         // Adjust the second parameter (limit) as needed.
-        const restaurantData = await getAllRestaurants(coordinates, 3);
+        const restaurantData = await getAllRestaurants(coordinates, 300000);
         dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
       }
     };
