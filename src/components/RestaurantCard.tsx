@@ -91,7 +91,7 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
       <div className="p-2">
         <div className="flex items-start justify-between mb-2">
           <h3
-            className="font-medium text-gray-900 line-clamp-2 text-md  min-h-[3rem]"
+            className="font-medium text-gray-900 line-clamp-1 text-md  min-h-[1.5rem]"
             style={{
               color: theme.menuItemText,
             }}
@@ -132,7 +132,7 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
           </div>
         </div>
         <p
-          className="text-xs opacity-70 line-clamp-1 min-h-[1.5rem]"
+          className="text-xs opacity-70 line-clamp-2 min-h-[2rem]"
           style={{
             color: theme.text,
           }}
