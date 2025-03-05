@@ -49,13 +49,16 @@ const filterMenuItems = (menuItems: any[]): any[] =>
   menuItems.map(
     ({
       image,
-      price,
       available,
       customisation,
       healthinessScore,
       isCustomisable,
       sweetnessLevel,
+      spicinessLevel,
+      dietaryPreference,
       caffeineLevel,
+      sufficientFor,
+      _id,
       ...rest
     }) => rest
   );
