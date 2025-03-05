@@ -180,7 +180,7 @@ export const CartSummary: React.FC = () => {
                     className="flex items-center gap-3 px-3 py-2 border-b"
                   >
                     <img
-                      src={`https://gobbl-restaurant-images-bucket.s3.ap-south-1.amazonaws.com/${restaurantState.activeRestroId}/${restaurantState.activeRestroId}-${item.id}.jpg`}
+                      src={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurantState.activeRestroId}/${restaurantState.activeRestroId}-${item.id}.jpg`}
                       alt={item.name}
                       className="w-12 h-12 object-cover rounded-lg"
                     />
@@ -215,19 +215,24 @@ export const CartSummary: React.FC = () => {
                             </div>
                           ))}
                           {/* Render the Edit button if customizations exist */}
-                          {item.customizations && item.customizations.length > 0 && (
-                            <button
-                              onClick={() =>
-                                dispatch({
-                                  type: "SET_CUSTOMIZATION_MODAL",
-                                  payload: { isOpen: true, item, isEditing: true },
-                                })
-                              }
-                              className="text-grey-400 font-bold text-xs mt-1"
-                            >
-                              Edit ▶
-                            </button>
-                          )}
+                          {item.customizations &&
+                            item.customizations.length > 0 && (
+                              <button
+                                onClick={() =>
+                                  dispatch({
+                                    type: "SET_CUSTOMIZATION_MODAL",
+                                    payload: {
+                                      isOpen: true,
+                                      item,
+                                      isEditing: true,
+                                    },
+                                  })
+                                }
+                                className="text-grey-400 font-bold text-xs mt-1"
+                              >
+                                Edit ▶
+                              </button>
+                            )}
                         </div>
                       </h4>
                       <p
