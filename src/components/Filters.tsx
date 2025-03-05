@@ -20,7 +20,8 @@ import { useFiltersContext } from "../context/FiltersContext";
 import { RestaurantChangeModal } from "./RestaurantChangeModal";
 import { StyleChangeModal } from "./StyleChangeModal";
 import { ChatModel } from "../context/ChatContext";
-import { AddressChangeModal } from "./AddressChangeModal"; 
+import { AddressChangeModal } from "./AddressChangeModal";
+import { AddAddressWarningModal } from "./AddAddressWarningModal"; 
 
 export const Filters: React.FC = () => {
   const {
@@ -56,6 +57,7 @@ export const Filters: React.FC = () => {
   const [isAddressChangeModalOpen, setIsAddressChangeModalOpen] = useState(false);
   const [pendingAddressIndex, setPendingAddressIndex] = useState<number | null>(null);
 
+  const [isAddAddressWarningModalOpen, setIsAddAddressWarningModalOpen] = useState(false);
   const { state: chatState, dispatch: chatDispatch } = useChatContext();
 
   // Set initial selected address to first address if available
@@ -90,6 +92,11 @@ export const Filters: React.FC = () => {
     }
     setPendingAddressIndex(null);
     setIsAddressChangeModalOpen(false);
+  };
+
+  const handleAddNewAddressClick = () => {
+    setIsAddAddressWarningModalOpen(true);
+    setIsAddressDropdownOpen(false);
   };
 
   const conversationStyles = [
@@ -242,10 +249,7 @@ export const Filters: React.FC = () => {
                 </button>
               ))}
               <button
-                onClick={() => {
-                  setIsAddressModalOpen(true);
-                  setIsAddressDropdownOpen(false);
-                }}
+                onClick={handleAddNewAddressClick}
                 className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-50 transition-colors border-t"
               >
                 <Plus
@@ -463,6 +467,17 @@ export const Filters: React.FC = () => {
             ? addresses[pendingAddressIndex]?.address || ""
             : ""
         }
+      />
+
+      {/* Add Address Warning Modal */}
+      <AddAddressWarningModal
+        isOpen={isAddAddressWarningModalOpen}
+        onClose={() => setIsAddAddressWarningModalOpen(false)}
+        onConfirm={() => {
+          chatDispatch({ type: "RESET_STATE" });
+          setIsAddressModalOpen(true);
+          setIsAddAddressWarningModalOpen(false);
+        }}
       />
 
       {/* Navigation Section */}
