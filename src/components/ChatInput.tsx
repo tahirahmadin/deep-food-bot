@@ -7,6 +7,7 @@ import {
   Zap,
   Tag,
   Pizza,
+  Camera,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -36,7 +37,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const { theme } = useFiltersContext();
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const captureInputRef = useRef<HTMLInputElement>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const [showImageOptions, setShowImageOptions] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -66,10 +70,33 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     return () => inputRef.current?.removeEventListener("focus", handleFocus);
   }, []);
 
+  // Handle clicking outside to close image options
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showImageOptions && !event.composedPath().includes(document.getElementById('image-options-container') as Node)) {
+        setShowImageOptions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showImageOptions]);
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     onImageUpload(file);
+    setShowImageOptions(false);
+    
+    // Reset the input value so the same file can be selected again if needed
+    e.target.value = '';
+  };
+
+  const toggleImageOptions = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowImageOptions(!showImageOptions);
   };
 
   const handleQuickAction = (message: string) => {
@@ -174,16 +201,64 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             "::placeholder": { color: `${theme.text}60` },
           }}
         />
-        <label className="cursor-pointer p-1 text-gray-400 hover:text-gray-600">
+        
+        <div className="relative" id="image-options-container">
+          <button
+            onClick={toggleImageOptions}
+            className="p-1 text-gray-400 hover:text-gray-600"
+            disabled={addresses.length === 0}
+          >
+            <ImageIcon className="w-5 h-5" />
+          </button>
+          
+          {showImageOptions && (
+            <div className="absolute bottom-full right-0 mb-2 bg-white rounded-lg shadow-lg border overflow-hidden" style={{
+              backgroundColor: theme.cardBg,
+              borderColor: theme.border,
+            }}>
+              <div className="flex flex-col">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-left"
+                  style={{ color: theme.text, ":hover": { backgroundColor: `${theme.text}10` } }}
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Upload image</span>
+                </button>
+                <button
+                  onClick={() => captureInputRef.current?.click()}
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-left"
+                  style={{ color: theme.text, ":hover": { backgroundColor: `${theme.text}10` } }}
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>Take photo</span>
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Hidden input for file upload */}
           <input
+            ref={fileInputRef}
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
             disabled={addresses.length === 0}
             className="hidden"
           />
-          <ImageIcon className="w-5 h-5" />
-        </label>
+          
+          {/* Hidden input for camera capture */}
+          <input
+            ref={captureInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleImageUpload}
+            disabled={addresses.length === 0}
+            className="hidden"
+          />
+        </div>
+        
         <button
           type="submit"
           className="p-1 text-gray-400 hover:text-gray-600"
