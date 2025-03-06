@@ -1,10 +1,9 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useState } from "react";
 import { Message } from "./Message";
 import { ChatInput } from "./ChatInput";
-import { useChatContext } from "../context/ChatContext";
+import { useChatContext, QueryType } from "../context/ChatContext";
 import { MenuItem } from "./MenuItem";
-import { useState } from "react";
-import { Cookie, Map, Menu } from "lucide-react";
+import { Cookie, Map, Menu, X } from "lucide-react";
 import { MenuItemFront } from "../types/menu";
 import { useRestaurant } from "../context/RestaurantContext";
 import { getMenuByRestaurantId } from "../utils/menuUtils";
@@ -17,6 +16,8 @@ import { loginUserFromBackendServer } from "../actions/serverActions";
 import { useFiltersContext } from "../context/FiltersContext";
 import * as menuUtils from "../utils/menuUtils";
 import { PaymentForm } from "./PaymentForm";
+import { useImageHandler } from "./chat/ImageHandler";
+import { useChatLogic } from "./chat/ChatLogic";
 
 // Viewport height helper
 function getVH() {
@@ -42,7 +43,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   setInput,
   onSubmit,
   onImageUpload,
-  isImageAnalyzing,
+  isImageAnalyzing: externalImageAnalyzing,
   placeholder,
   isLoading = false,
 }) => {
@@ -64,8 +65,87 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     setInternalAddresses,
   } = useAuth();
 
-  const { theme } = useFiltersContext();
+  const { theme, selectedStyle, isVegOnly, numberOfPeople } = useFiltersContext();
   const [isFirstLogin, setIsFirstLogin] = useState(true);
+  
+  // Add local state for image analysis since we're using our own handler
+  const [isImageAnalyzing, setIsImageAnalyzing] = useState(false);
+  
+  // Get needed functions from useChatLogic
+  const { getMenuItemsByFile, handleMenuQuery } = useChatLogic({
+    input,
+    restaurantState,
+    state,
+    dispatch,
+    orders: [], // Replace with your actual orders state
+    selectedStyle,
+    isVegOnly,
+    numberOfPeople,
+    setRestaurants: (ids: number[]) => {
+      // Implementation of setRestaurants 
+      // Or remove if not needed
+    },
+    addresses,
+    chatHistory: state.messages,
+  });
+  
+  // Get the image handler
+  const { handleImageUpload: processImage } = useImageHandler({
+    state,
+    dispatch,
+    restaurantState,
+    selectedStyle,
+    isVegOnly,
+    numberOfPeople,
+    orders: [], // Replace with your actual orders
+    setRestaurants: (ids: number[]) => {
+      // Implementation of setRestaurants
+      // Or remove if not needed
+    },
+    getMenuItemsByFile,
+    handleMenuQuery,
+  });
+  
+  // Add state for handling image uploads
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  
+  // Function to handle image upload
+  const handleImageUploadWithPreview = (file: File) => {
+    setUploadedImage(file);
+    setImagePreviewUrl(URL.createObjectURL(file));
+    // Don't clear existing input if user has already typed a caption
+  };
+  
+  // Function to cancel image upload
+  const cancelImageUpload = () => {
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setUploadedImage(null);
+    setImagePreviewUrl(null);
+  };
+  
+  // Custom submit handler that includes the image if present
+  const handleSubmitWithImage = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (uploadedImage) {
+      // If there's an image, pass it along with any caption (input)
+      processImage(uploadedImage, setIsImageAnalyzing, input);
+      
+      // Clear the image state after submission
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+      setUploadedImage(null);
+      setImagePreviewUrl(null);
+      setInput("");
+    } else if (input.trim() !== "") {
+      // Regular submission without image
+      onSubmit(e);
+    }
+  };
 
   const handleSelectRestro = (restroId: number) => {
     if (restaurantState.activeRestroId === restroId) {
@@ -182,14 +262,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   }, [state.messages]);
 
-  // Handle submit and pass serialized memory
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isLoading) {
-      onSubmit(e); // Pass serialized memory along with form submission
-    }
-  };
-
   const loadingMessage = () => {
     const content = [
       "Finding best options...",
@@ -207,6 +279,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
     return content[Math.floor(Math.random() * content.length)];
   };
+
+  // Use either external or internal image analyzing state
+  const showImageAnalyzing = externalImageAnalyzing || isImageAnalyzing;
 
   return (
     <>
@@ -288,10 +363,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
         {/* Show PaymentForm when in payment step */}
         {state.checkout.step === "payment" && (
-          <PaymentForm onSubmit={handleSubmit} />
+          <PaymentForm onSubmit={handleSubmitWithImage} />
         )}
 
-        {isImageAnalyzing && (
+        {showImageAnalyzing && (
           <div className="flex items-center space-x-2 text-gray-500">
             <span
               className="font-sans animate-pulse inline-block ml-4"
@@ -470,15 +545,65 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           )}
         </div>
       )}
+      
+      {/* Image preview above chat input */}
+      {imagePreviewUrl && (
+        <div 
+          className="mx-auto max-w-md px-2 pt-2"
+          style={{
+            position: "fixed",
+            bottom: "60px",
+            left: 0,
+            right: 0,
+            zIndex: 40
+          }}
+        >
+          <div 
+            className="relative rounded-lg overflow-hidden shadow-lg border flex items-center p-2 gap-3"
+            style={{
+              backgroundColor: theme.cardBg,
+              borderColor: `${theme.border}`,
+            }}
+          >
+            {/* Smaller image thumbnail */}
+            <div className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden">
+              <img 
+                src={imagePreviewUrl} 
+                alt="Preview" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            {/* Caption input - now visible */}
+            <div className="flex-1 min-w-0 text-sm">
+              <div className="font-medium mb-0.5" style={{ color: theme.text }}>
+                Add a caption
+              </div>
+              <div className="text-xs opacity-70" style={{ color: theme.text }}>
+                {input ? `"${input}"` : "No caption added yet"}
+              </div>
+            </div>
+            
+            {/* Close button */}
+            <button 
+              onClick={cancelImageUpload}
+              className="p-1.5 rounded-full hover:bg-gray-200/50 transition-colors flex-shrink-0"
+              style={{ color: theme.text }}
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+      )}
 
       <ChatInput
         className={state.mode === "browse" ? "hidden" : ""}
         input={input}
         setInput={setInput}
-        onSubmit={handleSubmit}
-        showQuickActions={state.messages.length <= 1}
-        onImageUpload={onImageUpload}
-        placeholder={placeholder}
+        onSubmit={handleSubmitWithImage}
+        showQuickActions={state.messages.length <= 1 && !uploadedImage}
+        onImageUpload={handleImageUploadWithPreview}
+        placeholder={uploadedImage ? "Add a caption to your image..." : placeholder}
         isLoading={isLoading}
       />
     </>

@@ -386,7 +386,8 @@ export const useChatLogic = ({
   const handleMenuQuery = async (
     _queryType: QueryType, 
     userInput: string,
-    isImageBased: boolean = false
+    isImageBased: boolean = false,
+    imageCaption: string = "" 
   ) => {
     try {
       const now = new Date().toLocaleString("en-US", {
@@ -394,23 +395,27 @@ export const useChatLogic = ({
         minute: "numeric",
         hour12: true,
       });
-
+  
+      const effectiveInput = isImageBased && imageCaption 
+        ? `Image shows: ${userInput}. User says: ${imageCaption}`
+        : userInput;
+  
       const queryType = isImageBased
-      ? QueryType.MENU_QUERY
-      : await classifyIntent(
-        userInput,
-        restaurantState.activeRestroId,
-        state,
-        chatHistory
-      );
+        ? QueryType.MENU_QUERY
+        : await classifyIntent(
+            effectiveInput,
+            restaurantState.activeRestroId,
+            state,
+            chatHistory,
+            isImageBased
+          );
       
-    
       const conversationContext = buildConversationContext(
         chatHistory.filter((msg) => !msg.isBot)
       );
-
+  
       if (queryType === QueryType.GENERAL) {
-        if (isGreetingOnly(userInput)) {
+        if (isGreetingOnly(effectiveInput)) {
           const friendlyResponseText = "Hello! How can I help you today?";
           dispatch({
             type: "ADD_MESSAGE",
@@ -431,7 +436,7 @@ export const useChatLogic = ({
           * Greetings (e.g., "Hello", "Hi there")
           * Nutritional inquiries (e.g., "How many calories in a burrito?", "What are the ingredients in your pizza?") - provide general information about food nutrition
           * General conversation (e.g., "Thank you", "How are you?")
-          The user said: "${userInput}"
+          The user said: "${effectiveInput}"
           ${conversationContext ? `Context: "${conversationContext}"` : ""}
           
           Return your answer in a JSON object with the following format:
@@ -468,17 +473,17 @@ export const useChatLogic = ({
           return;
         }
       }
-
+  
       let restaurant1Menu: any[] = [],
         restaurant2Menu: any[] = [],
         activeMenu: any[] = [];
       let suggestRestroText = "";
       let suggestRestroIds: number[] = [];
       const { activeRestroId } = restaurantState;
-
+  
       if (!activeRestroId) {
         const response = await handleRestaurantQuery(
-          isImageBased ? userInput : undefined
+          isImageBased ? effectiveInput : undefined
         );
         suggestRestroText = response.text;
         suggestRestroIds = response.restroIds;
@@ -518,11 +523,13 @@ export const useChatLogic = ({
       } else {
         activeMenu = await getMenuItemsByFile(activeRestroId);
       }
-
+  
       const analysisPart = isImageBased
-        ? `analyze the image description: "${userInput}"`
+        ? imageCaption 
+          ? `analyze the image description: "${userInput}" along with user's comment: "${imageCaption}"`
+          : `analyze the image description: "${userInput}"`
         : `analyze the user's query: "${userInput}"`;
-
+  
       const menuPrompt = `
         You are a menu recommendation system.
         Given the menu items from ${
@@ -542,7 +549,7 @@ export const useChatLogic = ({
             : `{ "text": "", "items1": [{ "id": number, "name": string }], "items2": [{ "id": number, "name": string }] }`
         }
         where:
-          - "text" provides a concise and creative response in ${selectedStyle.name} style.
+          - "text" provides a concise and creative response and resoning showing you understand the query in ${selectedStyle.name} style.
           - ${
             activeRestroId
               ? `"items1" contains up to 5 recommended items.`
@@ -565,7 +572,7 @@ export const useChatLogic = ({
         state.selectedModel,
         0.5
       );
-
+  
       if ((suggestRestroIds.length > 0 || activeRestroId) && menuResponse) {
         dispatch({
           type: "ADD_MESSAGE",
