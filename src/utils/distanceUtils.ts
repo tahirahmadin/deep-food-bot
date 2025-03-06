@@ -32,7 +32,7 @@ export const filterRestaurantsByDistance = (
   userLat: number,
   userLng: number,
   restaurants: any[],
-  maxDistance: number = 10 // Default max distance is 10km
+  maxDistance: number = 5 // Default max distance is 10km
 ): any[] => {
   return restaurants.filter((restaurant) => {
     if (!restaurant.location || restaurant.location?.coordinates.length !== 2) {

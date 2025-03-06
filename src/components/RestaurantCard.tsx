@@ -89,16 +89,16 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
 
       {/* Content Section */}
       <div className="p-2">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-start justify-between mb-2">
           <h3
-            className="font-medium text-gray-900 line-clamp-2 text-md"
+            className="font-medium text-gray-900 line-clamp-1 text-md  min-h-[1.5rem]"
             style={{
               color: theme.menuItemText,
             }}
           >
             {name}
           </h3>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1  ">
             <div className="flex items-center gap-1 bg-green-50 px-1 py-0.5 rounded-full">
               <Star className="w-1.5 h-1.5 text-green-600 fill-current" />
               <span className="text-[9px] font-medium text-green-600">
@@ -132,7 +132,7 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
           </div>
         </div>
         <p
-          className="text-xs line-clamp-2 opacity-70"
+          className="text-xs opacity-70 line-clamp-2 min-h-[2rem]"
           style={{
             color: theme.text,
           }}

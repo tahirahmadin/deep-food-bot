@@ -47,13 +47,24 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
       return <OrderMessage message={message} />;
     }
 
-    if (message.imageUrl) {
+    if (!message.isBot && message.imageUrl) {
       return (
-        <img
-          src={message.imageUrl}
-          alt="Preview"
-          className="h-32 object-cover rounded-lg mb-2"
-        />
+        <div className="flex flex-col items-center">
+          <div className="rounded-lg overflow-hidden mb-2 max-w-[180px] w-full">
+            <img
+              src={message.imageUrl}
+              alt="User uploaded"
+              className="w-full h-full object-cover rounded-lg"
+              style={{ maxHeight: "180px" }}
+            />
+          </div>
+          
+          {message.text && message.text !== "Image uploaded" && (
+            <div className="max-w-[180px] px-2 pt-1 text-sm">
+              {message.text}
+            </div>
+          )}
+        </div>
       );
     }
 
