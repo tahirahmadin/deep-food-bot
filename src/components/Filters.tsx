@@ -21,7 +21,7 @@ import { RestaurantChangeModal } from "./RestaurantChangeModal";
 import { StyleChangeModal } from "./StyleChangeModal";
 import { ChatModel } from "../context/ChatContext";
 import { AddressChangeModal } from "./AddressChangeModal";
-import { AddAddressWarningModal } from "./AddAddressWarningModal"; 
+import { AddAddressWarningModal } from "./AddAddressWarningModal";
 
 export const Filters: React.FC = () => {
   const {
@@ -48,16 +48,21 @@ export const Filters: React.FC = () => {
   const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState<number>(0);
   const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
-  const [isChangeRestaurantModalOpen, setIsChangeRestaurantModalOpen] = useState(false);
+  const [isChangeRestaurantModalOpen, setIsChangeRestaurantModalOpen] =
+    useState(false);
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [isStyleChangeModalOpen, setIsStyleChangeModalOpen] = useState(false);
   const [pendingStyle, setPendingStyle] = useState<any>(null);
-  
-  // New states for address change confirmation
-  const [isAddressChangeModalOpen, setIsAddressChangeModalOpen] = useState(false);
-  const [pendingAddressIndex, setPendingAddressIndex] = useState<number | null>(null);
 
-  const [isAddAddressWarningModalOpen, setIsAddAddressWarningModalOpen] = useState(false);
+  // New states for address change confirmation
+  const [isAddressChangeModalOpen, setIsAddressChangeModalOpen] =
+    useState(false);
+  const [pendingAddressIndex, setPendingAddressIndex] = useState<number | null>(
+    null
+  );
+
+  const [isAddAddressWarningModalOpen, setIsAddAddressWarningModalOpen] =
+    useState(false);
   const { state: chatState, dispatch: chatDispatch } = useChatContext();
 
   // Set initial selected address to first address if available
@@ -384,7 +389,7 @@ export const Filters: React.FC = () => {
           </button>
         </div>
         {/* Model Selection */}
-        <div className="relative">
+        {/* <div className="relative">
           <button
             onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
             className="flex items-center gap-1 hover:bg-gray-50 p-1.5 rounded-lg transition-colors"
@@ -434,7 +439,7 @@ export const Filters: React.FC = () => {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
       </div>
 
       <RestaurantChangeModal
