@@ -205,32 +205,49 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         <div className="relative" id="image-options-container">
           <button
             onClick={toggleImageOptions}
-            className="p-1 text-gray-400 hover:text-gray-600"
+            className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
             disabled={addresses.length === 0}
           >
             <ImageIcon className="w-5 h-5" />
           </button>
           
           {showImageOptions && (
-            <div className="absolute bottom-full right-0 mb-2 bg-white rounded-lg shadow-lg border overflow-hidden" style={{
-              backgroundColor: theme.cardBg,
-              borderColor: theme.border,
-            }}>
-              <div className="flex flex-col">
+            <div 
+              className="absolute bottom-full right-0 mb-2 rounded-xl shadow-lg border min-w-[180px] overflow-hidden transform transition-all duration-200 scale-100 origin-bottom-right"
+              style={{
+                backgroundColor: theme.cardBg,
+                borderColor: `${theme.border}`,
+                boxShadow: `0 10px 25px -5px ${theme.text}20`
+              }}
+            >
+              <div className="flex flex-col py-1">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-left"
-                  style={{ color: theme.text, ":hover": { backgroundColor: `${theme.text}10` } }}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 text-sm font-medium text-left transition-colors"
+                  style={{ 
+                    color: theme.text, 
+                    ':hover': { backgroundColor: `${theme.text}10` } 
+                  }}
                 >
-                  <ImageIcon className="w-4 h-4" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100" style={{ backgroundColor: `${theme.accentColor}15` }}>
+                    <ImageIcon className="w-4 h-4"/>
+                  </div>
                   <span>Upload image</span>
                 </button>
+                
+                <div className="mx-3 my-1 border-t" style={{ borderColor: `${theme.text}10` }}></div>
+                
                 <button
                   onClick={() => captureInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-left"
-                  style={{ color: theme.text, ":hover": { backgroundColor: `${theme.text}10` } }}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 text-sm font-medium text-left transition-colors"
+                  style={{ 
+                    color: theme.text, 
+                    ':hover': { backgroundColor: `${theme.text}10` }
+                  }}
                 >
-                  <Camera className="w-4 h-4" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100" style={{ backgroundColor: `${theme.secondaryColor}15` }}>
+                    <Camera className="w-4 h-4"/>
+                  </div>
                   <span>Take photo</span>
                 </button>
               </div>
