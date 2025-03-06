@@ -4,7 +4,7 @@ import { getMenuByRestaurantId } from "../../utils/menuUtils";
 import { filterRestaurantsByDistance } from "../../utils/distanceUtils";
 
 interface RecommendedItem {
-  id?: number; 
+  id?: number;
   name: string;
 }
 
@@ -14,7 +14,7 @@ interface Message {
   isBot: boolean;
   time: string;
   queryType?: QueryType;
-  recommendedItems?: RecommendedItem[]; 
+  recommendedItems?: RecommendedItem[];
 }
 
 interface ChatLogicProps {
@@ -33,7 +33,7 @@ interface ChatLogicProps {
 
 const MENU_CACHE_TTL = 2 * 60 * 1000;
 const LLM_CACHE_TTL = 1 * 60 * 1000;
-const RESTAURANT_QUERY_CACHE_TTL = 1 * 60 * 1000; 
+const RESTAURANT_QUERY_CACHE_TTL = 1 * 60 * 1000;
 
 interface CacheEntry<T> {
   value: T | null;
@@ -49,13 +49,17 @@ const filterMenuItems = (menuItems: any[]): any[] =>
   menuItems.map(
     ({
       image,
-      price,
       available,
+      category,
       customisation,
       healthinessScore,
       isCustomisable,
       sweetnessLevel,
+      spicinessLevel,
+      dietaryPreference,
       caffeineLevel,
+      sufficientFor,
+      _id,
       ...rest
     }) => rest
   );
@@ -83,11 +87,11 @@ const getCachedLLMResponse = async (
       if (entry.promise) return await entry.promise;
     }
   }
-  
+
   const promise = generateLLMResponse(prompt, maxTokens, model, temperature);
   llmCache.set(key, { value: null, timestamp: now, promise });
   const response = await promise;
-  
+
   llmCache.set(key, { value: response, timestamp: Date.now() });
   return response;
 };
@@ -101,21 +105,28 @@ const isGreetingOnly = (query: string): boolean => {
     "good afternoon",
     "good evening",
     "whatsup",
-    "whats up"
+    "whats up",
   ];
-  const cleaned = query.toLowerCase().replace(/[^a-z\s]/g, "").trim();
+  const cleaned = query
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, "")
+    .trim();
   return greetings.includes(cleaned);
 };
 
-
-const buildConversationContext = (chatHistory: Message[], limit: number = 5): string => {
-  const recentMessages = chatHistory.filter(msg => !msg.isBot).slice(-limit);
+const buildConversationContext = (
+  chatHistory: Message[],
+  limit: number = 5
+): string => {
+  const recentMessages = chatHistory.filter((msg) => !msg.isBot).slice(-limit);
   return recentMessages.length > 0
     ? recentMessages
         .map((msg) => {
           let contextText = msg.text;
           if (msg.recommendedItems && msg.recommendedItems.length > 0) {
-            contextText += " | Recommended: " + msg.recommendedItems.map(item => item.name).join(", ");
+            contextText +=
+              " | Recommended: " +
+              msg.recommendedItems.map((item) => item.name).join(", ");
           }
           return contextText;
         })
@@ -130,7 +141,6 @@ const classifyIntent = async (
   chatHistory: Message[],
   isImageBased: boolean = false
 ): Promise<QueryType> => {
-
   if (isImageBased) return QueryType.MENU_QUERY;
 
   const restaurantKeywords = [
@@ -142,7 +152,7 @@ const classifyIntent = async (
     "closed",
     "timing",
     "hours",
-    "address"
+    "address",
   ];
   const menuKeywords = [
     "price",
@@ -156,7 +166,7 @@ const classifyIntent = async (
     "suggest",
     "what should",
     "what's good",
-    "something to eat"
+    "something to eat",
   ];
 
   const lowerQuery = query.toLowerCase();
@@ -169,7 +179,6 @@ const classifyIntent = async (
   if (isRestaurant) return QueryType.RESTAURANT_QUERY;
   if (isMenu) return QueryType.MENU_QUERY;
 
-  
   const conversationContext = buildConversationContext(chatHistory);
 
   const classificationPrompt = `
@@ -188,7 +197,11 @@ const classifyIntent = async (
       - Base your decision solely on the query and any provided conversation context.
       
       User Query: "${query}"
-      ${conversationContext ? `Conversation Context: "${conversationContext}"` : ""}
+      ${
+        conversationContext
+          ? `Conversation Context: "${conversationContext}"`
+          : ""
+      }
       
       Respond with only a JSON object with one key "text" whose value is exactly one of the three strings: "MENU_QUERY", "RESTAURANT_QUERY", or "GENERAL".
       
@@ -196,7 +209,7 @@ const classifyIntent = async (
       - Return only a valid JSON object in this exact format: { "text": "<intent>" }.
       - Do not include any extra text, explanations, markdown, or code fences.
       `;
-      
+
   const llmResult = await getCachedLLMResponse(
     classificationPrompt,
     50,
@@ -286,7 +299,11 @@ export const useChatLogic = ({
       }
     }
     const promise = (async () => {
-      const menu = await getMenuByRestaurantId(restaurantId, restaurantState, dispatch);
+      const menu = await getMenuByRestaurantId(
+        restaurantId,
+        restaurantState,
+        dispatch
+      );
       const filtered = filterMenuItems(menu);
       menuCache.set(restaurantId, { value: filtered, timestamp: Date.now() });
       return filtered;
@@ -298,10 +315,21 @@ export const useChatLogic = ({
   const handleRestaurantQuery = async (queryText?: string) => {
     const selectedAddress = addresses[0];
     let filteredRestaurants = restaurantState.restaurants;
+
+    if (selectedAddress?.coordinates) {
+      console.log("selectedAddress");
+      console.log(selectedAddress);
+      filteredRestaurants = filterRestaurantsByDistance(
+        selectedAddress.coordinates.lat,
+        selectedAddress.coordinates.lng,
+        restaurantState.restaurants,
+        5 // 10km radius
+      );
+    }
+
     const restaurantContext = filteredRestaurants.map((ele: any) => ({
       menuSummary: ele.menuSummary,
       name: ele.name,
-      description: ele.description,
       id: ele.id,
       coordinates: ele.coordinates,
     }));
@@ -318,14 +346,15 @@ export const useChatLogic = ({
         ? `analyze the image description: "${effectiveQuery}"`
         : `analyze the user's query: "${effectiveQuery}"`;
 
-    
     const conversationContext = buildConversationContext(
       chatHistory.filter((msg) => !msg.isBot)
     );
 
     const key =
       queryText !== undefined
-        ? `image-${effectiveQuery}-${filteredRestaurants.map((r: any) => r.id).join(",")}`
+        ? `image-${effectiveQuery}-${filteredRestaurants
+            .map((r: any) => r.id)
+            .join(",")}`
         : `${input}-${filteredRestaurants.map((r: any) => r.id).join(",")}`;
 
     const now = Date.now();
@@ -344,7 +373,11 @@ export const useChatLogic = ({
       You are a restaurant recommendation system.
       Given the following restaurants: ${JSON.stringify(restaurantContext)},
       ${analysisText} and also consider previous order choices from ${orderContextItem}
-      ${conversationContext ? `and also consider the previous conversation: "${conversationContext}"` : ""}
+      ${
+        conversationContext
+          ? `and also consider the previous conversation: "${conversationContext}"`
+          : ""
+      }
       and return exactly one JSON object:
         { "text": "", "restroIds": [] }
       where:
@@ -369,9 +402,10 @@ export const useChatLogic = ({
   };
 
   const handleMenuQuery = async (
-    _queryType: QueryType, 
+    _queryType: QueryType,
     userInput: string,
-    isImageBased: boolean = false
+    isImageBased: boolean = false,
+    imageCaption: string = ""
   ) => {
     try {
       const now = new Date().toLocaleString("en-US", {
@@ -380,22 +414,27 @@ export const useChatLogic = ({
         hour12: true,
       });
 
+      const effectiveInput =
+        isImageBased && imageCaption
+          ? `Image shows: ${userInput}. User says: ${imageCaption}`
+          : userInput;
+
       const queryType = isImageBased
-      ? QueryType.MENU_QUERY
-      : await classifyIntent(
-        userInput,
-        restaurantState.activeRestroId,
-        state,
-        chatHistory
-      );
-      
-    
+        ? QueryType.MENU_QUERY
+        : await classifyIntent(
+            effectiveInput,
+            restaurantState.activeRestroId,
+            state,
+            chatHistory,
+            isImageBased
+          );
+
       const conversationContext = buildConversationContext(
         chatHistory.filter((msg) => !msg.isBot)
       );
 
       if (queryType === QueryType.GENERAL) {
-        if (isGreetingOnly(userInput)) {
+        if (isGreetingOnly(effectiveInput)) {
           const friendlyResponseText = "Hello! How can I help you today?";
           dispatch({
             type: "ADD_MESSAGE",
@@ -416,14 +455,16 @@ export const useChatLogic = ({
           * Greetings (e.g., "Hello", "Hi there")
           * Nutritional inquiries (e.g., "How many calories in a burrito?", "What are the ingredients in your pizza?") - provide general information about food nutrition
           * General conversation (e.g., "Thank you", "How are you?")
-          The user said: "${userInput}"
+          The user said: "${effectiveInput}"
           ${conversationContext ? `Context: "${conversationContext}"` : ""}
           
           Return your answer in a JSON object with the following format:
           { "text": "your answer" }
           
           where:
-          - "text" provides a brief and creative response to what the user said in ${selectedStyle.name} style.
+          - "text" provides a brief and creative response to what the user said in ${
+            selectedStyle.name
+          } style.
           - For food preferences, suggest restaurants or dishes that match their preferences
           - For nutritional inquiries, provide helpful general information
           - For greetings, welcome them to the food recommendation service
@@ -463,7 +504,7 @@ export const useChatLogic = ({
 
       if (!activeRestroId) {
         const response = await handleRestaurantQuery(
-          isImageBased ? userInput : undefined
+          isImageBased ? effectiveInput : undefined
         );
         suggestRestroText = response.text;
         suggestRestroIds = response.restroIds;
@@ -505,7 +546,9 @@ export const useChatLogic = ({
       }
 
       const analysisPart = isImageBased
-        ? `analyze the image description: "${userInput}"`
+        ? imageCaption
+          ? `analyze the image description: "${userInput}" along with user's comment: "${imageCaption}"`
+          : `analyze the image description: "${userInput}"`
         : `analyze the user's query: "${userInput}"`;
 
       const menuPrompt = `
@@ -520,14 +563,20 @@ export const useChatLogic = ({
             JSON.stringify(restaurant2Menu)
       },
         ${analysisPart}
-        ${conversationContext ? `Also, consider the following conversation context: "${conversationContext}"` : ""}
+        ${
+          conversationContext
+            ? `Also, consider the following conversation context: "${conversationContext}"`
+            : ""
+        }
         and return a JSON response: ${
           activeRestroId
             ? `{ "text": "", "items1": [{ "id": number, "name": string }] }`
             : `{ "text": "", "items1": [{ "id": number, "name": string }], "items2": [{ "id": number, "name": string }] }`
         }
         where:
-          - "text" provides a concise and creative response in ${selectedStyle.name} style.
+          - "text" provides a concise and creative response and resoning showing you understand the query in ${
+            selectedStyle.name
+          } style.
           - ${
             activeRestroId
               ? `"items1" contains up to 5 recommended items.`
@@ -536,7 +585,7 @@ export const useChatLogic = ({
           ${isVegOnly ? " Provide only VEGETARIAN options." : ""}
           ${
             numberOfPeople > 1
-              ?  `Show portions sufficient for ${numberOfPeople} people.`
+              ? `Show portions sufficient for ${numberOfPeople} people.`
               : ""
           }
         STRICT FORMAT RULES:
@@ -556,7 +605,7 @@ export const useChatLogic = ({
           type: "ADD_MESSAGE",
           payload: {
             id: Date.now() + 1,
-            
+
             recommendedItems: menuResponse.items1 || [],
             text: menuResponse.text,
             llm: {
@@ -589,7 +638,7 @@ export const useChatLogic = ({
     getMenuItemsByFile,
     handleRestaurantQuery,
     handleMenuQuery,
-    determineQueryType, 
-    classifyIntent,   
+    determineQueryType,
+    classifyIntent,
   };
 };

@@ -15,7 +15,8 @@ interface ImageHandlerProps {
   handleMenuQuery: (
     queryType: QueryType,
     userInput: string,
-    isImageBased?: boolean
+    isImageBased?: boolean,
+    imageCaption?: string
   ) => Promise<any>;
 }
 
@@ -35,16 +36,18 @@ export const useImageHandler = ({
 
   const handleImageUpload = async (
     file: File,
-    setIsImageAnalyzing: (value: boolean) => void
+    setIsImageAnalyzing: (value: boolean) => void,
+    caption: string = "" 
   ) => {
     setIsImageAnalyzing(true);
     const imageUrl = URL.createObjectURL(file);
+    const messageText = caption.trim();
 
     dispatch({
       type: "ADD_MESSAGE",
       payload: {
         id: Date.now(),
-        text: "Image uploaded",
+        text: messageText,
         isBot: false,
         time: new Date().toLocaleString("en-US", {
           hour: "numeric",
@@ -62,7 +65,8 @@ export const useImageHandler = ({
       await handleMenuQuery(
         QueryType.MENU_QUERY,
         imageDescription,
-        true
+        true,
+        caption.trim() 
       );
       
     } catch (error) {
