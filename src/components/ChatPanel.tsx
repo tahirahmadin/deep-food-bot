@@ -65,12 +65,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     setInternalAddresses,
   } = useAuth();
 
-  const { theme, selectedStyle, isVegOnly, numberOfPeople } = useFiltersContext();
+  const { theme, selectedStyle, isVegOnly, numberOfPeople } =
+    useFiltersContext();
   const [isFirstLogin, setIsFirstLogin] = useState(true);
-  
+
   // Add local state for image analysis since we're using our own handler
   const [isImageAnalyzing, setIsImageAnalyzing] = useState(false);
-  
+
   // Get needed functions from useChatLogic
   const { getMenuItemsByFile, handleMenuQuery } = useChatLogic({
     input,
@@ -82,13 +83,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     isVegOnly,
     numberOfPeople,
     setRestaurants: (ids: number[]) => {
-      // Implementation of setRestaurants 
+      // Implementation of setRestaurants
       // Or remove if not needed
     },
     addresses,
     chatHistory: state.messages,
   });
-  
+
   // Get the image handler
   const { handleImageUpload: processImage } = useImageHandler({
     state,
@@ -105,18 +106,18 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     getMenuItemsByFile,
     handleMenuQuery,
   });
-  
+
   // Add state for handling image uploads
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  
+
   // Function to handle image upload
   const handleImageUploadWithPreview = (file: File) => {
     setUploadedImage(file);
     setImagePreviewUrl(URL.createObjectURL(file));
     // Don't clear existing input if user has already typed a caption
   };
-  
+
   // Function to cancel image upload
   const cancelImageUpload = () => {
     if (imagePreviewUrl) {
@@ -125,15 +126,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     setUploadedImage(null);
     setImagePreviewUrl(null);
   };
-  
+
   // Custom submit handler that includes the image if present
   const handleSubmitWithImage = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (uploadedImage) {
       // If there's an image, pass it along with any caption (input)
       processImage(uploadedImage, setIsImageAnalyzing, input);
-      
+
       // Clear the image state after submission
       if (imagePreviewUrl) {
         URL.revokeObjectURL(imagePreviewUrl);
@@ -432,7 +433,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       id={restaurant.id}
                       name={restaurant.name}
                       description={restaurant.description}
-                      image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurant.id}/${restaurant.id}-0.jpg`}
+                      image={`${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${
+                        restaurant.id
+                      }/${restaurant.id}-0.jpg`}
                     />
                   ))}
                 </div>
@@ -545,20 +548,20 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           )}
         </div>
       )}
-      
+
       {/* Image preview above chat input */}
       {imagePreviewUrl && (
-        <div 
+        <div
           className="mx-auto max-w-md px-2 pt-2"
           style={{
             position: "fixed",
             bottom: "60px",
             left: 0,
             right: 0,
-            zIndex: 40
+            zIndex: 40,
           }}
         >
-          <div 
+          <div
             className="relative rounded-lg overflow-hidden shadow-lg border flex items-center p-2 gap-3"
             style={{
               backgroundColor: theme.cardBg,
@@ -567,13 +570,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           >
             {/* Smaller image thumbnail */}
             <div className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden">
-              <img 
-                src={imagePreviewUrl} 
-                alt="Preview" 
+              <img
+                src={imagePreviewUrl}
+                alt="Preview"
                 className="w-full h-full object-cover"
               />
             </div>
-            
+
             {/* Caption input - now visible */}
             <div className="flex-1 min-w-0 text-sm">
               <div className="font-medium mb-0.5" style={{ color: theme.text }}>
@@ -583,9 +586,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 {input ? `"${input}"` : "No caption added yet"}
               </div>
             </div>
-            
+
             {/* Close button */}
-            <button 
+            <button
               onClick={cancelImageUpload}
               className="p-1.5 rounded-full hover:bg-gray-200/50 transition-colors flex-shrink-0"
               style={{ color: theme.text }}
@@ -603,7 +606,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         onSubmit={handleSubmitWithImage}
         showQuickActions={state.messages.length <= 1 && !uploadedImage}
         onImageUpload={handleImageUploadWithPreview}
-        placeholder={uploadedImage ? "Add a caption to your image..." : placeholder}
+        placeholder={
+          uploadedImage ? "Add a caption to your image..." : placeholder
+        }
         isLoading={isLoading}
       />
     </>

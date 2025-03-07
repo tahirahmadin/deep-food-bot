@@ -100,7 +100,9 @@ export const RestaurantMessage: React.FC<RestaurantMessageProps> = ({
                 >
                   <div className="aspect-[16/9] w-full relative">
                     <img
-                      src={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurant.id}/${restaurant.id}-0.jpg`}
+                      src={`${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${
+                        restaurant.id
+                      }/${restaurant.id}-0.jpg`}
                       alt={restaurant.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 rounded-t-lg"
                     />
