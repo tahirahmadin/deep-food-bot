@@ -1,21 +1,18 @@
 import React, { useMemo } from "react";
-import { RefreshCw } from "lucide-react";
 import { ChatMenuItem } from "./ChatMenuItem";
-import { useChatContext, QueryType } from "../context/ChatContext";
+import { useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
-import { ChatService } from "../services/chatService";
 import { getMenuByRestaurantId } from "../utils/menuUtils";
 
 interface MenuListProps {
   messageId: number;
-  items: any[];
+  items: number[]; // Now items is an array of numeric IDs
   restroId: number;
 }
 
 export const MenuList: React.FC<MenuListProps> = ({ items, restroId }) => {
-  const { state, dispatch } = useChatContext();
-  const { state: restaurantState, dispatch: restaurantDispatch } =
-    useRestaurant();
+  const { state } = useChatContext();
+  const { state: restaurantState, dispatch: restaurantDispatch } = useRestaurant();
   const [menuItems, setMenuItems] = React.useState<any[]>([]);
 
   React.useEffect(() => {
@@ -35,15 +32,8 @@ export const MenuList: React.FC<MenuListProps> = ({ items, restroId }) => {
   }, [restroId, restaurantState, restaurantDispatch]);
 
   const filteredMenuItems = useMemo(() => {
-    // Create a map from the items array for quick lookup
-    const itemMap = new Map(items.map((item) => [item.id, item.name]));
-    // Filter fetched menuItems and include the quantity from the items array
-    return menuItems
-      .filter((menuItem) => itemMap.has(menuItem.id))
-      .map((menuItem) => ({
-        ...menuItem,
-        quantity: itemMap.get(menuItem.id), // Add quantity to the result
-      }));
+    const idSet = new Set<number>(items);
+    return menuItems.filter((menuItem) => idSet.has(menuItem.id));
   }, [items, menuItems]);
 
   return (
@@ -52,9 +42,9 @@ export const MenuList: React.FC<MenuListProps> = ({ items, restroId }) => {
       <div className="overflow-x-auto w-[250px]">
         {/* Flex container that takes exact width of menu items */}
         <div className="flex items-center gap-1 w-max">
-          {filteredMenuItems.map((meal, index) => (
+          {filteredMenuItems.map((meal) => (
             <ChatMenuItem
-              key={index}
+              key={meal.id}
               id={meal.id}
               name={meal.name}
               price={meal.price}

@@ -366,6 +366,7 @@ export const useChatLogic = ({
         - "restroIds" is an array of up to 2 matching restaurant IDs (numeric).
       STRICT FORMAT RULES:
         - Return only a valid JSON object with no extra text, explanations, or markdown.
+        - DO NOT include any special character before and after the json.
         - No code fences, no trailing commas, no disclaimers.
         - Only return a valid JSON object, nothing else.
       `;
@@ -544,30 +545,26 @@ export const useChatLogic = ({
         ${conversationContext ? `Also, consider the following conversation context: "${conversationContext}"` : ""}
         and return a JSON response: ${
           activeRestroId
-            ? `{ "text": "", "items1": [{ "id": number, "name": string }] }`
-            : `{ "text": "", "items1": [{ "id": number, "name": string }], "items2": [{ "id": number, "name": string }] }`
+            ? `{ "text": "", "items1": [] }`
+            : `{ "text": "", "items1": [], "items2": [] }`
         }
         where:
-          - "text" provides a concise and creative response and resoning showing you understand the query in ${selectedStyle.name} style.
+          - "text" provides a concise and creative response and reasoning showing you understand the query in ${selectedStyle.name} style.
           - ${
             activeRestroId
-              ? `"items1" contains up to 5 recommended items.`
-              : `"items1" and "items2" contain up to 5 relevant items each.`
+              ? `"items1" is array contains id of up to 5 recommended items.`
+              : `"items1" and "items2" contains id of up to 5 relevant items each.`
           }
           ${isVegOnly ? " Provide only VEGETARIAN options." : ""}
-          ${
-            numberOfPeople > 1
-              ?  `Show portions sufficient for ${numberOfPeople} people.`
-              : ""
-          }
         STRICT FORMAT RULES:
           - DO NOT include any markdown formatting.
           - DO NOT include explanations or additional text.
+          - DO NOT include any special character before and after the json.
           - Only return a valid JSON object, nothing else.
       `;
       const menuResponse = await getCachedLLMResponse(
         menuPrompt,
-        1000,
+        400,
         state.selectedModel,
         0.5
       );
