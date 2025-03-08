@@ -228,14 +228,17 @@ export const DunkinOrderApp: React.FC = () => {
           />
         )}
         <div className="flex flex-col h-screen">
-          <div className="fixed top-0 left-0 right-0 z-[50] max-w-md mx-auto">
+          {/* Fixed Header and Filters */}
+          <div className="fixed top-0 left-0 right-0 z-[50] max-w-md mx-auto bg-white">
             <Header
               onOpenPanel={() => setIsPanelOpen(true)}
               onCartClick={() => setIsCartOpen(!isCartOpen)}
             />
             <Filters />
           </div>
-          <div className="flex-1 mt-[150px] overflow-auto pb-25">
+          {/* pt-[150px] */}
+          {/* Chat Panel takes remaining space */}
+          <div className="flex flex-col flex-1 pt-[150px]">
             <ChatPanel
               input={input}
               setInput={setInput}
