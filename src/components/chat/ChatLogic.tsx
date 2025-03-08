@@ -361,9 +361,8 @@ export const useChatLogic = ({
       ${analysisText} and also consider previous order choices from ${orderContextItem}
       ${conversationContext ? `and also consider the previous conversation: "${conversationContext}"` : ""}
       and return exactly one JSON object:
-        { "text": "", "restroIds": [] }
+        { "restroIds": [] }
       where:
-        - "text" is a short, relevant response.
         - "restroIds" is an array of up to 2 matching restaurant IDs (numeric).
       STRICT FORMAT RULES:
         - Return only a valid JSON object with no extra text, explanations, or markdown.
