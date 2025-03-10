@@ -49,7 +49,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 }) => {
   const { state, dispatch } = useChatContext();
   const chatContainerRef = useRef(null);
-  const messagesEndRef = useRef(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [allMenuItems, setAllMenuItems] = useState<MenuItemFront[]>([]);
   const {
@@ -285,16 +284,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight - 200, // 100px padding at the bottom
+        top: chatContainerRef.current.scrollHeight - 100, // 100px padding at the bottom
         behavior: "smooth",
       });
     }
   }, [state.messages]); // Runs when messages change
-
-  // Auto-scroll to bottom when messages update
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [state.messages]);
 
   // Use either external or internal image analyzing state
   const showImageAnalyzing = externalImageAnalyzing || isImageAnalyzing;
@@ -302,11 +296,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   return (
     <>
       {state.mode === "chat" && (
-        <div className="flex flex-col h-full max-h-screen">
-          {/* Messages Section - Takes remaining space */}
+        <div className="flex flex-col h-screen">
           <div
-            className="flex-1 overflow-y-auto p-4 bg-orange-50"
-            style={{ paddingBottom: "200px" }}
+            className={`h-full overflow-y-auto p-2 scroll-smooth overscroll-contain`}
+            ref={chatContainerRef}
+            style={{ height: `${getVH() - 10}px`, paddingBottom: 300 }}
           >
             {!isAuthenticated && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">
@@ -430,69 +424,67 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 </div>
               </div>
             )}
-            {/* Dummy div to ensure scrolling reaches the bottom */}
-            <div ref={messagesEndRef} />
           </div>
 
-          {/* Bottom Input Box - Takes its own height */}
-          <div className="p-4 bg-white shadow-md">
-            {/* Image preview above chat input */}
-            {imagePreviewUrl && (
+          {/* Image preview above chat input */}
+          {imagePreviewUrl && (
+            <div
+              className="mx-auto max-w-md px-2 pt-2"
+              style={{
+                position: "fixed",
+                bottom: "60px",
+                left: 0,
+                right: 0,
+                zIndex: 40,
+              }}
+            >
               <div
-                className="mx-auto max-w-md px-2 pt-2"
+                className="relative rounded-lg overflow-hidden shadow-lg border flex items-center p-2 gap-3"
                 style={{
-                  position: "fixed",
-                  bottom: "60px",
-                  left: 0,
-                  right: 0,
-                  zIndex: 40,
+                  backgroundColor: theme.cardBg,
+                  borderColor: `${theme.border}`,
                 }}
               >
-                <div
-                  className="relative rounded-lg overflow-hidden shadow-lg border flex items-center p-2 gap-3"
-                  style={{
-                    backgroundColor: theme.cardBg,
-                    borderColor: `${theme.border}`,
-                  }}
-                >
-                  {/* Smaller image thumbnail */}
-                  <div className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden">
-                    <img
-                      src={imagePreviewUrl}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                {/* Smaller image thumbnail */}
+                <div className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden">
+                  <img
+                    src={imagePreviewUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
 
-                  {/* Caption input - now visible */}
-                  <div className="flex-1 min-w-0 text-sm">
-                    <div
-                      className="font-medium mb-0.5"
-                      style={{ color: theme.text }}
-                    >
-                      Add a caption
-                    </div>
-                    <div
-                      className="text-xs opacity-70"
-                      style={{ color: theme.text }}
-                    >
-                      {input ? `"${input}"` : "No caption added yet"}
-                    </div>
-                  </div>
-
-                  {/* Close button */}
-                  <button
-                    onClick={cancelImageUpload}
-                    className="p-1.5 rounded-full hover:bg-gray-200/50 transition-colors flex-shrink-0"
+                {/* Caption input - now visible */}
+                <div className="flex-1 min-w-0 text-sm">
+                  <div
+                    className="font-medium mb-0.5"
                     style={{ color: theme.text }}
                   >
-                    <X size={18} />
-                  </button>
+                    Add a caption
+                  </div>
+                  <div
+                    className="text-xs opacity-70"
+                    style={{ color: theme.text }}
+                  >
+                    {input ? `"${input}"` : "No caption added yet"}
+                  </div>
                 </div>
+
+                {/* Close button */}
+                <button
+                  onClick={cancelImageUpload}
+                  className="p-1.5 rounded-full hover:bg-gray-200/50 transition-colors flex-shrink-0"
+                  style={{ color: theme.text }}
+                >
+                  <X size={18} />
+                </button>
               </div>
-            )}
+            </div>
+          )}
+          {/* Chat Input (Fixed at the bottom) */}
+          <div className="sticky bottom-0 w-full p-2">
             <ChatInput
-              className=""
+              className={""}
               input={input}
               setInput={setInput}
               onSubmit={handleSubmitWithImage}
