@@ -283,6 +283,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   // Use either external or internal image analyzing state
   const showImageAnalyzing = externalImageAnalyzing || isImageAnalyzing;
 
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight - 100, // 100px padding at the bottom
+        behavior: "smooth",
+      });
+    }
+  }, [state.messages]); // Runs when messages change
+
   return (
     <>
       <div
@@ -432,7 +441,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       id={restaurant.id}
                       name={restaurant.name}
                       description={restaurant.description}
-                      image={`https://gobbl-restaurant-bucket.s3.ap-south-1.amazonaws.com/${restaurant.id}/${restaurant.id}-0.jpg`}
+                      image={`https://gobbl-restaurant-images-bucket.s3.ap-south-1.amazonaws.com/${restaurant.id}/${restaurant.id}-0.jpg`}
                     />
                   ))}
                 </div>
