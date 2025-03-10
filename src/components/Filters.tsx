@@ -389,7 +389,7 @@ export const Filters: React.FC = () => {
           </button>
         </div>
         {/* Model Selection */}
-        {/* <div className="relative">
+        <div className="relative">
           <button
             onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
             className="flex items-center gap-1 hover:bg-gray-50 p-1.5 rounded-lg transition-colors"
@@ -439,7 +439,7 @@ export const Filters: React.FC = () => {
               ))}
             </div>
           )}
-        </div> */}
+        </div>
       </div>
 
       <RestaurantChangeModal
