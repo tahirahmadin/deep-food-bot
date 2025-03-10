@@ -305,7 +305,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         <div className="flex flex-col h-full max-h-screen">
           {/* Messages Section - Takes remaining space */}
           <div
-            className="flex-1 overflow-y-auto p-4 bg-orange-50"
+            className="flex-1 overflow-y-auto p-2"
             style={{ paddingBottom: "200px" }}
           >
             {!isAuthenticated && (

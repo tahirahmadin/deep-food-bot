@@ -73,7 +73,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   // Handle clicking outside to close image options
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showImageOptions && !event.composedPath().includes(document.getElementById('image-options-container') as Node)) {
+      if (
+        showImageOptions &&
+        !event
+          .composedPath()
+          .includes(document.getElementById("image-options-container") as Node)
+      ) {
         setShowImageOptions(false);
       }
     };
@@ -84,14 +89,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     };
   }, [showImageOptions]);
 
-  const handleImageUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     onImageUpload(file);
     setShowImageOptions(false);
-    
+
     // Reset the input value so the same file can be selected again if needed
     e.target.value = "";
   };
@@ -120,7 +123,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       style={{
         position: isKeyboardOpen ? "absolute" : "fixed",
         bottom: isKeyboardOpen ? "10px" : "0",
-        backgroundColor: `${theme.cardBg}80`,
+        backgroundColor: `${theme.cardBg}`,
         borderColor: `${theme.text}10`,
       }}
     >
@@ -207,7 +210,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             "::placeholder": { color: `${theme.text}60` },
           }}
         />
-        
+
         <div className="relative" id="image-options-container">
           <button
             type="button"
