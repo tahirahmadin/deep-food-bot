@@ -140,46 +140,46 @@ const classifyIntent = async (
 
   if (isImageBased) return QueryType.MENU_QUERY;
 
-  const restaurantKeywords = [
-    "restaurant",
-    "place",
-    "where",
-    "location",
-    "open",
-    "closed",
-    "timing",
-    "hours",
-    "address"
-  ];
-  const menuKeywords = [
-    "price",
-    "cost",
-    "how much",
-    "menu",
-    "order",
-    "buy",
-    "get",
-    "recommend",
-    "suggest",
-    "what should",
-    "what's good",
-    "something to eat"
-  ];
+  // const restaurantKeywords = [
+  //   "restaurant",
+  //   "place",
+  //   "where",
+  //   "location",
+  //   "open",
+  //   "closed",
+  //   "timing",
+  //   "hours",
+  //   "address"
+  // ];
+  // const menuKeywords = [
+  //   "price",
+  //   "cost",
+  //   "how much",
+  //   "menu",
+  //   "order",
+  //   "buy",
+  //   "get",
+  //   "recommend",
+  //   "suggest",
+  //   "what should",
+  //   "what's good",
+  //   "something to eat"
+  // ];
 
   const lowerQuery = query.toLowerCase();
 
-  const nutritionKeywords = ["calories", "nutrition", "fats", "protein", "carbs"];
-  if (nutritionKeywords.some((keyword) => lowerQuery.includes(keyword))) {
-    return QueryType.NUTRITION_QUERY;
-  }
+  // const nutritionKeywords = ["calories", "nutrition", "fats", "protein", "carbs"];
+  // if (nutritionKeywords.some((keyword) => lowerQuery.includes(keyword))) {
+  //   return QueryType.NUTRITION_QUERY;
+  // }
 
-  const isRestaurant =
-    restaurantKeywords.some((keyword) => lowerQuery.includes(keyword)) &&
-    !activeRestroId;
-  const isMenu = menuKeywords.some((keyword) => lowerQuery.includes(keyword));
+  // const isRestaurant =
+  //   restaurantKeywords.some((keyword) => lowerQuery.includes(keyword)) &&
+  //   !activeRestroId;
+  // const isMenu = menuKeywords.some((keyword) => lowerQuery.includes(keyword));
 
-  if (isRestaurant) return QueryType.RESTAURANT_QUERY;
-  if (isMenu) return QueryType.MENU_QUERY;
+  // if (isRestaurant) return QueryType.RESTAURANT_QUERY;
+  // if (isMenu) return QueryType.MENU_QUERY;
 
   
   const conversationContext = buildConversationContext(chatHistory);
@@ -188,14 +188,14 @@ const classifyIntent = async (
       You are an intent classifier for a food ordering platform that aggregates recommendations from multiple restaurants. Your task is to classify a given user query into exactly one of three types: "MENU_QUERY", "RESTAURANT_QUERY", or "GENERAL".
       
       Definitions:
-      - "MENU_QUERY": Use this category when the query specifically requests a list of food items or dishes for ordering. Examples include: "What's on the menu?", "Show me available dishes", or "I want to order a burger". In this mode, the response will always recommend food items.
+      - "MENU_QUERY": Use this category when the query specifically requests a list of food items or dishes for ordering or suggestion of food items. Examples include: "What's on the menu?", "Show me available dishes", or "I want to order a burger", or "suggest me something having high protien". In this mode, the response will always recommend food items.
       - "RESTAURANT_QUERY": Use this category when the query is about the restaurant or the ordering service. This includes questions about location, delivery, ordering process, or direct restaurant recommendations. Even if food is mentioned, if the focus is on the restaurant's details, use this category.
       - "GENERAL": Use this category for queries that are conversational or ask for additional details about a food item (such as ingredients, taste, preparation). Also include greetings or casual conversation here. Responses for GENERAL queries are typically brief (2-3 lines) and chatty.
       - "NUTRITION_QUERY": Use this category when the query asks for nutritional information of a food item (for example, calories, fats, protein, or carbs) of a food item.
       
       Instructions:
       - Analyze the user query and any provided conversation context.
-      - If the query asks for a list of dishes or ordering options, classify it as "MENU_QUERY".
+      - If the query asks for a list of dishes or ordering options or recommendations or suggestions, classify it as "MENU_QUERY".
       - If the query asks about the restaurant, its operations, or service details, classify it as "RESTAURANT_QUERY".
       - If the query asks for nutritional information of a food item (for example, calories, fats, protein, or carbs) of a food item, classify it as "NUTRITION_QUERY".
       - If the query asks for details about a food item (for example, "Tell me more about that dish", "What are its main ingredients?", or "Is it more creamy or tangy?") or is casual conversation, classify it as "GENERAL".
