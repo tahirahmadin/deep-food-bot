@@ -69,6 +69,7 @@ export const DunkinOrderApp: React.FC = () => {
   const chatLogic = useChatLogic({
     input,
     restaurantState,
+    restaurantDispatch,
     state,
     dispatch,
     orders,

@@ -7,6 +7,7 @@ import { TypingEffect } from "./messageComponents/TypingEffect";
 import { MenuMessage } from "./messageComponents/MenuMessage";
 import { OrderMessage } from "./messageComponents/OrderMessage";
 import { RestaurantMessage } from "./messageComponents/RestaurantMessage";
+import { NutritionMessage } from "./messageComponents/NutritionMessage";
 
 interface MessageProps {
   message: MessageType;
@@ -39,6 +40,11 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
   }, [message]);
 
   const renderContent = () => {
+    // Handle nutrition query type
+    if (message.queryType === QueryType.NUTRITION_QUERY) {
+      return <NutritionMessage message={message} />;
+    }
+    
     if (message.queryType === QueryType.RESTAURANT_QUERY) {
       return <RestaurantMessage message={message} />;
     }

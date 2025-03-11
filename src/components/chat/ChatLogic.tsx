@@ -1,6 +1,8 @@
+import { useState } from "react";
+import stringSimilarity from "string-similarity";
 import { QueryType } from "../../context/ChatContext";
 import { generateLLMResponse } from "../../actions/serverActions";
-import { getMenuByRestaurantId } from "../../utils/menuUtils";
+import { getMenuByRestaurantId, getRestaurantNameById, findMenuItemById } from "../../utils/menuUtils";
 import { filterRestaurantsByDistance } from "../../utils/distanceUtils";
 
 interface RecommendedItem {
@@ -20,6 +22,7 @@ interface Message {
 interface ChatLogicProps {
   input: string;
   restaurantState: any;
+  restaurantDispatch: any;
   state: any;
   dispatch: any;
   orders: any[];
@@ -165,6 +168,11 @@ const classifyIntent = async (
 
   const lowerQuery = query.toLowerCase();
 
+  const nutritionKeywords = ["calories", "nutrition", "fats", "protein", "carbs"];
+  if (nutritionKeywords.some((keyword) => lowerQuery.includes(keyword))) {
+    return QueryType.NUTRITION_QUERY;
+  }
+
   const isRestaurant =
     restaurantKeywords.some((keyword) => lowerQuery.includes(keyword)) &&
     !activeRestroId;
@@ -182,12 +190,14 @@ const classifyIntent = async (
       Definitions:
       - "MENU_QUERY": Use this category when the query specifically requests a list of food items or dishes for ordering. Examples include: "What's on the menu?", "Show me available dishes", or "I want to order a burger". In this mode, the response will always recommend food items.
       - "RESTAURANT_QUERY": Use this category when the query is about the restaurant or the ordering service. This includes questions about location, delivery, ordering process, or direct restaurant recommendations. Even if food is mentioned, if the focus is on the restaurant's details, use this category.
-      - "GENERAL": Use this category for queries that are conversational or ask for additional details about a food item (such as ingredients, taste, preparation, or nutritional information). Also include greetings or casual conversation here. Responses for GENERAL queries are typically brief (2-3 lines) and chatty.
+      - "GENERAL": Use this category for queries that are conversational or ask for additional details about a food item (such as ingredients, taste, preparation). Also include greetings or casual conversation here. Responses for GENERAL queries are typically brief (2-3 lines) and chatty.
+      - "NUTRITION_QUERY": Use this category when the query asks for nutritional information of a food item (for example, calories, fats, protein, or carbs) of a food item.
       
       Instructions:
       - Analyze the user query and any provided conversation context.
       - If the query asks for a list of dishes or ordering options, classify it as "MENU_QUERY".
       - If the query asks about the restaurant, its operations, or service details, classify it as "RESTAURANT_QUERY".
+      - If the query asks for nutritional information of a food item (for example, calories, fats, protein, or carbs) of a food item, classify it as "NUTRITION_QUERY".
       - If the query asks for details about a food item (for example, "Tell me more about that dish", "What are its main ingredients?", or "Is it more creamy or tangy?") or is casual conversation, classify it as "GENERAL".
       - Base your decision solely on the query and any provided conversation context.
       
@@ -215,12 +225,14 @@ const classifyIntent = async (
       if (resultText.includes("MENU_QUERY")) return QueryType.MENU_QUERY;
       if (resultText.includes("RESTAURANT_QUERY"))
         return QueryType.RESTAURANT_QUERY;
+      if (resultText.includes("NUTRITION_QUERY")) return QueryType.NUTRITION_QUERY;
       if (resultText.includes("GENERAL")) return QueryType.GENERAL;
     } catch (e) {
       const resultText = llmResult.text.trim().toUpperCase();
       if (resultText.includes("MENU_QUERY")) return QueryType.MENU_QUERY;
       if (resultText.includes("RESTAURANT_QUERY"))
         return QueryType.RESTAURANT_QUERY;
+      if (resultText.includes("NUTRITION_QUERY")) return QueryType.NUTRITION_QUERY;
     }
   }
   return QueryType.GENERAL;
@@ -229,6 +241,7 @@ const classifyIntent = async (
 export const useChatLogic = ({
   input,
   restaurantState,
+  restaurantDispatch,
   state,
   dispatch,
   orders,
@@ -239,6 +252,13 @@ export const useChatLogic = ({
   addresses,
   chatHistory,
 }: ChatLogicProps) => {
+  const [currentRecommendation, setCurrentRecommendation] = useState<Array<{
+    restaurantId: number;
+    restaurantName: string;
+    recommendedItems: RecommendedItem[];
+  }> | null>(null);
+
+
   const determineQueryType = (
     query: string,
     activeRestroId: number | null
@@ -290,7 +310,7 @@ export const useChatLogic = ({
       }
     }
     const promise = (async () => {
-      const menu = await getMenuByRestaurantId(restaurantId, restaurantState, dispatch);
+      const menu = await getMenuByRestaurantId(restaurantId, restaurantState, restaurantDispatch);
       const filtered = filterMenuItems(menu);
       menuCache.set(restaurantId, { value: filtered, timestamp: Date.now() });
       return filtered;
@@ -304,8 +324,6 @@ export const useChatLogic = ({
     let filteredRestaurants = restaurantState.restaurants;
 
     if (selectedAddress?.coordinates) {
-      console.log("selectedAddress");
-      console.log(selectedAddress);
       filteredRestaurants = filterRestaurantsByDistance(
         selectedAddress.coordinates.lat,
         selectedAddress.coordinates.lng,
@@ -395,11 +413,12 @@ export const useChatLogic = ({
         minute: "numeric",
         hour12: true,
       });
-  
-      const effectiveInput = isImageBased && imageCaption 
-        ? `Image shows: ${userInput}. User says: ${imageCaption}`
-        : userInput;
-  
+
+      const effectiveInput =
+        isImageBased && imageCaption
+          ? `Image shows: ${userInput}. User says: ${imageCaption}`
+          : userInput;
+
       const queryType = isImageBased
         ? QueryType.MENU_QUERY
         : await classifyIntent(
@@ -413,7 +432,156 @@ export const useChatLogic = ({
       const conversationContext = buildConversationContext(
         chatHistory.filter((msg) => !msg.isBot)
       );
-  
+
+      const normalize = (str: string) => {
+        return str.toLowerCase().replace(/[^\w\s]/g, "").trim();
+      };
+
+      if (queryType === QueryType.NUTRITION_QUERY) {
+        let dishNameCandidate = "";
+        if (effectiveInput.toLowerCase().includes(" in ")) {
+          const parts = effectiveInput.split(/\s+in\s+/i);
+          dishNameCandidate = parts[parts.length - 1].trim();
+        } else {
+          dishNameCandidate = effectiveInput.trim();
+        }
+      
+        const normalizedCandidate = normalize(dishNameCandidate);
+      
+        let dishRestaurantName = "";
+        let correctedDishName = "";
+        let bestMatchScore = 0;
+        const threshold = 0.7; 
+      
+        if (currentRecommendation && Array.isArray(currentRecommendation)) {
+          for (const rec of currentRecommendation) {
+            const menuItems = await getMenuItemsByFile(rec.restaurantId);
+            for (const menuItem of menuItems) {
+              if (!menuItem.name) continue;
+              const normalizedMenuName = normalize(menuItem.name);
+              const score = stringSimilarity.compareTwoStrings(normalizedCandidate, normalizedMenuName);
+              if (score > threshold && score > bestMatchScore) {
+                bestMatchScore = score;
+                dishRestaurantName = getRestaurantNameById(restaurantState.restaurants, rec.restaurantId);
+                correctedDishName = menuItem.name;
+                console.log(`New best match: "${correctedDishName}" at ${dishRestaurantName} with score ${bestMatchScore}`);
+              }
+            }
+          }
+        }
+      
+        if (!dishRestaurantName) {
+          correctedDishName = dishNameCandidate;
+        }
+      
+        console.log("Final chosen dish restaurant:", dishRestaurantName);
+        console.log("Final corrected dish name:", correctedDishName);
+      
+        const userDailyCalories = state.userPreferences?.dailyCalories || 2000;
+        const calculateReferenceValues = (calories: number) => {
+          const ratio = calories / 2000;
+          return {
+            calories: calories,
+            protein: Math.round(50 * ratio),
+            carbs: Math.round(300 * ratio),
+            fat: Math.round(65 * ratio),
+            saturatedFat: Math.round(20 * ratio),
+            fiber: Math.round(25 * ratio),
+            sugar: Math.round(25 * ratio),
+            sodium: 2300
+          };
+        };
+      
+        const referenceValues = calculateReferenceValues(userDailyCalories);
+      
+        let nutritionContext = "";
+        if (dishRestaurantName) {
+          nutritionContext += `Restaurant Name: ${dishRestaurantName}. `;
+        }
+        if (correctedDishName) {
+          nutritionContext += `Food Item: ${correctedDishName}. `;
+        }
+        nutritionContext += "Use Food Item name and Restaurant Name to determine nutritional details, if specific nutritional details are unavailable, provide close approximations.";
+      
+        console.log("Final nutritional context:", nutritionContext);
+      
+        const nutritionPrompt = `
+              You are a nutrition assistant. Provide comprehensive nutritional information for the food item mentioned by the user.
+              ${nutritionContext}
+              ${conversationContext ? `and also consider the previous conversation: "${conversationContext}"` : ""}
+        
+              Important: The user follows a ${userDailyCalories} calorie diet. Please scale your nutritional assessment accordingly.
+        
+              Format the response as a JSON object exactly as follows:
+              {
+                "text": "Your Answer",
+                "item": "Name of the food item",
+                "calories": number,
+                "totalFat": number,
+                "saturatedFat": number,
+                "protein": number,
+                "carbs": number,
+                "fiber": number,
+                "sugar": number,
+                "sodium": number,
+                "isVegetarian": boolean,
+                "isLowCalorie": boolean,
+                "isHighProtein": boolean,
+                "referenceValues": {
+                  "calories": ${referenceValues.calories},
+                  "protein": ${referenceValues.protein},
+                  "carbs": ${referenceValues.carbs},
+                  "fat": ${referenceValues.fat},
+                  "saturatedFat": ${referenceValues.saturatedFat},
+                  "fiber": ${referenceValues.fiber},
+                  "sugar": ${referenceValues.sugar},
+                  "sodium": ${referenceValues.sodium}
+                }
+              }
+        
+              where:
+                - "text" provides a brief and creative response about the food item in ${selectedStyle.name} style.
+                - "item" provides the name of the food item.
+                - All nutrition values should be realistic for a standard serving size of the food.
+                - "calories" should be in kcal.
+                - "totalFat", "saturatedFat", "protein", "carbs", "fiber", and "sugar" should be in grams (g).
+                - "sodium" should be in milligrams (mg).
+                - "isVegetarian" should indicate if the food item is vegetarian.
+                - "isLowCalorie" should be true for foods with fewer than ${Math.round(userDailyCalories * 0.125)} calories per serving (adjusted for user's diet).
+                - "isHighProtein" should be true for foods with more than ${Math.round(referenceValues.protein * 0.3)} grams of protein per serving (adjusted for user's diet).
+                - "referenceValues" provides the daily reference values based on the user's ${userDailyCalories} calorie diet.
+        
+              The user said: "${effectiveInput}"
+        
+              STRICT FORMAT RULES:
+              - DO NOT include any markdown formatting.
+              - DO NOT include explanations or additional text.
+              - DO NOT include any special character, format before and after the json.
+              - Only return a valid JSON object, nothing else.
+              - Ensure all values are appropriate for the specific food item mentioned.
+              - Base your nutritional values on standard serving sizes for the food item.
+              `;
+      
+        const nutritionResponse = await getCachedLLMResponse(
+          nutritionPrompt,
+          300,
+          state.selectedModel,
+          0.5
+        );
+      
+        dispatch({
+          type: "ADD_MESSAGE",
+          payload: {
+            id: Date.now() + 1,
+            text: JSON.stringify(nutritionResponse),
+            isBot: true,
+            time: now,
+            queryType,
+          },
+        });
+        return;
+      }
+
       if (queryType === QueryType.GENERAL) {
         if (isGreetingOnly(effectiveInput)) {
           const friendlyResponseText = "Hello! How can I help you today?";
@@ -570,6 +738,36 @@ export const useChatLogic = ({
       );
   
       if ((suggestRestroIds.length > 0 || activeRestroId) && menuResponse) {
+        if (!restaurantState.activeRestroId) {
+          const recs = [];
+          recs.push({
+            restaurantId: suggestRestroIds[0],
+            restaurantName: getRestaurantNameById(restaurantState.restaurants, suggestRestroIds[0]),
+            recommendedItems: menuResponse.items1.map((item: any) => ({
+              id: item.id,
+            })),
+          });
+          if (suggestRestroIds.length > 1 && menuResponse.items2) {
+            recs.push({
+              restaurantId: suggestRestroIds[1],
+              restaurantName: getRestaurantNameById(restaurantState.restaurants, suggestRestroIds[1]),
+              recommendedItems: menuResponse.items2.map((item: any) => ({
+                id: item.id,
+              })),
+            });
+          }
+          setCurrentRecommendation(recs);
+        } else {
+          setCurrentRecommendation([{
+            restaurantId: restaurantState.activeRestroId,
+            restaurantName: getRestaurantNameById(restaurantState.restaurants, restaurantState.activeRestroId),
+            recommendedItems: menuResponse.items1.map((item: any) => ({
+              id: item.id,
+              name: "",
+            })),
+          }]);
+        }
+        
         dispatch({
           type: "ADD_MESSAGE",
           payload: {
@@ -579,7 +777,7 @@ export const useChatLogic = ({
             text: menuResponse.text,
             llm: {
               output: menuResponse,
-              restroIds: activeRestroId ? [activeRestroId] : suggestRestroIds,
+              restroIds: restaurantState.activeRestroId ? [restaurantState.activeRestroId] : suggestRestroIds,
             },
             isBot: true,
             time: now,
@@ -609,5 +807,6 @@ export const useChatLogic = ({
     handleMenuQuery,
     determineQueryType, 
     classifyIntent,   
+    currentRecommendation, 
   };
 };

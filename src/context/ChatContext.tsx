@@ -8,6 +8,7 @@ export enum QueryType {
   RESTAURANT_QUERY = "RESTAURANT_QUERY",
   CHECKOUT = "CHECKOUT",
   BROWSE = "BROWSE",
+  NUTRITION_QUERY = "NUTRITION_QUERY"
 }
 
 export enum ChatModel {
