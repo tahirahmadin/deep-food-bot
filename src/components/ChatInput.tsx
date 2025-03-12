@@ -170,7 +170,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             </button>
 
             <button
-              onClick={() => handleQuickAction("Show me Healthy drinks option")}
+              onClick={() => handleQuickAction("Show me Spicy pizza")}
               className="flex items-center gap-2 px-4 py-1 bg-white/90 rounded-full hover:bg-white transition-colors text-xs text-gray-600 shadow-sm justify-center"
               style={{
                 backgroundColor: theme.inputButtonBg,
@@ -179,7 +179,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               type="button"
             >
               <Zap className="w-3.5 h-3.5" />
-              <span>Healthy drinks ?</span>
+              <span>Spicy pizza ?</span>
             </button>
           </div>
         )}
