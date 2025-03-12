@@ -153,7 +153,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               type="button"
             >
               <Leaf className="w-3.5 h-3.5" />
-              <span>Best veg options ?</span>
+              <span>Top Veg Meal Picks!</span>
             </button>
 
             <button
@@ -166,7 +166,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               type="button"
             >
               <Pizza className="w-3.5 h-3.5" />
-              <span>Best chicken meals?</span>
+              <span>Must-Try Chicken Meals</span>
             </button>
 
             <button
