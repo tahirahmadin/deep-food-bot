@@ -139,7 +139,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     >
       {/* Display interim transcript during speech recognition */}
       {isSpeechEnabled && interimTranscript && (
-        <div className="mb-2 px-3 py-2 bg-orange-400 rounded-lg text-sm text-white italic">
+        <div className="mb-2 px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600 italic">
           {interimTranscript}
         </div>
       )}
