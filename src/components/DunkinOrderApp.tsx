@@ -32,24 +32,24 @@ export const DunkinOrderApp: React.FC = () => {
   const [isImageAnalyzing, setIsImageAnalyzing] = useState(false);
 
   // Set initial restaurant if needed
-  // React.useEffect(() => {
-  //   const initialRestroId = 205;
-  //   const initialRestroName = "Hungry Wolves";
-  //   const backImageUrl =
-  //     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4jOHl2IQswMq9Na2ZmVTxv8GoWXb31iLZyQ&s";
+  React.useEffect(() => {
+    const initialRestroId = 7246;
+    const initialRestroName = "Pizza Hut";
+    const backImageUrl =
+      "https://nextgalleriamalls.com/nextmusarambagh/wp-content/uploads/2024/02/pizzahut.png";
 
-  //   if (initialRestroId && restaurantState.singleMode) {
-  //     restaurantDispatch({
-  //       type: "SET_BACKGROUND_IMAGE",
-  //       payload: backImageUrl,
-  //     });
-  //     restaurantDispatch({
-  //       type: "SET_ACTIVE_RESTRO",
-  //       payload: initialRestroId,
-  //     });
-  //     dispatch({ type: "SET_SELECTED_RESTAURANT", payload: initialRestroName });
-  //   }
-  // }, [restaurantState.singleMode]);
+    if (initialRestroId && restaurantState.singleMode) {
+      restaurantDispatch({
+        type: "SET_BACKGROUND_IMAGE",
+        payload: backImageUrl,
+      });
+      restaurantDispatch({
+        type: "SET_ACTIVE_RESTRO",
+        payload: initialRestroId,
+      });
+      dispatch({ type: "SET_SELECTED_RESTAURANT", payload: initialRestroName });
+    }
+  }, [restaurantState.singleMode]);
 
   // console.log("Testing");
   // console.log(state.selectedRestaurant);
