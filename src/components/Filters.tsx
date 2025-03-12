@@ -504,23 +504,27 @@ export const Filters: React.FC = () => {
           }
           className="flex items-center gap-1 transition-colors"
           style={{
-            color: !state.selectedRestaurant ? theme.primary : theme.filtersBg,
-            backgroundColor: state.selectedRestaurant
+            color: !restaurantState.selectedRestaurant
+              ? theme.primary
+              : theme.filtersBg,
+            backgroundColor: restaurantState.selectedRestaurant
               ? theme.filtersIconColor
               : "transparent",
-            padding: state.selectedRestaurant ? "0.125rem 0.5rem" : "0",
-            borderRadius: state.selectedRestaurant ? "9999px" : "0",
+            padding: restaurantState.selectedRestaurant
+              ? "0.125rem 0.5rem"
+              : "0",
+            borderRadius: restaurantState.selectedRestaurant ? "9999px" : "0",
           }}
         >
           <Store className="w-4 h-4" />
+
           <span className="text-sm">
-            {state.selectedRestaurant
-              ? state.selectedRestaurant
+            {restaurantState.selectedRestaurant
+              ? restaurantState.selectedRestaurant
               : "All Restaurants"}
           </span>
-          {state.selectedRestaurant && !restaurantState.singleMode && (
-            <X className="w-3.5 h-3.5" />
-          )}
+          {restaurantState.selectedRestaurant &&
+            !restaurantState.singleMode && <X className="w-3.5 h-3.5" />}
         </button>
 
         <button

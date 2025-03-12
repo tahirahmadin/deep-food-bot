@@ -156,7 +156,7 @@ const CheckoutForm: React.FC<{
           const secret = await stripeService.createPaymentIntent(
             cart,
             orderDetails,
-            state.selectedRestaurant || "Unknown Restaurant",
+            restaurantState.selectedRestaurant || "Unknown Restaurant",
             user.userId,
             restaurantState.activeRestroId,
             sellerId
@@ -175,7 +175,7 @@ const CheckoutForm: React.FC<{
     selectedPaymentMethod,
     cart,
     orderDetails,
-    state.selectedRestaurant,
+    restaurantState.selectedRestaurant,
     user?.userId,
     restaurantState.activeRestroId,
   ]);
@@ -271,7 +271,7 @@ const CheckoutForm: React.FC<{
       const orderResponse = await stripeService.createCryptoOrder(
         cart,
         orderDetailsWithTx,
-        state.selectedRestaurant || "Unknown Restaurant",
+        restaurantState.selectedRestaurant || "Unknown Restaurant",
         user.userId,
         restaurantState.activeRestroId,
         cryptoDepositAddress
@@ -302,7 +302,7 @@ const CheckoutForm: React.FC<{
       let paymentStatus = await stripeService.createCashIntent(
         cart,
         orderDetails,
-        state.selectedRestaurant || "Unknown Restaurant",
+        restaurantState.selectedRestaurant || "Unknown Restaurant",
         user.userId,
         restaurantState.activeRestroId
       );
@@ -371,7 +371,7 @@ const CheckoutForm: React.FC<{
               address: orderDetails.address,
               phone: orderDetails.phone,
             },
-            restaurant: state.selectedRestaurant,
+            restaurant: restaurantState.selectedRestaurant,
             firstItemImage,
           },
         }),

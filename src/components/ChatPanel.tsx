@@ -536,7 +536,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       name={item.name}
                       price={item.price}
                       restaurant={
-                        state.selectedRestaurant ? state.selectedRestaurant : ""
+                        restaurantState.selectedRestaurant
+                          ? restaurantState.selectedRestaurant
+                          : ""
                       }
                       image={
                         item.image && item.image != ""

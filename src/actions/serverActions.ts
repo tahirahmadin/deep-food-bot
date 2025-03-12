@@ -69,6 +69,7 @@ interface Restaurant {
   id: number;
   restaurant: string;
   items: string;
+  image: string;
 }
 
 // Define menu types
@@ -169,7 +170,7 @@ export const getSingleRestaurant = async (
   restaurantId: string
 ): Promise<Restaurant | null> => {
   try {
-    let url = `${apiUrl}/restaurant/getRestaurant/${restaurantId}`;
+    let url = `${apiUrl}/restaurant/getSingleRestaurant/${restaurantId}`;
     const response = await axios.get(url);
 
     if (response.data && !response.data.error) {

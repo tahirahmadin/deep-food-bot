@@ -6,11 +6,11 @@ import {
 import { SingleRestro } from "../types/menu";
 import { useAuth } from "./AuthContext";
 import { useLocation } from "react-router-dom";
-import { useChatContext } from "./ChatContext";
 
 interface RestaurantState {
   selectedRestroIds: number[];
   activeRestroId: number | null;
+  selectedRestaurant: string | null;
   singleMode: boolean;
   cashMode: boolean;
   backgroundImage: string | null;
@@ -22,6 +22,8 @@ interface RestaurantState {
 
 type RestaurantAction =
   | { type: "SET_RESTRO_IDS"; payload: number[] }
+  | { type: "SET_SELECTED_RESTAURANT"; payload: string | null }
+  | { type: "SET_SINGLE_MODE"; payload: boolean }
   | { type: "SET_ACTIVE_RESTRO"; payload: number | null }
   | { type: "SET_BACKGROUND_IMAGE"; payload: string | null }
   | { type: "CLEAR_RESTRO_IDS" }
@@ -31,6 +33,7 @@ type RestaurantAction =
 
 const initialState: RestaurantState = {
   selectedRestroIds: [],
+  selectedRestaurant: null,
   singleMode: false,
   cashMode: false,
   backgroundImage: null,
@@ -55,6 +58,18 @@ const restaurantReducer = (
         ...state,
         activeRestroId: action.payload,
       };
+    case "SET_SELECTED_RESTAURANT":
+      return {
+        ...state,
+        selectedRestaurant: action.payload,
+      };
+
+    case "SET_SINGLE_MODE":
+      return {
+        ...state,
+        singleMode: action.payload,
+      };
+
     case "SET_BACKGROUND_IMAGE":
       return {
         ...state,
@@ -107,8 +122,6 @@ const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     const fetchRestaurants = async () => {
-      console.log("restaurantId Context");
-      console.log(restaurantId);
       // Get coordinates from the selected (first) address
       const selectedAddress = addresses[0];
       const coordinates = selectedAddress?.coordinates;
@@ -116,7 +129,7 @@ const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
       if (restaurantId) {
         // Adjust the second parameter (limit) as needed.
         const restaurantData = await getSingleRestaurant(restaurantId);
-        console.log(restaurantData);
+
         if (restaurantData) {
           dispatch({ type: "SET_RESTAURANTS", payload: [restaurantData] });
         }
@@ -125,18 +138,23 @@ const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4jOHl2IQswMq9Na2ZmVTxv8GoWXb31iLZyQ&s";
         dispatch({
           type: "SET_BACKGROUND_IMAGE",
-          payload: backImageUrl,
+          payload: restaurantData.image,
         });
 
         dispatch({
           type: "SET_ACTIVE_RESTRO",
-          payload: restaurantId,
+          payload: parseInt(restaurantId),
         });
 
-        // chatDispatch({
-        //   type: "SET_SELECTED_RESTAURANT",
-        //   payload: restaurantData?.restaurant,
-        // });
+        dispatch({
+          type: "SET_SELECTED_RESTAURANT",
+          payload: restaurantData?.name,
+        });
+
+        dispatch({
+          type: "SET_SINGLE_MODE",
+          payload: true,
+        });
       } else {
         if (coordinates) {
           // Fetch restaurants based on coordinates.

@@ -101,7 +101,7 @@ export const CartSummary: React.FC = () => {
               price: item.price,
             })),
             total: cartTotal,
-            restaurant: state.selectedRestaurant,
+            restaurant: restaurantState.selectedRestaurant,
           },
         }),
         isBot: true,

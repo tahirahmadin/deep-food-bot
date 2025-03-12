@@ -51,9 +51,6 @@ export const DunkinOrderApp: React.FC = () => {
   //   }
   // }, [restaurantState.singleMode]);
 
-  // console.log("Testing");
-  // console.log(state.selectedRestaurant);
-  // console.log(restaurantState.singleMode);
   // Reset UI state when auth changes.
   useEffect(() => {
     if (!isAuthenticated) {

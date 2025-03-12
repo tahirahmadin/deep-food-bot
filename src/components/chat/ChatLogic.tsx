@@ -2,11 +2,15 @@ import { useState } from "react";
 import stringSimilarity from "string-similarity";
 import { QueryType } from "../../context/ChatContext";
 import { generateLLMResponse } from "../../actions/serverActions";
-import { getMenuByRestaurantId, getRestaurantNameById, findMenuItemById } from "../../utils/menuUtils";
+import {
+  getMenuByRestaurantId,
+  getRestaurantNameById,
+  findMenuItemById,
+} from "../../utils/menuUtils";
 import { filterRestaurantsByDistance } from "../../utils/distanceUtils";
 
 interface RecommendedItem {
-  id?: number; 
+  id?: number;
   name: string;
 }
 
@@ -16,7 +20,7 @@ interface Message {
   isBot: boolean;
   time: string;
   queryType?: QueryType;
-  recommendedItems?: RecommendedItem[]; 
+  recommendedItems?: RecommendedItem[];
 }
 
 interface ChatLogicProps {
@@ -36,7 +40,7 @@ interface ChatLogicProps {
 
 const MENU_CACHE_TTL = 2 * 60 * 1000;
 const LLM_CACHE_TTL = 1 * 60 * 1000;
-const RESTAURANT_QUERY_CACHE_TTL = 1 * 60 * 1000; 
+const RESTAURANT_QUERY_CACHE_TTL = 1 * 60 * 1000;
 
 interface CacheEntry<T> {
   value: T | null;
@@ -90,11 +94,11 @@ const getCachedLLMResponse = async (
       if (entry.promise) return await entry.promise;
     }
   }
-  
+
   const promise = generateLLMResponse(prompt, maxTokens, model, temperature);
   llmCache.set(key, { value: null, timestamp: now, promise });
   const response = await promise;
-  
+
   llmCache.set(key, { value: response, timestamp: Date.now() });
   return response;
 };
@@ -108,21 +112,28 @@ const isGreetingOnly = (query: string): boolean => {
     "good afternoon",
     "good evening",
     "whatsup",
-    "whats up"
+    "whats up",
   ];
-  const cleaned = query.toLowerCase().replace(/[^a-z\s]/g, "").trim();
+  const cleaned = query
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, "")
+    .trim();
   return greetings.includes(cleaned);
 };
 
-
-const buildConversationContext = (chatHistory: Message[], limit: number = 5): string => {
-  const recentMessages = chatHistory.filter(msg => !msg.isBot).slice(-limit);
+const buildConversationContext = (
+  chatHistory: Message[],
+  limit: number = 5
+): string => {
+  const recentMessages = chatHistory.filter((msg) => !msg.isBot).slice(-limit);
   return recentMessages.length > 0
     ? recentMessages
         .map((msg) => {
           let contextText = msg.text;
           if (msg.recommendedItems && msg.recommendedItems.length > 0) {
-            contextText += " | Recommended: " + msg.recommendedItems.map(item => item.name).join(", ");
+            contextText +=
+              " | Recommended: " +
+              msg.recommendedItems.map((item) => item.name).join(", ");
           }
           return contextText;
         })
@@ -137,7 +148,6 @@ const classifyIntent = async (
   chatHistory: Message[],
   isImageBased: boolean = false
 ): Promise<QueryType> => {
-
   if (isImageBased) return QueryType.MENU_QUERY;
 
   // const restaurantKeywords = [
@@ -181,7 +191,6 @@ const classifyIntent = async (
   // if (isRestaurant) return QueryType.RESTAURANT_QUERY;
   // if (isMenu) return QueryType.MENU_QUERY;
 
-  
   const conversationContext = buildConversationContext(chatHistory);
 
   const classificationPrompt = `
@@ -202,7 +211,11 @@ const classifyIntent = async (
       - Base your decision solely on the query and any provided conversation context.
       
       User Query: "${query}"
-      ${conversationContext ? `Conversation Context: "${conversationContext}"` : ""}
+      ${
+        conversationContext
+          ? `Conversation Context: "${conversationContext}"`
+          : ""
+      }
       
       Respond with only a JSON object with one key "text" whose value is exactly one of the three strings: "MENU_QUERY", "RESTAURANT_QUERY", or "GENERAL".
       
@@ -210,7 +223,7 @@ const classifyIntent = async (
       - Return only a valid JSON object in this exact format: { "text": "<intent>" }.
       - Do not include any extra text, explanations, markdown, or code fences.
       `;
-      
+
   const llmResult = await getCachedLLMResponse(
     classificationPrompt,
     50,
@@ -225,14 +238,16 @@ const classifyIntent = async (
       if (resultText.includes("MENU_QUERY")) return QueryType.MENU_QUERY;
       if (resultText.includes("RESTAURANT_QUERY"))
         return QueryType.RESTAURANT_QUERY;
-      if (resultText.includes("NUTRITION_QUERY")) return QueryType.NUTRITION_QUERY;
+      if (resultText.includes("NUTRITION_QUERY"))
+        return QueryType.NUTRITION_QUERY;
       if (resultText.includes("GENERAL")) return QueryType.GENERAL;
     } catch (e) {
       const resultText = llmResult.text.trim().toUpperCase();
       if (resultText.includes("MENU_QUERY")) return QueryType.MENU_QUERY;
       if (resultText.includes("RESTAURANT_QUERY"))
         return QueryType.RESTAURANT_QUERY;
-      if (resultText.includes("NUTRITION_QUERY")) return QueryType.NUTRITION_QUERY;
+      if (resultText.includes("NUTRITION_QUERY"))
+        return QueryType.NUTRITION_QUERY;
     }
   }
   return QueryType.GENERAL;
@@ -257,7 +272,6 @@ export const useChatLogic = ({
     restaurantName: string;
     recommendedItems: RecommendedItem[];
   }> | null>(null);
-
 
   const determineQueryType = (
     query: string,
@@ -310,7 +324,11 @@ export const useChatLogic = ({
       }
     }
     const promise = (async () => {
-      const menu = await getMenuByRestaurantId(restaurantId, restaurantState, restaurantDispatch);
+      const menu = await getMenuByRestaurantId(
+        restaurantId,
+        restaurantState,
+        restaurantDispatch
+      );
       const filtered = filterMenuItems(menu);
       menuCache.set(restaurantId, { value: filtered, timestamp: Date.now() });
       return filtered;
@@ -351,14 +369,15 @@ export const useChatLogic = ({
         ? `analyze the image description: "${effectiveQuery}"`
         : `analyze the user's query: "${effectiveQuery}"`;
 
-    
     const conversationContext = buildConversationContext(
       chatHistory.filter((msg) => !msg.isBot)
     );
 
     const key =
       queryText !== undefined
-        ? `image-${effectiveQuery}-${filteredRestaurants.map((r: any) => r.id).join(",")}`
+        ? `image-${effectiveQuery}-${filteredRestaurants
+            .map((r: any) => r.id)
+            .join(",")}`
         : `${input}-${filteredRestaurants.map((r: any) => r.id).join(",")}`;
 
     const now = Date.now();
@@ -377,7 +396,11 @@ export const useChatLogic = ({
       You are a restaurant recommendation system.
       Given the following restaurants: ${JSON.stringify(restaurantContext)},
       ${analysisText} and also consider previous order choices from ${orderContextItem}
-      ${conversationContext ? `and also consider the previous conversation: "${conversationContext}"` : ""}
+      ${
+        conversationContext
+          ? `and also consider the previous conversation: "${conversationContext}"`
+          : ""
+      }
       and return exactly one JSON object:
         { "restroIds": [] }
       where:
@@ -402,10 +425,10 @@ export const useChatLogic = ({
   };
 
   const handleMenuQuery = async (
-    _queryType: QueryType, 
+    _queryType: QueryType,
     userInput: string,
     isImageBased: boolean = false,
-    imageCaption: string = "" 
+    imageCaption: string = ""
   ) => {
     try {
       const now = new Date().toLocaleString("en-US", {
@@ -428,13 +451,16 @@ export const useChatLogic = ({
             chatHistory,
             isImageBased
           );
-      
+
       const conversationContext = buildConversationContext(
         chatHistory.filter((msg) => !msg.isBot)
       );
 
       const normalize = (str: string) => {
-        return str.toLowerCase().replace(/[^\w\s]/g, "").trim();
+        return str
+          .toLowerCase()
+          .replace(/[^\w\s]/g, "")
+          .trim();
       };
 
       if (queryType === QueryType.NUTRITION_QUERY) {
@@ -445,38 +471,46 @@ export const useChatLogic = ({
         } else {
           dishNameCandidate = effectiveInput.trim();
         }
-      
+
         const normalizedCandidate = normalize(dishNameCandidate);
-      
+
         let dishRestaurantName = "";
         let correctedDishName = "";
         let bestMatchScore = 0;
-        const threshold = 0.7; 
-      
+        const threshold = 0.7;
+
         if (currentRecommendation && Array.isArray(currentRecommendation)) {
           for (const rec of currentRecommendation) {
             const menuItems = await getMenuItemsByFile(rec.restaurantId);
             for (const menuItem of menuItems) {
               if (!menuItem.name) continue;
               const normalizedMenuName = normalize(menuItem.name);
-              const score = stringSimilarity.compareTwoStrings(normalizedCandidate, normalizedMenuName);
+              const score = stringSimilarity.compareTwoStrings(
+                normalizedCandidate,
+                normalizedMenuName
+              );
               if (score > threshold && score > bestMatchScore) {
                 bestMatchScore = score;
-                dishRestaurantName = getRestaurantNameById(restaurantState.restaurants, rec.restaurantId);
+                dishRestaurantName = getRestaurantNameById(
+                  restaurantState.restaurants,
+                  rec.restaurantId
+                );
                 correctedDishName = menuItem.name;
-                console.log(`New best match: "${correctedDishName}" at ${dishRestaurantName} with score ${bestMatchScore}`);
+                console.log(
+                  `New best match: "${correctedDishName}" at ${dishRestaurantName} with score ${bestMatchScore}`
+                );
               }
             }
           }
         }
-      
+
         if (!dishRestaurantName) {
           correctedDishName = dishNameCandidate;
         }
-      
+
         console.log("Final chosen dish restaurant:", dishRestaurantName);
         console.log("Final corrected dish name:", correctedDishName);
-      
+
         const userDailyCalories = state.userPreferences?.dailyCalories || 2000;
         const calculateReferenceValues = (calories: number) => {
           const ratio = calories / 2000;
@@ -488,12 +522,12 @@ export const useChatLogic = ({
             saturatedFat: Math.round(20 * ratio),
             fiber: Math.round(25 * ratio),
             sugar: Math.round(25 * ratio),
-            sodium: 2300
+            sodium: 2300,
           };
         };
-      
+
         const referenceValues = calculateReferenceValues(userDailyCalories);
-      
+
         let nutritionContext = "";
         if (dishRestaurantName) {
           nutritionContext += `Restaurant Name: ${dishRestaurantName}. `;
@@ -501,14 +535,19 @@ export const useChatLogic = ({
         if (correctedDishName) {
           nutritionContext += `Food Item: ${correctedDishName}. `;
         }
-        nutritionContext += "Use Food Item name and Restaurant Name to determine nutritional details, if specific nutritional details are unavailable, provide close approximations.";
-      
+        nutritionContext +=
+          "Use Food Item name and Restaurant Name to determine nutritional details, if specific nutritional details are unavailable, provide close approximations.";
+
         console.log("Final nutritional context:", nutritionContext);
-      
+
         const nutritionPrompt = `
               You are a nutrition assistant. Provide comprehensive nutritional information for the food item mentioned by the user.
               ${nutritionContext}
-              ${conversationContext ? `and also consider the previous conversation: "${conversationContext}"` : ""}
+              ${
+                conversationContext
+                  ? `and also consider the previous conversation: "${conversationContext}"`
+                  : ""
+              }
         
               Important: The user follows a ${userDailyCalories} calorie diet. Please scale your nutritional assessment accordingly.
         
@@ -540,15 +579,21 @@ export const useChatLogic = ({
               }
         
               where:
-                - "text" provides a brief and creative response about the food item in ${selectedStyle.name} style.
+                - "text" provides a brief and creative response about the food item in ${
+                  selectedStyle.name
+                } style.
                 - "item" provides the name of the food item.
                 - All nutrition values should be realistic for a standard serving size of the food.
                 - "calories" should be in kcal.
                 - "totalFat", "saturatedFat", "protein", "carbs", "fiber", and "sugar" should be in grams (g).
                 - "sodium" should be in milligrams (mg).
                 - "isVegetarian" should indicate if the food item is vegetarian.
-                - "isLowCalorie" should be true for foods with fewer than ${Math.round(userDailyCalories * 0.125)} calories per serving (adjusted for user's diet).
-                - "isHighProtein" should be true for foods with more than ${Math.round(referenceValues.protein * 0.3)} grams of protein per serving (adjusted for user's diet).
+                - "isLowCalorie" should be true for foods with fewer than ${Math.round(
+                  userDailyCalories * 0.125
+                )} calories per serving (adjusted for user's diet).
+                - "isHighProtein" should be true for foods with more than ${Math.round(
+                  referenceValues.protein * 0.3
+                )} grams of protein per serving (adjusted for user's diet).
                 - "referenceValues" provides the daily reference values based on the user's ${userDailyCalories} calorie diet.
         
               The user said: "${effectiveInput}"
@@ -561,14 +606,14 @@ export const useChatLogic = ({
               - Ensure all values are appropriate for the specific food item mentioned.
               - Base your nutritional values on standard serving sizes for the food item.
               `;
-      
+
         const nutritionResponse = await getCachedLLMResponse(
           nutritionPrompt,
           300,
           state.selectedModel,
           0.5
         );
-      
+
         dispatch({
           type: "ADD_MESSAGE",
           payload: {
@@ -611,7 +656,9 @@ export const useChatLogic = ({
           { "text": "your answer" }
           
           where:
-          - "text" provides a brief and creative response to what the user said in ${selectedStyle.name} style.
+          - "text" provides a brief and creative response to what the user said in ${
+            selectedStyle.name
+          } style.
           - For food preferences, suggest restaurants or dishes that match their preferences
           - For nutritional inquiries, provide helpful general information
           - For greetings, welcome them to the food recommendation service
@@ -641,14 +688,14 @@ export const useChatLogic = ({
           return;
         }
       }
-  
+
       let restaurant1Menu: any[] = [],
         restaurant2Menu: any[] = [],
         activeMenu: any[] = [];
       let suggestRestroText = "";
       let suggestRestroIds: number[] = [];
       const { activeRestroId } = restaurantState;
-  
+
       if (!activeRestroId) {
         const response = await handleRestaurantQuery(
           isImageBased ? effectiveInput : undefined
@@ -691,13 +738,13 @@ export const useChatLogic = ({
       } else {
         activeMenu = await getMenuItemsByFile(activeRestroId);
       }
-  
+
       const analysisPart = isImageBased
-        ? imageCaption 
+        ? imageCaption
           ? `analyze the image description: "${userInput}" along with user's comment: "${imageCaption}"`
           : `analyze the image description: "${userInput}"`
         : `analyze the user's query: "${userInput}"`;
-  
+
       const menuPrompt = `
         You are a menu recommendation system.
         Given the menu items from ${
@@ -710,14 +757,20 @@ export const useChatLogic = ({
             JSON.stringify(restaurant2Menu)
       },
         ${analysisPart}
-        ${conversationContext ? `Also, consider the following conversation context: "${conversationContext}"` : ""}
+        ${
+          conversationContext
+            ? `Also, consider the following conversation context: "${conversationContext}"`
+            : ""
+        }
         and return a JSON response: ${
           activeRestroId
             ? `{ "text": "", "items1": [] }`
             : `{ "text": "", "items1": [], "items2": [] }`
         }
         where:
-          - "text" provides a concise and creative response and reasoning showing you understand the query in ${selectedStyle.name} style.
+          - "text" provides a concise and creative response and reasoning showing you understand the query in ${
+            selectedStyle.name
+          } style.
           - ${
             activeRestroId
               ? `"items1" is array contains id of up to 5 recommended items.`
@@ -736,13 +789,16 @@ export const useChatLogic = ({
         state.selectedModel,
         0.5
       );
-  
+
       if ((suggestRestroIds.length > 0 || activeRestroId) && menuResponse) {
         if (!restaurantState.activeRestroId) {
           const recs = [];
           recs.push({
             restaurantId: suggestRestroIds[0],
-            restaurantName: getRestaurantNameById(restaurantState.restaurants, suggestRestroIds[0]),
+            restaurantName: getRestaurantNameById(
+              restaurantState.restaurants,
+              suggestRestroIds[0]
+            ),
             recommendedItems: menuResponse.items1.map((item: any) => ({
               id: item.id,
             })),
@@ -750,7 +806,10 @@ export const useChatLogic = ({
           if (suggestRestroIds.length > 1 && menuResponse.items2) {
             recs.push({
               restaurantId: suggestRestroIds[1],
-              restaurantName: getRestaurantNameById(restaurantState.restaurants, suggestRestroIds[1]),
+              restaurantName: getRestaurantNameById(
+                restaurantState.restaurants,
+                suggestRestroIds[1]
+              ),
               recommendedItems: menuResponse.items2.map((item: any) => ({
                 id: item.id,
               })),
@@ -758,26 +817,33 @@ export const useChatLogic = ({
           }
           setCurrentRecommendation(recs);
         } else {
-          setCurrentRecommendation([{
-            restaurantId: restaurantState.activeRestroId,
-            restaurantName: getRestaurantNameById(restaurantState.restaurants, restaurantState.activeRestroId),
-            recommendedItems: menuResponse.items1.map((item: any) => ({
-              id: item.id,
-              name: "",
-            })),
-          }]);
+          setCurrentRecommendation([
+            {
+              restaurantId: restaurantState.activeRestroId,
+              restaurantName: getRestaurantNameById(
+                restaurantState.restaurants,
+                restaurantState.activeRestroId
+              ),
+              recommendedItems: menuResponse.items1.map((item: any) => ({
+                id: item.id,
+                name: "",
+              })),
+            },
+          ]);
         }
-        
+
         dispatch({
           type: "ADD_MESSAGE",
           payload: {
             id: Date.now() + 1,
-            
+
             recommendedItems: menuResponse.items1 || [],
             text: menuResponse.text,
             llm: {
               output: menuResponse,
-              restroIds: restaurantState.activeRestroId ? [restaurantState.activeRestroId] : suggestRestroIds,
+              restroIds: restaurantState.activeRestroId
+                ? [restaurantState.activeRestroId]
+                : suggestRestroIds,
             },
             isBot: true,
             time: now,
@@ -805,8 +871,8 @@ export const useChatLogic = ({
     getMenuItemsByFile,
     handleRestaurantQuery,
     handleMenuQuery,
-    determineQueryType, 
-    classifyIntent,   
-    currentRecommendation, 
+    determineQueryType,
+    classifyIntent,
+    currentRecommendation,
   };
 };

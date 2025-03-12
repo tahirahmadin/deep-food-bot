@@ -43,8 +43,7 @@ interface ChatState {
   isLoading: boolean;
   error: string | null;
   currentQueryType: QueryType;
-  mode: "chat" | "browse";
-  selectedRestaurant: string | null;
+
   selectedModel: ChatModel;
   customization: {
     isOpen: boolean;
@@ -162,11 +161,7 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
           isEditing: action.payload.isEditing || false,
         },
       };
-    case "SET_SELECTED_RESTAURANT":
-      return {
-        ...state,
-        selectedRestaurant: action.payload,
-      };
+
     case "SET_CHAT_MODEL":
       return {
         ...state,
@@ -237,7 +232,6 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return {
         ...initialState,
         messages: [state.messages[0]], // Keep only the welcome message
-        selectedRestaurant: null,
       };
     default:
       return state;
@@ -251,7 +245,6 @@ const initialState: ChatState = {
   currentQueryType: QueryType.GENERAL,
   mode: "chat",
   selectedModel: ChatModel.OPENAI,
-  selectedRestaurant: null,
   customization: {
     isOpen: false,
     item: null,
