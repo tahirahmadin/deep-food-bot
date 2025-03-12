@@ -36,6 +36,10 @@ interface ChatPanelProps {
   isImageAnalyzing: boolean;
   isLoading?: boolean;
   queryType?: string;
+  isSpeechEnabled?: boolean;
+  isSpeechSupported?: boolean;
+  onSpeechToggle?: () => void;
+  interimTranscript?: string;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -46,6 +50,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   isImageAnalyzing: externalImageAnalyzing,
   placeholder,
   isLoading = false,
+  isSpeechEnabled = false,
+  isSpeechSupported = false,
+  onSpeechToggle = () => {},
+  interimTranscript = "",
 }) => {
   const { state, dispatch } = useChatContext();
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -616,6 +624,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           uploadedImage ? "Add a caption to your image..." : placeholder
         }
         isLoading={isLoading}
+        isSpeechEnabled={isSpeechEnabled}
+        isSpeechSupported={isSpeechSupported}
+        onSpeechToggle={onSpeechToggle}
+        interimTranscript={interimTranscript}
       />
     </>
   );

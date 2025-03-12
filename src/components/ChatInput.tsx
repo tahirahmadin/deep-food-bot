@@ -8,6 +8,8 @@ import {
   Tag,
   Pizza,
   Camera,
+  Mic,
+  MicOff,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -20,6 +22,10 @@ interface ChatInputProps {
   className?: string;
   placeholder?: string;
   showQuickActions?: boolean;
+  isSpeechEnabled?: boolean;
+  isSpeechSupported?: boolean;
+  onSpeechToggle?: () => void;
+  interimTranscript?: string;
 }
 import { useFiltersContext } from "../context/FiltersContext";
 
@@ -32,6 +38,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   className = "",
   placeholder = "Type a message...",
   showQuickActions = true,
+  isSpeechEnabled = false,
+  isSpeechSupported = false,
+  onSpeechToggle = () => {},
+  interimTranscript = "",
 }) => {
   const { addresses } = useAuth();
   const { theme } = useFiltersContext();
@@ -127,6 +137,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         borderColor: `${theme.text}10`,
       }}
     >
+      {/* Display interim transcript during speech recognition */}
+      {isSpeechEnabled && interimTranscript && (
+        <div className="mb-2 px-3 py-2 bg-orange-400 rounded-lg text-sm text-white italic">
+          {interimTranscript}
+        </div>
+      )}
       <div className="w-full">
         {showQuickActions && !input && !isKeyboardOpen && (
           <div className="grid grid-cols-2 gap-2 mb-1 max-h-[120px] overflow-y-auto">
@@ -200,7 +216,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         <input
           ref={inputRef}
           type="text"
-          placeholder="Ask here..."
+          placeholder={isSpeechEnabled ? "Listening..." : "Ask here..."}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={addresses.length === 0}
@@ -210,6 +226,23 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             "::placeholder": { color: `${theme.text}60` },
           }}
         />
+
+        {/* Microphone button */}
+        {isSpeechSupported && (
+          <button
+            type="button"
+            onClick={onSpeechToggle}
+            aria-label={isSpeechEnabled ? "Stop voice input" : "Start voice input"}
+            aria-pressed={isSpeechEnabled}
+            className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
+          >
+            {isSpeechEnabled ? (
+              <MicOff className="w-5 h-5" aria-hidden="true" />
+            ) : (
+              <Mic className="w-5 h-5" aria-hidden="true" />
+            )}
+          </button>
+        )}
 
         <div className="relative" id="image-options-container">
           <button
@@ -236,13 +269,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 text-sm font-medium text-left transition-colors"
                   style={{
                     color: theme.text,
-                    ":hover": { backgroundColor: `${theme.text}10` },
                   }}
                   type="button"
                 >
                   <div
-                    className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100"
-                    style={{ backgroundColor: `${theme.accentColor}15` }}
+                    className="flex items-center justify-center w-8 h-8 rounded-full"
                   >
                     <ImageIcon className="w-4 h-4" />
                   </div>
@@ -259,13 +290,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 text-sm font-medium text-left transition-colors"
                   style={{
                     color: theme.text,
-                    ":hover": { backgroundColor: `${theme.text}10` },
                   }}
                   type="button"
                 >
                   <div
-                    className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100"
-                    style={{ backgroundColor: `${theme.secondaryColor}15` }}
+                    className="flex items-center justify-center w-8 h-8 rounded-full"
                   >
                     <Camera className="w-4 h-4" />
                   </div>

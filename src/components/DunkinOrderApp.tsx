@@ -13,6 +13,7 @@ import { QueryType, useChatContext } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
+import { SpeechService, SpeechRecognitionResult } from "../services/speechService";
 
 export const DunkinOrderApp: React.FC = () => {
   const { toast, hideToast } = useToast();
@@ -24,15 +25,24 @@ export const DunkinOrderApp: React.FC = () => {
   } = useRestaurant();
   const { isAuthenticated, setIsAddressModalOpen, addresses, orders } =
     useAuth();
-  const { selectedStyle, isVegOnly, isFastDelivery, numberOfPeople } =
+  const { selectedStyle, isVegOnly, isFastDelivery, numberOfPeople, theme } =
     useFiltersContext();
   const [input, setInput] = useState("");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isImageAnalyzing, setIsImageAnalyzing] = useState(false);
+  // ----- Speech Recognition state -----
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState("");
+  const speechService = useMemo(() => new SpeechService(), []);
+  const isSpeechSupported = useMemo(
+    () => speechService.isSupported(),
+    [speechService]
+  );
+  // -------------------------------------
 
   // Set initial restaurant if needed
-  React.useEffect(() => {
+  useEffect(() => {
     const initialRestroId = 7246;
     const initialRestroName = "Pizza Hut";
     const backImageUrl =
@@ -51,9 +61,6 @@ export const DunkinOrderApp: React.FC = () => {
     }
   }, [restaurantState.singleMode]);
 
-  // console.log("Testing");
-  // console.log(state.selectedRestaurant);
-  // console.log(restaurantState.singleMode);
   // Reset UI state when auth changes.
   useEffect(() => {
     if (!isAuthenticated) {
@@ -100,7 +107,7 @@ export const DunkinOrderApp: React.FC = () => {
     setInput,
   });
 
-  // Helper: Get current time string once per handler.
+  // Helper: Get current time string.
   const getCurrentTime = () =>
     new Date().toLocaleString("en-US", {
       hour: "numeric",
@@ -185,18 +192,95 @@ export const DunkinOrderApp: React.FC = () => {
     }
   }, [state.currentQueryType]);
 
-  const { theme } = useFiltersContext();
+  // ----- Speech Recognition handlers -----
+  const handleSpeechRecognition = async (
+    result: SpeechRecognitionResult
+  ) => {
+    if (!result.isFinal) {
+      setInterimTranscript(result.transcript);
+      return;
+    }
+    try {
+      speechService.stopListening();
+      setIsSpeechEnabled(false);
+      setInterimTranscript("");
+      const transcript = result.transcript.trim();
+      if (!transcript) return;
+
+      const queryType = chatLogic.determineQueryType(
+        transcript,
+        restaurantState.activeRestroId
+      );
+      // Dispatch the spoken message as a user message.
+      const userMessage = {
+        id: Date.now(),
+        text: transcript,
+        isBot: false,
+        time: getCurrentTime(),
+        queryType,
+      };
+      dispatch({ type: "ADD_MESSAGE", payload: userMessage });
+
+      dispatch({ type: "SET_LOADING", payload: true });
+      await chatLogic.handleMenuQuery(queryType, transcript);
+    } catch (error) {
+      console.error("Error with speech recognition:", error);
+      dispatch({
+        type: "ADD_MESSAGE",
+        payload: {
+          id: Date.now(),
+          text: "Sorry, there was an error processing your speech. Please try again.",
+          isBot: true,
+          time: getCurrentTime(),
+          queryType: QueryType.GENERAL,
+        },
+      });
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
+  };
+
+  const toggleSpeechRecognition = () => {
+    if (!isSpeechSupported) return;
+
+    if (isSpeechEnabled) {
+      speechService.stopListening();
+      setIsSpeechEnabled(false);
+      setInterimTranscript("");
+    } else {
+      setIsSpeechEnabled(true);
+      speechService.startListening(
+        handleSpeechRecognition,
+        (error: string) => {
+          console.error(error);
+          setIsSpeechEnabled(false);
+          setInterimTranscript("");
+          dispatch({
+            type: "ADD_MESSAGE",
+            payload: {
+              id: Date.now(),
+              text: "Sorry, there was an error with speech recognition. Please try again.",
+              isBot: true,
+              time: getCurrentTime(),
+              queryType: QueryType.GENERAL,
+            },
+          });
+        }
+      );
+    }
+  };
+  // -----------------------------------------
 
   return (
     <div
       className="min-h-[100vh] h-[100vh] relative flex items-center justify-center  overflow-hidden"
       style={{
-        backgroundColor: theme.background, // 80% background color
+        backgroundColor: theme.background,
         color: theme.text,
-        position: "relative", // Required for pseudo-element positioning
+        position: "relative",
       }}
     >
-      {/* Pseudo-element for the background image with 20% opacity */}
+      {/* Background image pseudo-element */}
       <div
         style={{
           position: "absolute",
@@ -206,9 +290,9 @@ export const DunkinOrderApp: React.FC = () => {
           height: "100%",
           backgroundImage: `url(${restaurantState.backgroundImage})`,
           backgroundRepeat: "repeat",
-          backgroundSize: "300px", // Adjust the size of the logo
-          opacity: 0.1, // 20% opacity for the logo
-          zIndex: 1, // Ensure it stays behind the content
+          backgroundSize: "300px",
+          opacity: 0.1,
+          zIndex: 1,
         }}
       ></div>
       <div
@@ -245,10 +329,15 @@ export const DunkinOrderApp: React.FC = () => {
               isImageAnalyzing={isImageAnalyzing}
               isLoading={state.isLoading}
               queryType={state.currentQueryType}
+              // ----- Speech props passed to ChatPanel -----
+              isSpeechEnabled={isSpeechEnabled}
+              isSpeechSupported={isSpeechSupported}
+              onSpeechToggle={toggleSpeechRecognition}
+              interimTranscript={interimTranscript}
+              // ---------------------------------------------
             />
           </div>
         </div>
-
         <CartSummary />
       </div>
       <SlidePanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} />
