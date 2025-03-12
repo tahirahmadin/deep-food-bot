@@ -1,22 +1,61 @@
-import React from "react";
-import { ShoppingBag, Plus, Minus, X } from "lucide-react";
-import { useChatContext } from "../context/ChatContext";
+import React, { useState, useEffect, useRef } from "react";
+import { ShoppingBag, Plus, Minus, X, Activity, BarChart } from "lucide-react";
+import { useChatContext, QueryType } from "../context/ChatContext";
 import { useRestaurant } from "../context/RestaurantContext";
-import { getMenuByRestaurantId } from "../utils/menuUtils";
+import { getMenuByRestaurantId, getRestaurantNameById } from "../utils/menuUtils";
 import { useAuth } from "../context/AuthContext";
 import { useFiltersContext } from "../context/FiltersContext";
+import { useChatLogic } from "./chat/ChatLogic";
+import CartNutritionCard from "./CartNutritionCard";
+import { generateLLMResponse } from "../actions/serverActions";
+
+interface NutritionCacheEntry {
+  data: any;
+  timestamp: number;
+}
+
+const NUTRITION_CACHE_TTL = 30 * 60 * 1000;
 
 export const CartSummary: React.FC = () => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState } = useRestaurant();
   const { isAuthenticated, addresses, setIsAddressModalOpen } = useAuth();
-  const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
-  const [menuItems, setMenuItems] = React.useState<any[]>([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [menuItems, setMenuItems] = useState<any[]>([]);
   const { theme } = useFiltersContext();
+  const [selectedItemForNutrition, setSelectedItemForNutrition] = useState<number | null>(null);
+  const [isViewingCombinedNutrition, setIsViewingCombinedNutrition] = useState(false);
+  const [nutritionData, setNutritionData] = useState<any | null>(null);
+  const [isLoadingNutrition, setIsLoadingNutrition] = useState<boolean>(false);
+  
+  // Nutrition cache ref to persist between renders
+  const nutritionCacheRef = useRef<{
+    itemCache: Map<string, NutritionCacheEntry>;
+    combinedCache: Map<string, NutritionCacheEntry>;
+  }>({
+    itemCache: new Map(),
+    combinedCache: new Map(),
+  });
 
   const { dispatch: restaurantDispatch } = useRestaurant();
+  
+  // Get the ChatLogic functions
+  const chatLogic = useChatLogic({
+    input: "",
+    restaurantState,
+    restaurantDispatch,
+    state,
+    dispatch,
+    orders: [],
+    selectedStyle: { name: "concise" },
+    isVegOnly: false,
+    numberOfPeople: 1,
+    setRestaurants: () => {},
+    addresses,
+    chatHistory: state.messages,
+  });
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchMenuItems = async () => {
       if (
         restaurantState.activeRestroId &&
@@ -101,7 +140,7 @@ export const CartSummary: React.FC = () => {
               price: item.price,
             })),
             total: cartTotal,
-            restaurant: restaurantState.selectedRestaurant,
+            restaurant: state.selectedRestaurant,
           },
         }),
         isBot: true,
@@ -121,6 +160,166 @@ export const CartSummary: React.FC = () => {
         phone: addresses[0].mobile,
       },
     });
+  };
+  
+  const getActiveRestaurantName = (): string => {
+    if (!restaurantState.activeRestroId) return state.selectedRestaurant || "";
+    
+    const name = getRestaurantNameById(
+      restaurantState.restaurants,
+      restaurantState.activeRestroId
+    );
+    
+    return name !== "Unknown Restaurant" ? name : state.selectedRestaurant || "";
+  };
+  
+  const getItemCacheKey = (itemName: string): string => {
+    const restaurantName = getActiveRestaurantName();
+    return `${restaurantName}:${itemName}`;
+  };
+  
+  const getCombinedCacheKey = (): string => {
+    const restaurantName = getActiveRestaurantName();
+    const itemsKey = state.cart
+      .map(item => `${item.name}:${item.quantity}`)
+      .sort()
+      .join('|');
+    return `${restaurantName}:combined:${itemsKey}`;
+  };
+  
+  const isCacheValid = (entry: NutritionCacheEntry | undefined): boolean => {
+    if (!entry) return false;
+    return Date.now() - entry.timestamp < NUTRITION_CACHE_TTL;
+  };
+  
+  const getCombinedNutritionInfo = async () => {
+    setIsLoadingNutrition(true);
+    setSelectedItemForNutrition(null);
+    setIsViewingCombinedNutrition(true);
+    
+    try {
+      const cacheKey = getCombinedCacheKey();
+      const cachedEntry = nutritionCacheRef.current.combinedCache.get(cacheKey);
+      
+      if (isCacheValid(cachedEntry)) {
+        console.log(`Using cached combined nutrition data`);
+        setNutritionData(cachedEntry.data);
+        setIsLoadingNutrition(false);
+        return;
+      }
+      
+      const userDailyCalories = state.userPreferences?.dailyCalories || 2000;
+      
+      const calculateReferenceValues = (calories: number) => {
+        const ratio = calories / 2000;
+        return {
+          calories: calories,
+          protein: Math.round(50 * ratio),
+          carbs: Math.round(300 * ratio),
+          fat: Math.round(65 * ratio),
+          saturatedFat: Math.round(20 * ratio),
+          fiber: Math.round(25 * ratio),
+          sugar: Math.round(25 * ratio),
+          sodium: 2300
+        };
+      };
+      
+      const referenceValues = calculateReferenceValues(userDailyCalories);
+      
+      const restaurantName = getActiveRestaurantName();
+      
+      const itemsList = state.cart.map(item => {
+        const itemDetails = `${item.name} (x${item.quantity})`;
+        return item.description ? `${itemDetails} - ${item.description}` : itemDetails;
+      }).join("; ");
+      
+      let nutritionContext = "";
+      if (restaurantName) {
+        nutritionContext += `Restaurant Name: ${restaurantName}. `;
+      }
+      nutritionContext += `Food Items: ${itemsList}. `;
+      nutritionContext += "Provide the combined nutritional information for all these items together as a complete meal. If specific nutritional information is not available, provide approximate values that are nearly accurate.";
+      
+      const nutritionPrompt = `
+      You are a nutrition assistant. Provide comprehensive combined nutritional information for the multiple food items mentioned.
+      ${nutritionContext}
+  
+      Important: The user follows a ${userDailyCalories} calorie diet. Please scale your nutritional assessment accordingly.
+  
+      Format the response as a JSON object exactly as follows:
+      {
+        "text": "Your Answer",
+        "item": "Total Meal",
+        "calories": number,
+        "totalFat": number,
+        "saturatedFat": number,
+        "protein": number,
+        "carbs": number,
+        "fiber": number,
+        "sugar": number,
+        "sodium": number,
+        "isVegetarian": boolean,
+        "isLowCalorie": boolean,
+        "isHighProtein": boolean,
+        "referenceValues": {
+          "calories": ${referenceValues.calories},
+          "protein": ${referenceValues.protein},
+          "carbs": ${referenceValues.carbs},
+          "fat": ${referenceValues.fat},
+          "saturatedFat": ${referenceValues.saturatedFat},
+          "fiber": ${referenceValues.fiber},
+          "sugar": ${referenceValues.sugar},
+          "sodium": ${referenceValues.sodium}
+        }
+      }
+  
+      where:
+        - "text" provides a brief summary about the combined nutritional value of all items.
+        - All nutrition values should be the combined values for all items accounting for quantities.
+        - "isVegetarian" should be true only if ALL items are vegetarian.
+        - "isLowCalorie" should be true if the total calories are fewer than ${Math.round(userDailyCalories * 0.4)} calories.
+        - "isHighProtein" should be true if the total protein is more than ${Math.round(referenceValues.protein * 0.5)} grams.
+  
+        STRICT FORMAT RULES:
+        - DO NOT include any markdown formatting.
+        - DO NOT include explanations or additional text.
+        - DO NOT include any special character, format before and after the json.
+        - Only return a valid JSON object, nothing else.
+        - Ensure all values represent the COMBINED nutritional values of all items.
+      `;
+  
+      const response = await generateLLMResponse(
+        nutritionPrompt,
+        300,
+        state.selectedModel,
+        0.5
+      );
+      
+      nutritionCacheRef.current.combinedCache.set(cacheKey, {
+        data: response,
+        timestamp: Date.now()
+      });
+      
+      setNutritionData(response);
+    } catch (error) {
+      console.error("Error fetching combined nutrition info:", error);
+    } finally {
+      setIsLoadingNutrition(false);
+    }
+  };
+  
+  useEffect(() => {
+    nutritionCacheRef.current.combinedCache.clear();
+  }, [state.cart]);
+  
+  const closeNutritionCard = () => {
+    setSelectedItemForNutrition(null);
+    setIsViewingCombinedNutrition(false);
+    setNutritionData(null);
+  };
+
+  const getItemImageUrl = (itemId) => {
+    return `${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${restaurantState.activeRestroId}/${restaurantState.activeRestroId}-${itemId}.jpg`;
   };
 
   if (state.cart.length === 0) {
@@ -153,9 +352,74 @@ export const CartSummary: React.FC = () => {
 
         {isExpanded && (
           <div
-            className=" rounded-lg shadow-xl w-full overflow-hidden animate-slide-up"
+            className="rounded-lg shadow-xl w-full overflow-hidden animate-slide-up relative"
             style={{ backgroundColor: theme.modalBg }}
           >
+            {/* Nutrition card overlay */}
+            {(selectedItemForNutrition !== null || isViewingCombinedNutrition) && (
+              <div 
+                className="absolute inset-0 z-10 rounded-lg overflow-hidden flex flex-col"
+                style={{ backgroundColor: theme.modalBg }}
+              >
+                <div 
+                  className="px-4 py-3 flex justify-between items-center"
+                  style={{ 
+                    backgroundColor: theme.modalBgLight,
+                    color: theme.modalMainText,
+                    borderBottom: `1px solid ${theme.cardHighlight}30`
+                  }}
+                >
+                  <h3 className="font-semibold text-sm">
+                    {isViewingCombinedNutrition ? "Total Nutrition Information" : "Nutrition Information"}
+                  </h3>
+                  <button 
+                    onClick={closeNutritionCard} 
+                    className="p-1 rounded-full hover:bg-gray-200/50"
+                  >
+                    <X className="w-4 h-4" style={{ color: theme.modalSecondText }} />
+                  </button>
+                </div>
+                
+                {/* Content area */}
+                <div className="flex-1 overflow-hidden">
+                  {isLoadingNutrition ? (
+                    <div className="flex-1 flex flex-col items-center justify-center p-8">
+                      <div className="w-10 h-10 border-t-2 border-b-2 rounded-full animate-spin mb-3" style={{ borderColor: theme.primary }}></div>
+                      <p className="text-sm" style={{ color: theme.modalMainText }}>
+                        {isViewingCombinedNutrition 
+                          ? "Calculating total nutritional content..." 
+                          : "Analyzing nutritional content..."}
+                      </p>
+                    </div>
+                  ) : nutritionData ? (
+                    <CartNutritionCard 
+                      nutritionData={nutritionData} 
+                      onClose={closeNutritionCard}
+                      itemImage={selectedItemForNutrition ? getItemImageUrl(selectedItemForNutrition) : null}
+                      showHeader={false} 
+                    />
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center p-8">
+                      <div className="text-center">
+                        <p className="text-sm mb-4" style={{ color: theme.modalMainText }}>Could not retrieve nutrition information</p>
+                        <button
+                          onClick={closeNutritionCard}
+                          className="px-4 py-2 rounded-lg text-sm"
+                          style={{
+                            backgroundColor: theme.primary,
+                            color: 'white'
+                          }}
+                        >
+                          Back to Cart
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Regular cart view */}
             <div
               className="px-4 py-2 flex justify-between items-center border-b p-3 border-b"
               style={{ backgroundColor: theme.modalBgLight }}
@@ -168,7 +432,7 @@ export const CartSummary: React.FC = () => {
               </h3>
               <X
                 style={{ color: theme.modalSecondText }}
-                className="w-4 h-4 text-gray-500"
+                className="w-4 h-4 text-gray-500 cursor-pointer"
                 onClick={() => setIsExpanded(!isExpanded)}
               />
             </div>
@@ -180,63 +444,63 @@ export const CartSummary: React.FC = () => {
                     className="flex items-center gap-3 px-3 py-2 border-b"
                   >
                     <img
-                      src={`${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${
-                        restaurantState.activeRestroId
-                      }/${restaurantState.activeRestroId}-${item.id}.jpg`}
+                      src={getItemImageUrl(item.id)}
                       alt={item.name}
                       className="w-12 h-12 object-cover rounded-lg"
                     />
                     <div className="flex-1 min-w-0">
-                      <h4
-                        className="font-medium text-xs truncate"
-                        style={{
-                          color: theme.modalMainText,
-                        }}
-                      >
-                        {item.name}
-                        <div className="mt-0.5">
-                          {item.customizations?.map((customization, index) => (
-                            <div
-                              key={index}
-                              className="text-[10px] text-gray-500"
-                            >
-                              <span className="font-semibold text-gray-500">
-                                {customization.categoryName}:
-                              </span>{" "}
-                              {customization.selection.name}
-                              {customization.selection.price > 0 && (
-                                <span
-                                  className="ml-1 opacity-80"
-                                  style={{
-                                    color: theme.modalMainText,
-                                  }}
-                                >
-                                  (+{customization.selection.price} AED)
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                          {/* Render the Edit button if customizations exist */}
-                          {item.customizations &&
-                            item.customizations.length > 0 && (
-                              <button
-                                onClick={() =>
-                                  dispatch({
-                                    type: "SET_CUSTOMIZATION_MODAL",
-                                    payload: {
-                                      isOpen: true,
-                                      item,
-                                      isEditing: true,
-                                    },
-                                  })
-                                }
-                                className="text-grey-400 font-bold text-xs mt-1"
+                      <div className="flex justify-between">
+                        <h4
+                          className="font-medium text-xs truncate"
+                          style={{
+                            color: theme.modalMainText,
+                          }}
+                        >
+                          {item.name}
+                        </h4>
+                      </div>
+                      <div className="mt-0.5">
+                        {item.customizations?.map((customization, index) => (
+                          <div
+                            key={index}
+                            className="text-[10px] text-gray-500"
+                          >
+                            <span className="font-semibold text-gray-500">
+                              {customization.categoryName}:
+                            </span>{" "}
+                            {customization.selection.name}
+                            {customization.selection.price > 0 && (
+                              <span
+                                className="ml-1 opacity-80"
+                                style={{
+                                  color: theme.modalMainText,
+                                }}
                               >
-                                Edit ▶
-                              </button>
+                                (+{customization.selection.price} AED)
+                              </span>
                             )}
-                        </div>
-                      </h4>
+                          </div>
+                        ))}
+                        {/* Render the Edit button if customizations exist */}
+                        {item.customizations &&
+                          item.customizations.length > 0 && (
+                            <button
+                              onClick={() =>
+                                dispatch({
+                                  type: "SET_CUSTOMIZATION_MODAL",
+                                  payload: {
+                                    isOpen: true,
+                                    item,
+                                    isEditing: true,
+                                  },
+                                })
+                              }
+                              className="text-grey-400 font-bold text-xs mt-1"
+                            >
+                              Edit ▶
+                            </button>
+                          )}
+                      </div>
                       <p
                         className="text-xs opacity-70"
                         style={{
@@ -251,7 +515,7 @@ export const CartSummary: React.FC = () => {
                         onClick={() =>
                           updateQuantity(item.id, item.name, item.price, -1)
                         }
-                        className={`p-1  rounded-full`}
+                        className={`p-1 rounded-full`}
                         style={{
                           backgroundColor: theme.modalBg,
                           ":hover": { backgroundColor: theme.modalBgLight },
@@ -285,16 +549,30 @@ export const CartSummary: React.FC = () => {
               })}
             </div>
             <div
-              className="p-4  border-t"
+              className="p-4 border-t"
               style={{
                 backgroundColor: theme.modalBg,
                 color: theme.modalMainText,
               }}
             >
-              <div className="flex justify-between mb-4">
-                <span className="font-medium ">Total</span>
-                <span className="font-bold ">{cartTotal} AED</span>
+              <div className="flex justify-between mb-2">
+                <span className="font-medium">Total</span>
+                <span className="font-bold">{cartTotal} AED</span>
               </div>
+              
+              {/* Combined nutrition button */}
+              <button
+                onClick={getCombinedNutritionInfo}
+                className="w-full mb-2 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                style={{
+                  backgroundColor: `${theme.cardHighlight}20`,
+                  color: theme.primary
+                }}
+              >
+                <BarChart className="w-4 h-4" />
+                <span className="font-medium">View Total Nutritional Info</span>
+              </button>
+              
               <button
                 onClick={handleCheckout}
                 className="w-full py-2 text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"

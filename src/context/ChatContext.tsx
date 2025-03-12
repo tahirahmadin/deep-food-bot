@@ -89,6 +89,7 @@ export interface CartItem {
   id: number;
   name: string;
   price: string;
+  description: string;
   quantity: number;
   restaurant: string;
   customizations?: {

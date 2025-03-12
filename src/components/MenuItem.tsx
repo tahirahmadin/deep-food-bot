@@ -12,6 +12,7 @@ import { useFiltersContext } from "../context/FiltersContext";
 interface MenuItemProps {
   name: string;
   price: string;
+  description: string;
   id: number;
   image: string;
   restroId: number;
@@ -24,6 +25,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   id,
   name,
   price,
+  description,
   restroId,
   restaurant,
   image,
@@ -101,6 +103,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
             id,
             name,
             price,
+            description,
             image,
             customisation,
             restaurant: restaurantName,
@@ -113,7 +116,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
     // Add item to cart
     dispatch({
       type: "ADD_TO_CART",
-      payload: { id, name, price, quantity: 1, restaurant: restaurantName },
+      payload: { id, name, price, description, quantity: 1, restaurant: restaurantName },
     });
   };
 
@@ -122,7 +125,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
     dispatch({ type: "SET_SELECTED_RESTAURANT", payload: restaurantName });
     dispatch({
       type: "ADD_TO_CART",
-      payload: { id, name, price, quantity: 1, restaurant: restaurantName },
+      payload: { id, name, price, description, quantity: 1, restaurant: restaurantName },
     });
     handleSelectRestro(restroId);
     setIsCartChangeModalOpen(false);
@@ -198,6 +201,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
         id={id}
         name={name}
         price={price}
+        description={description}
         image={image}
         restroId={restroId}
         restaurant={restaurant}

@@ -535,6 +535,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       id={item.id}
                       name={item.name}
                       price={item.price}
+                      description={item.description}
                       restaurant={
                         restaurantState.selectedRestaurant
                           ? restaurantState.selectedRestaurant

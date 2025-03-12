@@ -528,6 +528,38 @@ export const useChatLogic = ({
 
         const referenceValues = calculateReferenceValues(userDailyCalories);
 
+        const getDishDescription = async (restaurantId: number, dishName: string): Promise<string | null> => {
+          try {
+            const menuItems = await getMenuItemsByFile(restaurantId);
+            const normalizedDishName = normalize(dishName);
+            
+            for (const menuItem of menuItems) {
+              if (!menuItem.name) continue;
+              const normalizedMenuName = normalize(menuItem.name);
+              const score = stringSimilarity.compareTwoStrings(normalizedDishName, normalizedMenuName);
+              
+              if (score > 0.8) { 
+                return menuItem.description || null;
+              }
+            }
+            return null;
+          } catch (error) {
+            console.error("Error getting dish description:", error);
+            return null;
+          }
+        };
+
+        let dishDescription = null;
+        if (dishRestaurantName && correctedDishName) {
+          const restaurantId = restaurantState.restaurants.find(
+            (r: any) => r.name === dishRestaurantName
+          )?.id;
+          
+          if (restaurantId) {
+            dishDescription = await getDishDescription(restaurantId, correctedDishName);
+          }
+        }
+
         let nutritionContext = "";
         if (dishRestaurantName) {
           nutritionContext += `Restaurant Name: ${dishRestaurantName}. `;
@@ -535,8 +567,11 @@ export const useChatLogic = ({
         if (correctedDishName) {
           nutritionContext += `Food Item: ${correctedDishName}. `;
         }
+        if (dishDescription) {
+          nutritionContext += `Description: ${dishDescription}. `;
+        }
         nutritionContext +=
-          "Use Food Item name and Restaurant Name to determine nutritional details, if specific nutritional details are unavailable, provide close approximations.";
+          "Use Food Item name, Description, and Restaurant Name to determine nutritional details, if specific nutritional details are unavailable, provide close approximations.";
 
         console.log("Final nutritional context:", nutritionContext);
 

@@ -8,6 +8,7 @@ interface DishDetailsModalProps {
   id: number;
   name: string;
   price: string;
+  description: string;
   image: string;
   restroId: number;
   restaurant?: string;
@@ -34,6 +35,7 @@ export const DishDetailsModal: React.FC<DishDetailsModalProps> = ({
   id,
   name,
   price,
+  description,
   image,
   restroId,
   restaurant,
@@ -56,6 +58,7 @@ export const DishDetailsModal: React.FC<DishDetailsModalProps> = ({
             id,
             name,
             price,
+            description,
             image,
             customisation,
             restaurant,
@@ -77,7 +80,7 @@ export const DishDetailsModal: React.FC<DishDetailsModalProps> = ({
     // Add item to cart
     dispatch({
       type: "ADD_TO_CART",
-      payload: { id, name, price, quantity: 1, restaurant },
+      payload: { id, name, price, quantity: 1, restaurant, description },
     });
     onClose();
   };
@@ -107,8 +110,7 @@ export const DishDetailsModal: React.FC<DishDetailsModalProps> = ({
             </div>
             <div>
               <p className="text-xs text-gray-600">
-                A delicious and satisfying dish prepared with the finest
-                ingredients. Perfect for any time of day.
+                {description}
               </p>
             </div>
 
