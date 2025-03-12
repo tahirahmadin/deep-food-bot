@@ -1,7 +1,12 @@
 import React, { createContext, useContext, useReducer, useEffect } from "react";
-import { getAllRestaurants } from "../actions/serverActions";
+import {
+  getAllRestaurants,
+  getSingleRestaurant,
+} from "../actions/serverActions";
 import { SingleRestro } from "../types/menu";
 import { useAuth } from "./AuthContext";
+import { useLocation } from "react-router-dom";
+import { useChatContext } from "./ChatContext";
 
 interface RestaurantState {
   selectedRestroIds: number[];
@@ -94,19 +99,51 @@ const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { addresses, isAuthenticated } = useAuth();
+
   const [state, dispatch] = useReducer(restaurantReducer, initialState);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const restaurantId = searchParams.get("restaurantId");
 
   useEffect(() => {
     const fetchRestaurants = async () => {
+      console.log("restaurantId Context");
+      console.log(restaurantId);
       // Get coordinates from the selected (first) address
       const selectedAddress = addresses[0];
       const coordinates = selectedAddress?.coordinates;
 
-      if (coordinates) {
-        // Fetch restaurants based on coordinates.
+      if (restaurantId) {
         // Adjust the second parameter (limit) as needed.
-        const restaurantData = await getAllRestaurants(coordinates, 3);
-        dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
+        const restaurantData = await getSingleRestaurant(restaurantId);
+        console.log(restaurantData);
+        if (restaurantData) {
+          dispatch({ type: "SET_RESTAURANTS", payload: [restaurantData] });
+        }
+
+        const backImageUrl =
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4jOHl2IQswMq9Na2ZmVTxv8GoWXb31iLZyQ&s";
+        dispatch({
+          type: "SET_BACKGROUND_IMAGE",
+          payload: backImageUrl,
+        });
+
+        dispatch({
+          type: "SET_ACTIVE_RESTRO",
+          payload: restaurantId,
+        });
+
+        // chatDispatch({
+        //   type: "SET_SELECTED_RESTAURANT",
+        //   payload: restaurantData?.restaurant,
+        // });
+      } else {
+        if (coordinates) {
+          // Fetch restaurants based on coordinates.
+          // Adjust the second parameter (limit) as needed.
+          const restaurantData = await getAllRestaurants(coordinates, 3);
+          dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
+        }
       }
     };
 
@@ -114,7 +151,7 @@ const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
     if (isAuthenticated && addresses.length > 0 && addresses[0]?.coordinates) {
       fetchRestaurants();
     }
-  }, [isAuthenticated, addresses, dispatch]);
+  }, [isAuthenticated, addresses, dispatch, restaurantId]);
 
   return (
     <RestaurantContext.Provider value={{ state, dispatch }}>

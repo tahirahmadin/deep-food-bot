@@ -164,6 +164,24 @@ export const getAllRestaurants = async (
   }
 };
 
+// Get single restaurant
+export const getSingleRestaurant = async (
+  restaurantId: string
+): Promise<Restaurant | null> => {
+  try {
+    let url = `${apiUrl}/restaurant/getRestaurant/${restaurantId}`;
+    const response = await axios.get(url);
+
+    if (response.data && !response.data.error) {
+      return response.data.result;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching restaurants:", error);
+    return null;
+  }
+};
+
 // Get restaurant menu
 export const getRestaurantMenu = async (
   restaurantId: number
