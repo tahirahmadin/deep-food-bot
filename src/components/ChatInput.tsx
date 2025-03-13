@@ -215,7 +215,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <button
             type="button"
             onClick={toggleImageOptions}
-            className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
+            className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors rounded-full"
             disabled={addresses.length === 0}
           >
             <ImageIcon className="w-5 h-5" />
@@ -230,19 +230,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 boxShadow: `0 10px 25px -5px ${theme.text}20`,
               }}
             >
-              <div className="flex flex-col py-1">
+              <div className="flex flex-col py-1 ">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 text-sm font-medium text-left transition-colors"
-                  style={{
-                    color: theme.text,
-                    ":hover": { backgroundColor: `${theme.text}10` },
-                  }}
+                  className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-color  hover:text-gray-400 text-gray-500"
                   type="button"
                 >
                   <div
                     className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100"
-                    style={{ backgroundColor: `${theme.accentColor}15` }}
+                    style={{ backgroundColor: theme.modalBg }}
                   >
                     <ImageIcon className="w-4 h-4" />
                   </div>
@@ -256,16 +252,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
                 <button
                   onClick={() => captureInputRef.current?.click()}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 text-sm font-medium text-left transition-colors"
-                  style={{
-                    color: theme.text,
-                    ":hover": { backgroundColor: `${theme.text}10` },
-                  }}
+                  className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-colors  hover:text-gray-400 text-gray-500"
                   type="button"
                 >
                   <div
                     className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100"
-                    style={{ backgroundColor: `${theme.secondaryColor}15` }}
+                    style={{ backgroundColor: theme.modalBg }}
                   >
                     <Camera className="w-4 h-4" />
                   </div>

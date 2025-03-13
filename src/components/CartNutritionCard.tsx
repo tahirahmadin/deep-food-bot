@@ -189,7 +189,7 @@ const CartNutritionCard = ({
         
         {/* Daily Reference Value Info */}
         <div className="mb-3">
-          <div className="text-xs opacity-70" style={{ color: theme.modalSecondText }}>
+          <div className="text-xs opacity-70" style={{ color: theme.modalMainText }}>
             Based on a {referenceValues.calories} calorie diet
           </div>
         </div>
@@ -233,7 +233,7 @@ const CartNutritionCard = ({
                   <span className="text-xs font-medium" style={{ color: theme.modalMainText }}>
                     {item.name}
                   </span>
-                  <span className="text-[10px] opacity-70" style={{ color: theme.modalSecondText }}>
+                  <span className="text-[10px] opacity-70" style={{ color: theme.modalMainText }}>
                     {Math.round(item.percentage)}%
                   </span>
                 </div>
@@ -241,7 +241,7 @@ const CartNutritionCard = ({
                   <span className="text-base font-bold" style={{ color: theme.primary }}>
                     {item.value}
                   </span>
-                  <span className="ml-1 text-[10px] opacity-70" style={{ color: theme.modalSecondText }}>
+                  <span className="ml-1 text-[10px] opacity-70" style={{ color: theme.modalMainText }}>
                     {item.unit}
                   </span>
                 </div>
@@ -321,7 +321,7 @@ const CartNutritionCard = ({
             </div>
           </div>
           
-          <div className="flex text-[10px] justify-between opacity-60" style={{ color: theme.modalSecondText }}>
+          <div className="flex text-[10px] justify-between opacity-60" style={{ color: theme.modalMainText }}>
             <div className="flex items-center">
               <div className="w-2 h-2 rounded-full bg-orange-500 mr-1"></div>
               <span>Calories</span>

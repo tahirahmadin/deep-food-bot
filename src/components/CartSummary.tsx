@@ -369,7 +369,8 @@ export const CartSummary: React.FC = () => {
                     borderBottom: `1px solid ${theme.cardHighlight}30`
                   }}
                 >
-                  <h3 className="font-semibold text-sm">
+                  <h3 className="font-semibold text-sm"
+                  style={{ color: theme.modalSecondText }}>
                     {isViewingCombinedNutrition ? "Total Nutrition Information" : "Nutrition Information"}
                   </h3>
                   <button 
