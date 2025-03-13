@@ -166,7 +166,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               type="button"
             >
               <Pizza className="w-3.5 h-3.5" />
-              <span>Must-Try Chicken Meals</span>
+              <span>Best Chicken Meals</span>
             </button>
 
             <button
