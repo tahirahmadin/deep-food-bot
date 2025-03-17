@@ -1,20 +1,16 @@
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import {
   getAllRestaurants,
-  getSingleRestaurant,
+  getMostPopularRestaurants,
 } from "../actions/serverActions";
 import { SingleRestro } from "../types/menu";
 import { useAuth } from "./AuthContext";
-import { useLocation } from "react-router-dom";
 
 interface RestaurantState {
   selectedRestroIds: number[];
   activeRestroId: number | null;
-  selectedRestaurant: string | null;
-  singleMode: boolean;
-  cashMode: boolean;
-  backgroundImage: string | null;
   restaurants: SingleRestro[];
+  featuredRestaurants: SingleRestro[];
   menus: {
     [key: string]: any[];
   };
@@ -22,10 +18,8 @@ interface RestaurantState {
 
 type RestaurantAction =
   | { type: "SET_RESTRO_IDS"; payload: number[] }
-  | { type: "SET_SELECTED_RESTAURANT"; payload: string | null }
-  | { type: "SET_SINGLE_MODE"; payload: boolean }
   | { type: "SET_ACTIVE_RESTRO"; payload: number | null }
-  | { type: "SET_BACKGROUND_IMAGE"; payload: string | null }
+  | { type: "SET_FEATURED_RESTAURANTS"; payload: SingleRestro[] }
   | { type: "CLEAR_RESTRO_IDS" }
   | { type: "SET_RESTAURANTS"; payload: SingleRestro[] }
   | { type: "SET_MENU"; payload: { restaurantId: string; menu: any[] } }
@@ -33,12 +27,9 @@ type RestaurantAction =
 
 const initialState: RestaurantState = {
   selectedRestroIds: [],
-  selectedRestaurant: null,
-  singleMode: false,
-  cashMode: false,
-  backgroundImage: null,
   activeRestroId: null,
   restaurants: [],
+  featuredRestaurants: [],
   menus: {},
 };
 
@@ -58,27 +49,15 @@ const restaurantReducer = (
         ...state,
         activeRestroId: action.payload,
       };
-    case "SET_SELECTED_RESTAURANT":
-      return {
-        ...state,
-        selectedRestaurant: action.payload,
-      };
-
-    case "SET_SINGLE_MODE":
-      return {
-        ...state,
-        singleMode: action.payload,
-      };
-
-    case "SET_BACKGROUND_IMAGE":
-      return {
-        ...state,
-        backgroundImage: action.payload,
-      };
     case "SET_RESTAURANTS":
       return {
         ...state,
         restaurants: action.payload,
+      };
+    case "SET_FEATURED_RESTAURANTS":
+      return {
+        ...state,
+        featuredRestaurants: action.payload,
       };
     case "SET_MENU":
       return {
@@ -114,62 +93,44 @@ const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { addresses, isAuthenticated } = useAuth();
-
   const [state, dispatch] = useReducer(restaurantReducer, initialState);
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const restaurantId = searchParams.get("restaurantId");
+  const hasInitialFetch = React.useRef(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
+    if (hasInitialFetch.current) return;
+
     const fetchRestaurants = async () => {
-      // Get coordinates from the selected (first) address
+      // Get coordinates from selected address
       const selectedAddress = addresses[0];
       const coordinates = selectedAddress?.coordinates;
 
-      if (restaurantId) {
-        // Adjust the second parameter (limit) as needed.
-        const restaurantData = await getSingleRestaurant(restaurantId);
+      if (coordinates) {
+        try {
+          // Fetch both regular and featured restaurants
+          const [restaurantData, featuredData] = await Promise.all([
+            getAllRestaurants(coordinates),
+            getMostPopularRestaurants(coordinates),
+          ]);
 
-        if (restaurantData) {
-          dispatch({ type: "SET_RESTAURANTS", payload: [restaurantData] });
-        }
-
-        const backImageUrl =
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4jOHl2IQswMq9Na2ZmVTxv8GoWXb31iLZyQ&s";
-        dispatch({
-          type: "SET_BACKGROUND_IMAGE",
-          payload: restaurantData.image,
-        });
-
-        dispatch({
-          type: "SET_ACTIVE_RESTRO",
-          payload: parseInt(restaurantId),
-        });
-
-        dispatch({
-          type: "SET_SELECTED_RESTAURANT",
-          payload: restaurantData?.name,
-        });
-
-        dispatch({
-          type: "SET_SINGLE_MODE",
-          payload: true,
-        });
-      } else {
-        if (coordinates) {
-          // Fetch restaurants based on coordinates.
-          // Adjust the second parameter (limit) as needed.
-          const restaurantData = await getAllRestaurants(coordinates, 3);
-          dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
+          if (restaurantData.length > 0 || featuredData.length > 0) {
+            dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
+            dispatch({
+              type: "SET_FEATURED_RESTAURANTS",
+              payload: featuredData,
+            });
+            hasInitialFetch.current = true;
+          }
+        } catch (error) {
+          console.error("Error fetching restaurants:", error);
         }
       }
     };
 
-    // If the user is authenticated and a valid address with coordinates exists, fetch restaurants.
-    if (isAuthenticated && addresses.length > 0 && addresses[0]?.coordinates) {
+    const selectedAddress = addresses[0];
+    if (isAuthenticated && selectedAddress?.coordinates) {
       fetchRestaurants();
     }
-  }, [isAuthenticated, addresses, dispatch, restaurantId]);
+  }, [isAuthenticated, addresses]);
 
   return (
     <RestaurantContext.Provider value={{ state, dispatch }}>
@@ -184,16 +145,19 @@ function useRestaurant() {
     throw new Error("useRestaurant must be used within a RestaurantProvider");
   }
 
+  // Add convenience functions
   const { state, dispatch } = context;
-  const { addresses } = useAuth();
 
+  const { addresses } = useAuth();
   const setRestaurants = (ids: number[]) => {
+    // Only dispatch if the IDs are different from current state
     if (JSON.stringify(state.selectedRestroIds) !== JSON.stringify(ids)) {
       dispatch({ type: "SET_RESTRO_IDS", payload: ids });
     }
   };
 
   const setActiveRestaurant = (id: number | null) => {
+    // Only dispatch if the ID is different from current active ID
     if (state.activeRestroId !== id) {
       dispatch({ type: "SET_ACTIVE_RESTRO", payload: id });
     }
@@ -210,10 +174,13 @@ function useRestaurant() {
   const refreshRestaurants = async () => {
     try {
       const selectedAddress = addresses[0];
-      const coordinates = selectedAddress?.coordinates;
-      if (coordinates) {
-        const restaurantData = await getAllRestaurants(coordinates);
+      if (selectedAddress?.coordinates) {
+        const [restaurantData, featuredData] = await Promise.all([
+          getAllRestaurants(selectedAddress.coordinates),
+          getMostPopularRestaurants(selectedAddress.coordinates),
+        ]);
         dispatch({ type: "SET_RESTAURANTS", payload: restaurantData });
+        dispatch({ type: "SET_FEATURED_RESTAURANTS", payload: featuredData });
       }
     } catch (error) {
       console.error("Error refreshing restaurants:", error);

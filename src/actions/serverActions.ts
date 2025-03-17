@@ -69,7 +69,6 @@ interface Restaurant {
   id: number;
   restaurant: string;
   items: string;
-  image: string;
 }
 
 // Define menu types
@@ -149,13 +148,14 @@ interface ApiResponse<T> {
 // Get all online restaurants
 export const getAllRestaurants = async (
   coordinates?: { lat: number; lng: number } | null,
-  radius: number = 10
+  radius: number = 10000
 ): Promise<Restaurant[]> => {
   try {
     let url = `${apiUrl}/restaurant/getAllRestaurants?online=true&userLatitude=${coordinates?.lat}&userLongitude=${coordinates?.lng}&radius=${radius}`;
     const response = await axios.get(url);
 
     if (response.data && !response.data.error) {
+      console.log("Restaurants fetched:", response.data.result);
       return response.data.result;
     }
     return [];
@@ -165,21 +165,28 @@ export const getAllRestaurants = async (
   }
 };
 
-// Get single restaurant
-export const getSingleRestaurant = async (
-  restaurantId: string
-): Promise<Restaurant | null> => {
+// Get most popular restaurants
+export const getMostPopularRestaurants = async (
+  coordinates?: { lat: number; lng: number } | null,
+  radius: number = 10000
+): Promise<Restaurant[]> => {
   try {
-    let url = `${apiUrl}/restaurant/getSingleRestaurant/${restaurantId}`;
+    let url = `${apiUrl}/restaurant/getMostPopularRestaurants?online=true`;
+
+    if (coordinates?.lat && coordinates?.lng) {
+      url += `&userLatitude=${coordinates.lat}&userLongitude=${coordinates.lng}&radius=${radius}`;
+    }
+
     const response = await axios.get(url);
 
     if (response.data && !response.data.error) {
+      console.log("Featured restaurants fetched:", response.data.result);
       return response.data.result;
     }
-    return null;
+    return [];
   } catch (error) {
-    console.error("Error fetching restaurants:", error);
-    return null;
+    console.error("Error fetching popular restaurants:", error);
+    return [];
   }
 };
 

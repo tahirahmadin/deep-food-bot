@@ -29,6 +29,12 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
   const { state: restaurantState, setActiveRestaurant } = useRestaurant();
   const { theme } = useFiltersContext();
 
+  // Check if restaurant is boosted
+  const isBoosted = React.useMemo(() => {
+    const restaurant = restaurantState.restaurants.find((r) => r.id === id);
+    return restaurant?.isBoosted || Math.random() < 0.3; // Temporary random boosting for demo
+  }, [id, restaurantState.restaurants]);
+
   const { dispatch } = useChatContext();
   const { addresses } = useAuth();
   const selectedAddress = addresses[0];
@@ -82,25 +88,48 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
         <img
           src={image}
           alt={name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 brightness-[0.85]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        {isBoosted && (
+          <div
+            className="absolute top-2 right-2 px-2 py-0.5 rounded-md text-[8px] font-medium backdrop-blur-sm flex items-center gap-1 shadow-md border border-purple-300/20"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(147, 51, 234, 0.9), rgba(88, 28, 135, 0.9))",
+              color: "#FFD700",
+            }}
+          >
+            <svg
+              className="w-2.5 h-2.5"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              stroke="none"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+            </svg>
+            <span className="tracking-wider">PRO</span>
+          </div>
+        )}
       </div>
 
       {/* Content Section */}
-      <div className="p-2">
-        <div className="flex items-start justify-between mb-2">
+      <div className="p-3">
+        <div className="flex items-center justify-between mb-2">
           <h3
-            className="font-medium text-gray-900 line-clamp-1 text-md  min-h-[1.5rem]"
+            className="font-medium text-gray-900 line-clamp-2 text-md"
             style={{
               color: theme.menuItemText,
             }}
           >
             {name}
           </h3>
-          <div className="flex items-center gap-1  ">
+          <div className="flex items-center gap-1">
             <div className="flex items-center gap-1 bg-green-50 px-1 py-0.5 rounded-full">
-              <Star className="w-1.5 h-1.5 text-green-600 fill-current" />
+              <Star className="w-3 h-3 text-green-600 fill-current" />
               <span className="text-[9px] font-medium text-green-600">
                 {rating}
               </span>
@@ -121,20 +150,12 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
                 </span>
               </div>
             )}
-            {distance && (
-              <div className="flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full">
-                <MapPin className="w-3 h-3 text-blue-600" />
-                <span className="text-xs font-medium text-blue-600">
-                  {distance} km
-                </span>
-              </div>
-            )}
           </div>
         </div>
         <p
-          className="text-xs opacity-70 line-clamp-2 min-h-[2rem]"
+          className="text-xs line-clamp-2"
           style={{
-            color: theme.text,
+            color: theme.text + "99",
           }}
         >
           {description}

@@ -2,8 +2,9 @@ import React, { useRef, useEffect, useMemo, useState } from "react";
 import { Message } from "./Message";
 import { ChatInput } from "./ChatInput";
 import { useChatContext, QueryType } from "../context/ChatContext";
+import { FeaturedRestaurantCard } from "./FeaturedRestaurantCard";
 import { MenuItem } from "./MenuItem";
-import { Cookie, Map, Menu, X } from "lucide-react";
+import { Cookie, Map, Menu, X, Search } from "lucide-react";
 import { MenuItemFront } from "../types/menu";
 import { useRestaurant } from "../context/RestaurantContext";
 import { getMenuByRestaurantId } from "../utils/menuUtils";
@@ -51,6 +52,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [allMenuItems, setAllMenuItems] = useState<MenuItemFront[]>([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const {
     state: restaurantState,
     dispatch: restaurantDispatch,
@@ -431,19 +434,123 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           {!restaurantState.activeRestroId ? (
             // Restaurant List View
             <div className="flex-1 p-4 ">
+              {/* Banner Section */}
+              <div className="relative w-full h-48 rounded-xl overflow-hidden mb-6">
+                <img
+                  src="https://gobbl-bucket.s3.ap-south-1.amazonaws.com/tapAssets/gobblai-banner.jpg"
+                  alt="Gobbl Banner"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-0 left-0 p-6">
+                  <h1 className="text-2xl font-bold text-white mb-2">
+                    0% Commision
+                  </h1>
+                  <p className="text-white/90 text-sm">
+                    Up to 40% cheaper than others
+                  </p>
+                </div>
+              </div>
+
+              {/* Featured Restaurants */}
+              <div className="mb-8">
+                <h2
+                  className="text-lg font-semibold mb-4"
+                  style={{ color: theme.text }}
+                >
+                  Featured Restaurants
+                </h2>
+                <div className="grid grid-cols-3 gap-3">
+                  {restaurantState.featuredRestaurants
+                    .slice(0, 6)
+                    .map((restaurant) => (
+                      <FeaturedRestaurantCard
+                        key={restaurant.id}
+                        id={restaurant.id}
+                        name={restaurant.name}
+                        description={restaurant.description}
+                        location={restaurant.location}
+                        image={`${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${
+                          restaurant.id
+                        }/${restaurant.id}-0.jpg`}
+                      />
+                    ))}
+                </div>
+              </div>
+
+              {/* Search Bar */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2
+                    className="text-lg font-semibold"
+                    style={{ color: theme.text }}
+                  >
+                    All Restaurants
+                  </h2>
+                  <button
+                    onClick={() => setIsSearchOpen(!isSearchOpen)}
+                    className="p-2 rounded-full transition-colors"
+                    style={{
+                      backgroundColor: isSearchOpen
+                        ? theme.primary
+                        : "transparent",
+                      color: isSearchOpen ? theme.background : theme.text,
+                    }}
+                  >
+                    <Search className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {isSearchOpen && (
+                  <div className="relative mb-4">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search restaurants..."
+                      className="w-full px-4 py-2 rounded-lg pr-10 transition-all"
+                      style={{
+                        backgroundColor: theme.cardBg,
+                        color: theme.text,
+                        borderColor: theme.border,
+                      }}
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
+                      >
+                        <X className="w-4 h-4" style={{ color: theme.text }} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {restaurantState.restaurants.length > 0 && (
                 <div className="grid grid-cols-2 gap-4 pb-10">
-                  {restaurantState.restaurants.map((restaurant) => (
-                    <RestaurantCard
-                      key={restaurant.id}
-                      id={restaurant.id}
-                      name={restaurant.name}
-                      description={restaurant.description}
-                      image={`${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${
-                        restaurant.id
-                      }/${restaurant.id}-0.jpg`}
-                    />
-                  ))}
+                  {restaurantState.restaurants
+                    .filter((restaurant) =>
+                      searchQuery
+                        ? restaurant.name
+                            .toLowerCase()
+                            .includes(searchQuery.toLowerCase()) ||
+                          restaurant.description
+                            .toLowerCase()
+                            .includes(searchQuery.toLowerCase())
+                        : true
+                    )
+                    .map((restaurant) => (
+                      <RestaurantCard
+                        key={restaurant.id}
+                        id={restaurant.id}
+                        name={restaurant.name}
+                        description={restaurant.description}
+                        image={`${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${
+                          restaurant.id
+                        }/${restaurant.id}-0.jpg`}
+                      />
+                    ))}
                 </div>
               )}
 
@@ -457,14 +564,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                     className="text-center text-lg font-bold"
                     style={{ color: theme.menuItemText }}
                   >
-                    No restaurant!
+                    No restaurants!
                   </h4>
                   <p
                     className="text-center text-sm py-1"
                     style={{ color: theme.menuItemText }}
                   >
-                    Sorry, restaurant are not available at the moment in your
-                    region.
+                    {searchQuery
+                      ? `No restaurants match "${searchQuery}"`
+                      : "Sorry, restaurants are not available at the moment in your region."}
                   </p>
                 </div>
               )}
