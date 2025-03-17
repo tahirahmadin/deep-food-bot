@@ -148,7 +148,7 @@ interface ApiResponse<T> {
 // Get all online restaurants
 export const getAllRestaurants = async (
   coordinates?: { lat: number; lng: number } | null,
-  radius: number = 10000
+  radius: number = 50
 ): Promise<Restaurant[]> => {
   try {
     let url = `${apiUrl}/restaurant/getAllRestaurants?online=true&userLatitude=${coordinates?.lat}&userLongitude=${coordinates?.lng}&radius=${radius}`;
