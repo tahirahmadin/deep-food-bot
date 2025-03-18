@@ -54,7 +54,7 @@ const ComboCard: React.FC<ComboCardProps> = ({
   const mainItemId = combo.items[0]?.id;
   const mainImageUrl = mainItemId && !mainImageError
     ? `${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${combo.restaurantId}/${combo.restaurantId}-${mainItemId}.jpg`
-    : null;
+    : `${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${combo.restaurantId}/${combo.restaurantId}-0.jpg`;
 
   const handleItemImageError = (itemIndex: number) => {
     setItemImageErrors(prev => ({ ...prev, [itemIndex]: true }));
@@ -192,7 +192,7 @@ const ComboCard: React.FC<ComboCardProps> = ({
               {combo.items.map((item, idx) => {
                 const itemImageUrl = item.id && !itemImageErrors[idx] 
                   ? `${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${combo.restaurantId}/${combo.restaurantId}-${item.id}.jpg`
-                  : null;
+                  : "https://i.pinimg.com/originals/da/4f/c2/da4fc2360e1dcc5c85cf5eeaee4b107f.gif";
                 
                 return (
                   <li 
