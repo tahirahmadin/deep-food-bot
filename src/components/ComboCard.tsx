@@ -3,7 +3,6 @@ import { ComboMeal, RecommendedItem } from '../types';
 import { useFiltersContext } from '../context/FiltersContext';
 import { DishDetailsModal } from './DishDetailsModal';
 
-
 interface ComboCardProps {
   combo: ComboMeal;
   onAddToCart: (combo: ComboMeal) => void;
@@ -17,6 +16,8 @@ interface ComboCardProps {
   isExpanded?: boolean;
   onToggleExpanded?: () => void;
 }
+
+const placeholderImage = "https://i.pinimg.com/originals/da/4f/c2/da4fc2360e1dcc5c85cf5eeaee4b107f.gif";
 
 const ComboCard: React.FC<ComboCardProps> = ({ 
   combo, 
@@ -52,9 +53,11 @@ const ComboCard: React.FC<ComboCardProps> = ({
   if (!combo) return null;
 
   const mainItemId = combo.items[0]?.id;
-  const mainImageUrl = mainItemId && !mainImageError
+  const actualMainImageUrl = mainItemId 
     ? `${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${combo.restaurantId}/${combo.restaurantId}-${mainItemId}.jpg`
-    : `${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${combo.restaurantId}/${combo.restaurantId}-0.jpg`;
+    : placeholderImage;
+  // Use placeholder if error occurred.
+  const mainImageUrl = mainImageError ? placeholderImage : actualMainImageUrl;
 
   const handleItemImageError = (itemIndex: number) => {
     setItemImageErrors(prev => ({ ...prev, [itemIndex]: true }));
@@ -65,19 +68,14 @@ const ComboCard: React.FC<ComboCardProps> = ({
   };
 
   const handleRegenerateClick = async (itemIndex: number, e: React.MouseEvent) => {
-    e.stopPropagation()
-    
-
+    e.stopPropagation();
     if (onRegenerateClick) {
       onRegenerateClick(itemIndex);
     }
-    
-
     if (onRegenerateItem && combo.items[itemIndex]) {
       const currentItem = combo.items[itemIndex];
       const effectiveId = currentItem.id !== undefined ? currentItem.id : itemIndex;
       try {
-
         await onRegenerateItem(
           combo.id, 
           itemIndex, 
@@ -97,8 +95,7 @@ const ComboCard: React.FC<ComboCardProps> = ({
   };
 
   const handleDeleteItem = (itemIndex: number, e: React.MouseEvent) => {
-    e.stopPropagation()
-    
+    e.stopPropagation();
     if (onDeleteItem) {
       onDeleteItem(combo.id, itemIndex);
     }
@@ -122,7 +119,7 @@ const ComboCard: React.FC<ComboCardProps> = ({
     const effectiveId = itemId !== undefined ? itemId : itemIndex;
     const uniqueKey = `${combo.id}_${itemIndex}_${effectiveId}`;
     return similarItems[uniqueKey] || [];
-  }
+  };
 
   return (
     <div 
@@ -137,14 +134,16 @@ const ComboCard: React.FC<ComboCardProps> = ({
         className="h-40 w-full bg-cover bg-center relative"
         style={{ backgroundColor: '#f0f0f0' }}
       >
-        {mainImageUrl && !mainImageError && (
-          <img 
-            src={mainImageUrl} 
-            alt={combo.name}
-            className="w-full h-full object-cover"
-            onError={() => setMainImageError(true)}
-          />
-        )}
+        <img 
+          src={mainImageUrl} 
+          alt={combo.name}
+          className="w-full h-full object-cover"
+          onError={() => {
+            if (!mainImageError) {
+              setMainImageError(true);
+            }
+          }}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
         <div className="absolute bottom-0 left-0 right-0 p-3 flex justify-between items-end">
           <h3 className="text-lg font-bold text-white drop-shadow-md">{combo.name}</h3>
@@ -192,7 +191,7 @@ const ComboCard: React.FC<ComboCardProps> = ({
               {combo.items.map((item, idx) => {
                 const itemImageUrl = item.id && !itemImageErrors[idx] 
                   ? `${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${combo.restaurantId}/${combo.restaurantId}-${item.id}.jpg`
-                  : "https://i.pinimg.com/originals/da/4f/c2/da4fc2360e1dcc5c85cf5eeaee4b107f.gif";
+                  : placeholderImage;
                 
                 return (
                   <li 
@@ -227,7 +226,11 @@ const ComboCard: React.FC<ComboCardProps> = ({
                               onError={() => handleItemImageError(idx)}
                             />
                           ) : (
-                            <span className="text-xs text-gray-400">No image</span>
+                            <img 
+                              src={placeholderImage} 
+                              alt="placeholder"
+                              className="w-full h-full object-cover"
+                            />
                           )}
                         </div>
                       </div>
@@ -319,8 +322,7 @@ const ComboCard: React.FC<ComboCardProps> = ({
                                       className="border rounded-lg overflow-hidden bg-white cursor-pointer shadow-sm hover:shadow transition-shadow"
                                       style={{ borderColor: theme.border || 'rgba(0,0,0,0.1)' }}
                                       onClick={(e) => {
-                                        e.stopPropagation()
-                                    
+                                        e.stopPropagation();
                                         handleOpenSimilarItemDetails(similarItem, simImageUrl);
                                       }}
                                     >
@@ -333,9 +335,11 @@ const ComboCard: React.FC<ComboCardProps> = ({
                                             onError={() => handleSimilarItemImageError(itemKey)}
                                           />
                                         ) : (
-                                          <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                                            <span className="text-xs text-gray-400">No image</span>
-                                          </div>
+                                          <img 
+                                            src={placeholderImage} 
+                                            alt="placeholder"
+                                            className="w-full h-full object-cover"
+                                          />
                                         )}
                                         
                                         {/* Replace button */}

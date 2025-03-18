@@ -31,6 +31,7 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
   image,
   isCustomisable = false,
   customisation,
+  queryType,
 }) => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState, setActiveRestaurant } = useRestaurant();
