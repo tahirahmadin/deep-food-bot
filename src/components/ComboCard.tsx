@@ -200,7 +200,6 @@ const ComboCard: React.FC<ComboCardProps> = ({
                     className="pt-2 pb-3 border-b cursor-pointer" 
                     style={{ borderColor: theme.border || 'rgba(0,0,0,0.1)' }}
                     onClick={() => {
-              
                       setSelectedDish({
                         id: item.id,
                         name: item.name,
@@ -339,12 +338,12 @@ const ComboCard: React.FC<ComboCardProps> = ({
                                           </div>
                                         )}
                                         
-                                        {/* Add button at top-right corner - Only THIS should replace the item */}
+                                        {/* Replace button */}
                                         <div 
                                           className="absolute top-1 right-1 w-5 h-5 rounded-full shadow flex items-center justify-center cursor-pointer"
                                           style={{ backgroundColor: theme.primary, color: 'white' }}
                                           onClick={(e) => {
-                                            e.stopPropagation()
+                                            e.stopPropagation();
                                             handleReplaceItem(idx, similarItem);
                                           }}
                                         >
@@ -384,7 +383,7 @@ const ComboCard: React.FC<ComboCardProps> = ({
         
         <div className="mt-auto pt-2">
           <button
-            onClick={() => onAddToCart(combo)}
+            onClick={() => onAddToCart({ ...combo, isCombo: true, restaurantId: combo.restaurantId })}
             className="w-full py-3 px-4 text-sm font-medium rounded-md transition-all duration-200 flex items-center justify-center transform hover:scale-[1.02] hover:shadow-md"
             style={{ backgroundColor: theme.primary, color: theme.buttonText || 'white' }}
           >

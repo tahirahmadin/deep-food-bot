@@ -113,6 +113,9 @@ export interface CartItem {
   description: string;
   quantity: number;
   restaurant: string;
+  restaurantId?: number;
+  mainItemId?: number;
+  items?: RecommendedItem[];
   isCombo?: boolean; 
   customizations?: {
     categoryName: string;
@@ -223,7 +226,9 @@ type ChatAction =
           price: action.payload.totalPrice.toFixed(2),
           description: action.payload.description,
           quantity: 1,
-          restaurant: action.payload.restaurantName,
+          restaurant: action.payload.restaurantName, // You might also want to store restaurantName
+          restaurantId: action.payload.restaurantId,   // Store numeric restaurant ID
+          mainItemId: action.payload.items[0]?.id,       // Pass the first item's ID
           isCombo: true,
           customizations: action.payload.items.map(item => ({
             categoryName: item.category || "Item",
@@ -231,9 +236,10 @@ type ChatAction =
               name: item.name,
               price: item.price || 0
             }
-          }))
+          })),
+          // Optionally, you can also pass the full items array:
+          items: action.payload.items,
         };
-        
         return {
           ...state,
           cart: [...state.cart, comboCartItem],

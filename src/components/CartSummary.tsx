@@ -172,10 +172,13 @@ export const CartSummary: React.FC = () => {
     
     return name !== "Unknown Restaurant" ? name : state.selectedRestaurant || "";
   };
-  
-  const getItemCacheKey = (itemName: string): string => {
-    const restaurantName = getActiveRestaurantName();
-    return `${restaurantName}:${itemName}`;
+
+  const getComboImageUrl = (cartItem: any) => {
+    const mainItemId = cartItem.mainItemId;
+    if (mainItemId) {
+      return `${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${cartItem.restaurantId}/${cartItem.restaurantId}-${mainItemId}.jpg`;
+    }
+    return "";
   };
   
   const getCombinedCacheKey = (): string => {
@@ -318,8 +321,9 @@ export const CartSummary: React.FC = () => {
     setNutritionData(null);
   };
 
-  const getItemImageUrl = (itemId) => {
-    return `${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${restaurantState.activeRestroId}/${restaurantState.activeRestroId}-${itemId}.jpg`;
+  const getItemImageUrl = (itemId: number, fallbackRestaurant?: number) => {
+    const restro = restaurantState.activeRestroId || fallbackRestaurant;
+    return `${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${restro}/${restro}-${itemId}.jpg`;
   };
 
   if (state.cart.length === 0) {
@@ -438,14 +442,20 @@ export const CartSummary: React.FC = () => {
               />
             </div>
             <div className="max-h-64 overflow-y-auto">
-              {state.cart.map((item) => {
+            {state.cart.map((item) => {
+              const isCombo = item.isCombo === true;
+              const imageUrl = isCombo && item.mainItemId
+                ? getComboImageUrl(item)
+                : getItemImageUrl(item.id, item.restaurantId);
+              console.log("Computed imageUrl:", imageUrl);
+
                 return (
                   <div
                     key={item.id}
                     className="flex items-center gap-3 px-3 py-2 border-b"
                   >
                     <img
-                      src={getItemImageUrl(item.id)}
+                      src={imageUrl}
                       alt={item.name}
                       className="w-12 h-12 object-cover rounded-lg"
                     />
@@ -482,8 +492,9 @@ export const CartSummary: React.FC = () => {
                             )}
                           </div>
                         ))}
-                        {/* Render the Edit button if customizations exist */}
-                        {item.customizations &&
+                        {/* Hide Edit button for combo items */}
+                        {!isCombo &&
+                          item.customizations &&
                           item.customizations.length > 0 && (
                             <button
                               onClick={() =>
