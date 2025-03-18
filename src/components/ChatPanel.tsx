@@ -37,6 +37,7 @@ interface ChatPanelProps {
   isImageAnalyzing: boolean;
   isLoading?: boolean;
   queryType?: string;
+  chatLogic: any;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -47,6 +48,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   isImageAnalyzing: externalImageAnalyzing,
   placeholder,
   isLoading = false,
+  chatLogic,
 }) => {
   const { state, dispatch } = useChatContext();
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -368,7 +370,12 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         )}
 
         {state.messages.map((message) => (
-          <Message key={message.id} message={message} onRetry={() => {}} />
+          <Message 
+            key={message.id} 
+            message={message} 
+            onRetry={() => {}} 
+            chatLogic={chatLogic}
+          />
         ))}
 
         {/* Show PaymentForm when in payment step */}

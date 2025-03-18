@@ -7,7 +7,26 @@ export enum QueryType {
   RESTAURANT_QUERY = "RESTAURANT_QUERY",
   CHECKOUT = "CHECKOUT",
   BROWSE = "BROWSE",
-  NUTRITION_QUERY = "NUTRITION_QUERY"
+  NUTRITION_QUERY = "NUTRITION_QUERY",
+  COMBO_QUERY = "COMBO_QUERY"
+}
+
+export interface RecommendedItem {
+  id: number;
+  name: string;
+  price?: number;
+  description?: string;
+  category?: string;
+}
+
+export interface ComboMeal {
+  id: string;
+  name: string;
+  items: RecommendedItem[];
+  restaurantId: number;
+  restaurantName: string;
+  totalPrice: number;
+  description: string;
 }
 
 type MenuItem = {
@@ -51,6 +70,7 @@ export interface Message {
     total?: string;
     items?: any[];
   };
+  comboMeals?: ComboMeal[];
 }
 
 export interface MenuCard {

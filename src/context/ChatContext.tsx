@@ -8,7 +8,26 @@ export enum QueryType {
   RESTAURANT_QUERY = "RESTAURANT_QUERY",
   CHECKOUT = "CHECKOUT",
   BROWSE = "BROWSE",
-  NUTRITION_QUERY = "NUTRITION_QUERY"
+  NUTRITION_QUERY = "NUTRITION_QUERY",
+  COMBO_QUERY = "COMBO_QUERY"
+}
+
+export interface RecommendedItem {
+  id: number;
+  name: string;
+  price?: number;
+  description?: string;
+  category?: string;
+}
+
+export interface ComboMeal {
+  id: string;
+  name: string;
+  items: RecommendedItem[];
+  restaurantId: number;
+  restaurantName: string;
+  totalPrice: number;
+  description: string;
 }
 
 export enum ChatModel {
@@ -36,6 +55,7 @@ interface Message {
   time: string;
   imageUrl?: string;
   queryType: QueryType;
+  comboMeals?: ComboMeal[];
 }
 
 interface ChatState {
@@ -83,6 +103,7 @@ interface ChatState {
       cvv: string;
     };
   };
+  currentComboMeals?: ComboMeal[] | null;
 }
 
 export interface CartItem {
@@ -92,6 +113,7 @@ export interface CartItem {
   description: string;
   quantity: number;
   restaurant: string;
+  isCombo?: boolean; 
   customizations?: {
     categoryName: string;
     selection: {
@@ -124,120 +146,150 @@ type ChatAction =
       payload: Partial<ChatState["checkout"]["orderDetails"]>;
     }
   | { type: "CLEAR_CART" }
-  | { type: "RESET_STATE" };
+  | { type: "RESET_STATE" }
+  | { type: "SET_CURRENT_COMBO_MEALS"; payload: ComboMeal[] | null }
+  | { type: "ADD_COMBO_TO_CART"; payload: ComboMeal };
 
-const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
-  switch (action.type) {
-    case "ADD_MESSAGE":
-      return {
-        ...state,
-        messages: [...state.messages, action.payload],
-      };
-    case "SET_LOADING":
-      return {
-        ...state,
-        isLoading: action.payload,
-      };
-    case "SET_ERROR":
-      return {
-        ...state,
-        error: action.payload,
-      };
-    case "SET_QUERY_TYPE":
-      return {
-        ...state,
-        currentQueryType: action.payload,
-      };
-    case "SET_MODE":
-      return {
-        ...state,
-        mode: action.payload,
-      };
-    case "SET_CUSTOMIZATION_MODAL":
-      return {
-        ...state,
-        customization: {
-          isOpen: action.payload.isOpen,
-          item: action.payload.item,
-          isEditing: action.payload.isEditing || false,
-        },
-      };
-
-    case "SET_CHAT_MODEL":
-      return {
-        ...state,
-        selectedModel: action.payload,
-      };
-    case "CLEAR_MESSAGES":
-      return {
-        ...state,
-        messages: [],
-      };
-    case "ADD_TO_CART":
-      const existingItem = state.cart.find(
-        (item) => item.id === action.payload.id
-      );
-      if (existingItem) {
+  const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
+    switch (action.type) {
+      case "ADD_MESSAGE":
+        return {
+          ...state,
+          messages: [...state.messages, action.payload],
+        };
+      case "SET_LOADING":
+        return {
+          ...state,
+          isLoading: action.payload,
+        };
+      case "SET_ERROR":
+        return {
+          ...state,
+          error: action.payload,
+        };
+      case "SET_QUERY_TYPE":
+        return {
+          ...state,
+          currentQueryType: action.payload,
+        };
+      case "SET_MODE":
+        return {
+          ...state,
+          mode: action.payload,
+        };
+      case "SET_CUSTOMIZATION_MODAL":
+        return {
+          ...state,
+          customization: {
+            isOpen: action.payload.isOpen,
+            item: action.payload.item,
+            isEditing: action.payload.isEditing || false,
+          },
+        };
+  
+      case "SET_CHAT_MODEL":
+        return {
+          ...state,
+          selectedModel: action.payload,
+        };
+      case "CLEAR_MESSAGES":
+        return {
+          ...state,
+          messages: [],
+        };
+      case "ADD_TO_CART":
+        const existingItem = state.cart.find(
+          (item) => item.id === action.payload.id
+        );
+        if (existingItem) {
+          return {
+            ...state,
+            cart: state.cart.map((item) =>
+              item.id === action.payload.id
+                ? { ...item, quantity: item.quantity + 1 }
+                : item
+            ),
+          };
+        }
+        return {
+          ...state,
+          cart: [...state.cart, { ...action.payload, quantity: 1 }],
+        };
+      case "ADD_COMBO_TO_CART":
+        // Create a cart item from the combo
+        const comboCartItem: CartItem = {
+          id: Date.now(), // Generate a unique ID
+          name: action.payload.name,
+          price: action.payload.totalPrice.toFixed(2),
+          description: action.payload.description,
+          quantity: 1,
+          restaurant: action.payload.restaurantName,
+          isCombo: true,
+          customizations: action.payload.items.map(item => ({
+            categoryName: item.category || "Item",
+            selection: {
+              name: item.name,
+              price: item.price || 0
+            }
+          }))
+        };
+        
+        return {
+          ...state,
+          cart: [...state.cart, comboCartItem],
+        };
+      case "SET_CURRENT_COMBO_MEALS":
+        return {
+          ...state,
+          currentComboMeals: action.payload,
+        };
+      case "REMOVE_FROM_CART":
+        return {
+          ...state,
+          cart: state.cart.filter((item) => item.id !== action.payload),
+        };
+      case "UPDATE_CART_ITEM":
         return {
           ...state,
           cart: state.cart.map((item) =>
-            item.id === action.payload.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
+            item.id === action.payload.id ? action.payload : item
           ),
         };
-      }
-      return {
-        ...state,
-        cart: [...state.cart, { ...action.payload, quantity: 1 }],
-      };
-    case "REMOVE_FROM_CART":
-      return {
-        ...state,
-        cart: state.cart.filter((item) => item.id !== action.payload),
-      };
-    case "UPDATE_CART_ITEM":
-      return {
-        ...state,
-        cart: state.cart.map((item) =>
-          item.id === action.payload.id ? action.payload : item
-        ),
-      };
-    case "SET_CHECKOUT_STEP":
-      return {
-        ...state,
-        checkout: { ...state.checkout, step: action.payload },
-      };
-    case "SET_PAYMENT_METHOD":
-      return {
-        ...state,
-        checkout: { ...state.checkout, paymentMethod: action.payload },
-      };
-    case "UPDATE_ORDER_DETAILS":
-      return {
-        ...state,
-        checkout: {
-          ...state.checkout,
-          orderDetails: {
-            ...state.checkout.orderDetails,
-            ...action.payload,
+      case "SET_CHECKOUT_STEP":
+        return {
+          ...state,
+          checkout: { ...state.checkout, step: action.payload },
+        };
+      case "SET_PAYMENT_METHOD":
+        return {
+          ...state,
+          checkout: { ...state.checkout, paymentMethod: action.payload },
+        };
+      case "UPDATE_ORDER_DETAILS":
+        return {
+          ...state,
+          checkout: {
+            ...state.checkout,
+            orderDetails: {
+              ...state.checkout.orderDetails,
+              ...action.payload,
+            },
           },
-        },
-      };
-    case "CLEAR_CART":
-      return {
-        ...state,
-        cart: [],
-      };
-    case "RESET_STATE":
-      return {
-        ...initialState,
-        messages: [state.messages[0]], // Keep only the welcome message
-      };
-    default:
-      return state;
-  }
-};
+        };
+      case "CLEAR_CART":
+        return {
+          ...state,
+          cart: [],
+        };
+      case "RESET_STATE":
+        return {
+          ...initialState,
+          messages: [state.messages[0]], // Keep only the welcome message
+        };
+      default:
+        return state;
+    }
+  };
 
 const initialState: ChatState = {
   messages: [],
@@ -263,6 +315,7 @@ const initialState: ChatState = {
       cvv: "",
     },
   },
+  currentComboMeals: null,
 };
 
 const ChatContext = createContext<{

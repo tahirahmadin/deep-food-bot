@@ -12,6 +12,19 @@ import { filterRestaurantsByDistance } from "../../utils/distanceUtils";
 interface RecommendedItem {
   id?: number;
   name: string;
+  price?: number;
+  description?: string;
+  category?: string;
+}
+
+interface ComboMeal {
+  id: string;
+  name: string;
+  items: RecommendedItem[];
+  restaurantId: number;
+  restaurantName: string;
+  totalPrice: number;
+  description: string;
 }
 
 interface Message {
@@ -21,6 +34,7 @@ interface Message {
   time: string;
   queryType?: QueryType;
   recommendedItems?: RecommendedItem[];
+  comboMeals?: ComboMeal[];
 }
 
 interface ChatLogicProps {
@@ -194,19 +208,21 @@ const classifyIntent = async (
   const conversationContext = buildConversationContext(chatHistory);
 
   const classificationPrompt = `
-      You are an intent classifier for a food ordering platform that aggregates recommendations from multiple restaurants. Your task is to classify a given user query into exactly one of three types: "MENU_QUERY", "RESTAURANT_QUERY", or "GENERAL".
+      You are an intent classifier for a food ordering platform that aggregates recommendations from multiple restaurants. Your task is to classify a given user query into exactly one of these types: "MENU_QUERY", "RESTAURANT_QUERY", "NUTRITION_QUERY", "COMBO_QUERY", or "GENERAL".
       
       Definitions:
       - "MENU_QUERY": Use this category when the query specifically requests a list of food items or dishes for ordering or suggestion of food items. Examples include: "What's on the menu?", "Show me available dishes", or "I want to order a burger", or "suggest me something having high protien". In this mode, the response will always recommend food items.
       - "RESTAURANT_QUERY": Use this category when the query is about the restaurant or the ordering service. This includes questions about location, delivery, ordering process, or direct restaurant recommendations. Even if food is mentioned, if the focus is on the restaurant's details, use this category.
       - "GENERAL": Use this category for queries that are conversational or ask for additional details about a food item (such as ingredients, taste, preparation). Also include greetings or casual conversation here. Responses for GENERAL queries are typically brief (2-3 lines) and chatty.
       - "NUTRITION_QUERY": Use this category when the query asks for nutritional information of a food item (for example, calories, fats, protein, or carbs) of a food item.
+      - "COMBO_QUERY": Use this category when the query asks about meals, pairings, combos, or what foods go well together. Examples: "What goes well with a burger?", "Suggest me a complete meal with rice", "What side dishes pair with steak?, What are best paneer meals?".
       
       Instructions:
       - Analyze the user query and any provided conversation context.
       - If the query asks for a list of dishes or ordering options or recommendations or suggestions, classify it as "MENU_QUERY".
       - If the query asks about the restaurant, its operations, or service details, classify it as "RESTAURANT_QUERY".
       - If the query asks for nutritional information of a food item (for example, calories, fats, protein, or carbs) of a food item, classify it as "NUTRITION_QUERY".
+      - If the query asks about food pairings, complete meals, or combo suggestions, classify it as "COMBO_QUERY".
       - If the query asks for details about a food item (for example, "Tell me more about that dish", "What are its main ingredients?", or "Is it more creamy or tangy?") or is casual conversation, classify it as "GENERAL".
       - Base your decision solely on the query and any provided conversation context.
       
@@ -217,7 +233,7 @@ const classifyIntent = async (
           : ""
       }
       
-      Respond with only a JSON object with one key "text" whose value is exactly one of the three strings: "MENU_QUERY", "RESTAURANT_QUERY", or "GENERAL".
+      Respond with only a JSON object with one key "text" whose value is exactly one of the five strings: "MENU_QUERY", "RESTAURANT_QUERY", "NUTRITION_QUERY", "COMBO_QUERY", or "GENERAL".
       
       STRICT FORMAT RULES:
       - Return only a valid JSON object in this exact format: { "text": "<intent>" }.
@@ -240,6 +256,8 @@ const classifyIntent = async (
         return QueryType.RESTAURANT_QUERY;
       if (resultText.includes("NUTRITION_QUERY"))
         return QueryType.NUTRITION_QUERY;
+      if (resultText.includes("COMBO_QUERY"))
+        return QueryType.COMBO_QUERY;
       if (resultText.includes("GENERAL")) return QueryType.GENERAL;
     } catch (e) {
       const resultText = llmResult.text.trim().toUpperCase();
@@ -248,6 +266,8 @@ const classifyIntent = async (
         return QueryType.RESTAURANT_QUERY;
       if (resultText.includes("NUTRITION_QUERY"))
         return QueryType.NUTRITION_QUERY;
+      if (resultText.includes("COMBO_QUERY"))
+        return QueryType.COMBO_QUERY;
     }
   }
   return QueryType.GENERAL;
@@ -273,43 +293,13 @@ export const useChatLogic = ({
     recommendedItems: RecommendedItem[];
   }> | null>(null);
 
-  const determineQueryType = (
+  const [currentComboMeals, setCurrentComboMeals] = useState<ComboMeal[] | null>(null);
+
+  const determineQueryType = async (
     query: string,
     activeRestroId: number | null
-  ): QueryType => {
-    const restaurantKeywords = [
-      "restaurant",
-      "place",
-      "where",
-      "location",
-      "open",
-      "closed",
-      "timing",
-      "hours",
-      "address",
-    ];
-    const menuKeywords = [
-      "price",
-      "cost",
-      "how much",
-      "menu",
-      "order",
-      "buy",
-      "get",
-      "recommend",
-      "suggest",
-      "what should",
-      "what's good",
-    ];
-    query = query.toLowerCase();
-    if (
-      restaurantKeywords.some((keyword) => query.includes(keyword)) &&
-      !activeRestroId
-    )
-      return QueryType.RESTAURANT_QUERY;
-    if (menuKeywords.some((keyword) => query.includes(keyword)))
-      return QueryType.MENU_QUERY;
-    return QueryType.GENERAL;
+  ): Promise<QueryType> => {
+    return await classifyIntent(query, activeRestroId, state, chatHistory);
   };
 
   const getMenuItemsByFile = async (restaurantId: number): Promise<any[]> => {
@@ -424,6 +414,295 @@ export const useChatLogic = ({
     return await promise;
   };
 
+  const handleComboQuery = async (
+    userInput: string,
+    isImageBased: boolean = false,
+    imageCaption: string = ""
+  ) => {
+    try {
+      const now = new Date().toLocaleString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+
+      const effectiveInput =
+        isImageBased && imageCaption
+          ? `Image shows: ${userInput}. User says: ${imageCaption}`
+          : userInput;
+
+      const conversationContext = buildConversationContext(
+        chatHistory.filter((msg) => !msg.isBot)
+      );
+
+      let restaurant1Menu: any[] = [],
+        restaurant2Menu: any[] = [],
+        activeMenu: any[] = [];
+      let suggestRestroText = "";
+      let suggestRestroIds: number[] = [];
+      const { activeRestroId } = restaurantState;
+
+      if (!activeRestroId) {
+        const response = await handleRestaurantQuery(
+          isImageBased ? effectiveInput : undefined
+        );
+        suggestRestroText = response.text;
+        suggestRestroIds = response.restroIds;
+        
+        if (suggestRestroIds.length > 0) {
+          setRestaurants(suggestRestroIds);
+          const menus = await Promise.all([
+            getMenuItemsByFile(suggestRestroIds[0]),
+            suggestRestroIds.length > 1
+              ? getMenuItemsByFile(suggestRestroIds[1])
+              : Promise.resolve([]),
+          ]);
+          restaurant1Menu = menus[0];
+          restaurant2Menu = menus[1];
+        }
+      } else {
+        activeMenu = await getMenuItemsByFile(activeRestroId);
+      }
+
+      const restaurantMenus = activeRestroId 
+        ? [{ id: activeRestroId, menu: activeMenu }] 
+        : [
+            { id: suggestRestroIds[0], menu: restaurant1Menu },
+            ...(suggestRestroIds.length > 1 ? [{ id: suggestRestroIds[1], menu: restaurant2Menu }] : [])
+          ];
+
+      const analysisPart = isImageBased
+        ? imageCaption
+          ? `analyze the image description: "${userInput}" along with user's comment: "${imageCaption}"`
+          : `analyze the image description: "${userInput}"`
+        : `analyze the user's query: "${userInput}"`;
+
+      const comboPrompt = `
+        You are a meal pairing and combo recommendation system.
+        
+        Given the menu items from ${restaurantMenus.length === 1 ? "a restaurant" : "these restaurants"}:
+        ${JSON.stringify(restaurantMenus.map(r => ({ restaurantId: r.id, menu: r.menu })))}
+        
+        ${analysisPart}
+        ${conversationContext ? `Also, consider the following conversation context: "${conversationContext}"` : ""}
+        
+        Your task is to create complete meal combinations that pair well together based on flavor profiles, cuisine types, and traditional meal structures.
+        
+        Return a JSON response in the following format:
+        {
+          "text": "",
+          "combos": [
+            {
+              "id": "combo1",
+              "name": "Descriptive Combo Name",
+              "restaurantId": [Restaurant ID],
+              "description": "Brief description of why these items pair well together",
+              "items": [
+                { "id": [Item ID], "name": [Item Name], "price": [Item Price], "category": [Item Category], "description": [Item description] },
+                ...
+              ],
+              "totalPrice": [Sum of all item prices]
+            },
+            ...
+          ]
+        }
+        
+        where:
+        - "text" provides a concise and creative response about the suggested meal combinations in ${selectedStyle.name} style.
+        - Create between 1-2 thoughtful combo meal suggestions.
+        - Each combo should include a main dish and appropriate sides, drinks, or desserts that complement each other.
+        - Group items that naturally pair well together (e.g., burger + fries, pizza + salad, curry + rice).
+        - Consider cuisine compatibility, flavor balancing, and nutritional balance.
+        - Calculate the total price by summing the prices of all items in the combo.
+        - Each combo should have 2-4 items total for a complete meal experience.
+        ${isVegOnly ? "- Provide only VEGETARIAN options." : ""}
+        
+        STRICT FORMAT RULES:
+        - DO NOT include any markdown formatting.
+        - DO NOT include explanations or additional text.
+        - DO NOT include any special character before and after the json.
+        - Only return a valid JSON object, nothing else.
+      `;
+
+      const comboResponse = await getCachedLLMResponse(
+        comboPrompt,
+        600,
+        state.selectedModel,
+        0.7
+      );
+
+      if (comboResponse && comboResponse.combos && comboResponse.combos.length > 0) {
+        const enhancedCombos = comboResponse.combos.map((combo: any) => ({
+          ...combo,
+          restaurantName: getRestaurantNameById(
+            restaurantState.restaurants,
+            combo.restaurantId
+          )
+        }));
+
+        setCurrentComboMeals(enhancedCombos);
+
+        dispatch({
+          type: "ADD_MESSAGE",
+          payload: {
+            id: Date.now() + 1,
+            text: comboResponse.text,
+            isBot: true,
+            time: now,
+            queryType: QueryType.COMBO_QUERY,
+            comboMeals: enhancedCombos,
+            llm: {
+              output: comboResponse,
+              restroIds: enhancedCombos.map((combo: ComboMeal) => combo.restaurantId)
+            }
+          },
+        });
+      } else {
+        dispatch({
+          type: "ADD_MESSAGE",
+          payload: {
+            id: Date.now() + 1,
+            text: "I couldn't create meal combinations based on your request. Could you please try again with more specific food items?",
+            isBot: true,
+            time: now,
+            queryType: QueryType.GENERAL,
+          },
+        });
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const getSimilarItemsForCombo = async (
+    comboId: string,
+    itemIndex: number,
+    currentItemId: number,
+    itemCategory?: string
+  ): Promise<Record<string, RecommendedItem[]>> => {
+    try {
+      
+      const { activeRestroId } = restaurantState;
+      const restroId = activeRestroId || currentComboMeals?.find(c => c.id === comboId)?.restaurantId;
+      
+      if (!restroId) {
+        console.log("No restaurant ID found");
+        return {};
+      }
+      
+      const menuItems = await getMenuItemsByFile(restroId);
+      
+      const menuPrompt = `
+        You are a food recommendation system. Your task is to recommend similar menu items that strictly belong to the category "${itemCategory || 'Main'}".
+        
+        Restaurant menu (only consider items that belong to category "${itemCategory || 'Main'}"): ${JSON.stringify(
+          menuItems.filter(item => {
+            if (!item.category || !itemCategory) return true;
+            return item.category.toLowerCase() === itemCategory.toLowerCase();
+          })
+        )}
+        
+        Current item ID: ${currentItemId}
+        Category: "${itemCategory || 'Main'}"
+        
+        Please return ONLY a JSON object with exactly 4 menu items that meet the following criteria:
+        1. Each item must belong to the category "${itemCategory || 'Main'}" (case-insensitive).
+        2. Each item must have an id, name, price (as a number), and category.
+        3. None of the items should be the current item (ID: ${currentItemId}).
+        4. Do not return any items that do not match the category.
+        
+        RESPONSE FORMAT: Return only a valid JSON object in the following format (with no extra text):
+        {
+          "items": [
+            { "id": number, "name": string, "price": number, "category": string, "description": string },
+            { "id": number, "name": string, "price": number, "category": string, "description": string },
+            { "id": number, "name": string, "price": number, "category": string, "description": string },
+            { "id": number, "name": string, "price": number, "category": string, "description": string }
+          ]
+        }
+
+        STRICT FORMAT RULES:
+        - DO NOT include any markdown formatting.
+        - DO NOT include explanations or additional text.
+        - DO NOT include any special character before and after the json.
+        - Only return a valid JSON object, nothing else.
+      `;
+      
+      let llmResponse;
+      try {
+        llmResponse = await generateLLMResponse(
+          menuPrompt,
+          300,
+          state.selectedModel,
+          0.5
+        );
+      } catch (directError) {
+        console.error("Direct generateLLMResponse failed:", directError);
+        try {
+          llmResponse = await getCachedLLMResponse(
+            menuPrompt,
+            300,
+            state.selectedModel,
+            0.5
+          );
+          console.log("getCachedLLMResponse succeeded:", llmResponse);
+        } catch (cachedError) {
+          console.error("getCachedLLMResponse also failed:", cachedError);
+          throw new Error("Both LLM methods failed");
+        }
+      }
+      
+      let similarItems: RecommendedItem[] = [];
+      try {
+        if (typeof llmResponse.text === 'string') {
+          const jsonMatch = llmResponse.text.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            if (parsed.items && Array.isArray(parsed.items)) {
+              similarItems = parsed.items;
+            }
+          } else {
+            const parsed = JSON.parse(llmResponse.text);
+            if (parsed.items && Array.isArray(parsed.items)) {
+              similarItems = parsed.items;
+            }
+          }
+        } else if (llmResponse.items && Array.isArray(llmResponse.items)) {
+          similarItems = llmResponse.items;
+        }
+      } catch (parseError) {
+        console.error('Error parsing LLM response for similar items:', parseError);
+        return {};
+      }
+      
+      if (similarItems.length !== 4) {
+        console.warn(`Expected 4 similar items, but got ${similarItems.length}. Adjusting...`);
+        similarItems = similarItems.slice(0, 4);
+        while (similarItems.length < 4) {
+          if (similarItems.length > 0) {
+            similarItems.push(similarItems[similarItems.length - 1]);
+          } else {
+            similarItems.push({
+              id: currentItemId + 999,
+              name: "Placeholder Item",
+              price: 0,
+              category: itemCategory || 'Main'
+            });
+          }
+        }
+      }
+      
+      const effectiveId = currentItemId !== undefined ? currentItemId : itemIndex;
+      const resultKey = `${comboId}_${itemIndex}_${effectiveId}`;
+      return { [resultKey]: similarItems };
+      
+    } catch (error) {
+      console.error('Error in getSimilarItemsForCombo:', error);
+      return {};
+    }
+  };
+  
+
   const handleMenuQuery = async (
     _queryType: QueryType,
     userInput: string,
@@ -451,6 +730,11 @@ export const useChatLogic = ({
             chatHistory,
             isImageBased
           );
+
+      if (queryType === QueryType.COMBO_QUERY) {
+        await handleComboQuery(userInput, isImageBased, imageCaption);
+        return;
+      }
 
       const conversationContext = buildConversationContext(
         chatHistory.filter((msg) => !msg.isBot)
@@ -906,8 +1190,11 @@ export const useChatLogic = ({
     getMenuItemsByFile,
     handleRestaurantQuery,
     handleMenuQuery,
+    handleComboQuery,
     determineQueryType,
     classifyIntent,
     currentRecommendation,
+    currentComboMeals,
+    getSimilarItemsForCombo,
   };
 };

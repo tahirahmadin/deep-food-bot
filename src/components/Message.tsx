@@ -8,13 +8,15 @@ import { MenuMessage } from "./messageComponents/MenuMessage";
 import { OrderMessage } from "./messageComponents/OrderMessage";
 import { RestaurantMessage } from "./messageComponents/RestaurantMessage";
 import { NutritionMessage } from "./messageComponents/NutritionMessage";
+import { ComboMessage } from "./messageComponents/ComboMessage";
 
 interface MessageProps {
   message: MessageType;
   onRetry: () => void;
+  chatLogic?: any;
 }
 
-export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
+export const Message: React.FC<MessageProps> = ({ message, onRetry, chatLogic }) => {
   const { state } = useChatContext();
   const { selectedStyle, theme } = useFiltersContext();
   const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +42,10 @@ export const Message: React.FC<MessageProps> = ({ message, onRetry }) => {
   }, [message]);
 
   const renderContent = () => {
+    if (message.queryType === QueryType.COMBO_QUERY) {
+      return <ComboMessage message={message} selectedStyle={selectedStyle} chatLogic={chatLogic} />;
+    }
+    
     // Handle nutrition query type
     if (message.queryType === QueryType.NUTRITION_QUERY) {
       return <NutritionMessage message={message} />;

@@ -75,7 +75,7 @@ export const DunkinOrderApp: React.FC = () => {
     numberOfPeople,
     setRestaurants,
     addresses,
-    chatHistory,
+    chatHistory: state.messages,
   });
 
   const imageHandler = useImageHandler({
@@ -243,6 +243,7 @@ export const DunkinOrderApp: React.FC = () => {
               isImageAnalyzing={isImageAnalyzing}
               isLoading={state.isLoading}
               queryType={state.currentQueryType}
+              chatLogic={chatLogic}
             />
           </div>
         </div>
