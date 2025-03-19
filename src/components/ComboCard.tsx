@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react';
 import { ComboMeal, RecommendedItem } from '../types';
 import { useFiltersContext } from '../context/FiltersContext';
 import { DishDetailsModal } from './DishDetailsModal';
+import { useRestaurant } from '../context/RestaurantContext';
+import { getRestaurantNameById } from '../utils/menuUtils';
 
 interface ComboCardProps {
   combo: ComboMeal;
@@ -33,6 +35,7 @@ const ComboCard: React.FC<ComboCardProps> = ({
   onToggleExpanded
 }) => {
   const { theme } = useFiltersContext();
+  const { state: restaurantState, dispatch: restaurantDispatch, setActiveRestaurant } = useRestaurant();
   const [mainImageError, setMainImageError] = useState(false);
   const [itemImageErrors, setItemImageErrors] = useState<Record<number, boolean>>({});
   const [similarItemImageErrors, setSimItemImageErrors] = useState<Record<string, boolean>>({});
@@ -56,7 +59,6 @@ const ComboCard: React.FC<ComboCardProps> = ({
   const actualMainImageUrl = mainItemId 
     ? `${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${combo.restaurantId}/${combo.restaurantId}-${mainItemId}.jpg`
     : placeholderImage;
-  // Use placeholder if error occurred.
   const mainImageUrl = mainImageError ? placeholderImage : actualMainImageUrl;
 
   const handleItemImageError = (itemIndex: number) => {
@@ -119,6 +121,13 @@ const ComboCard: React.FC<ComboCardProps> = ({
     const effectiveId = itemId !== undefined ? itemId : itemIndex;
     const uniqueKey = `${combo.id}_${itemIndex}_${effectiveId}`;
     return similarItems[uniqueKey] || [];
+  };
+
+  const handleAddComboToCart = () => {
+    if (restaurantState.activeRestroId !== combo.restaurantId) {
+      setActiveRestaurant(combo.restaurantId);
+    }
+    onAddToCart({ ...combo, isCombo: true, restaurantId: combo.restaurantId });
   };
 
   return (
@@ -387,7 +396,7 @@ const ComboCard: React.FC<ComboCardProps> = ({
         
         <div className="mt-auto pt-2">
           <button
-            onClick={() => onAddToCart({ ...combo, isCombo: true, restaurantId: combo.restaurantId })}
+            onClick={handleAddComboToCart}
             className="w-full py-3 px-4 text-sm font-medium rounded-md transition-all duration-200 flex items-center justify-center transform hover:scale-[1.02] hover:shadow-md"
             style={{ backgroundColor: theme.primary, color: theme.buttonText || 'white' }}
           >

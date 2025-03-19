@@ -162,15 +162,23 @@ export const CartSummary: React.FC = () => {
     });
   };
   
+  // Updated function: try activeRestroId, then fallback to first cart item's restaurantId
   const getActiveRestaurantName = (): string => {
-    if (!restaurantState.activeRestroId) return state.selectedRestaurant || "";
-    
-    const name = getRestaurantNameById(
-      restaurantState.restaurants,
-      restaurantState.activeRestroId
-    );
-    
-    return name !== "Unknown Restaurant" ? name : state.selectedRestaurant || "";
+    if (restaurantState.activeRestroId) {
+      const name = getRestaurantNameById(
+        restaurantState.restaurants,
+        restaurantState.activeRestroId
+      );
+      if (name && name !== "Unknown Restaurant") return name;
+    }
+    if (state.cart.length > 0 && state.cart[0].restaurantId) {
+      const fallbackName = getRestaurantNameById(
+        restaurantState.restaurants,
+        state.cart[0].restaurantId
+      );
+      if (fallbackName && fallbackName !== "Unknown Restaurant") return fallbackName;
+    }
+    return state.selectedRestaurant || "";
   };
 
   const getComboImageUrl = (cartItem: any) => {
@@ -183,8 +191,12 @@ export const CartSummary: React.FC = () => {
   
   const getCombinedCacheKey = (): string => {
     const restaurantName = getActiveRestaurantName();
+    // Prefix combo items with "Combo:" so they’re clearly identified.
     const itemsKey = state.cart
-      .map(item => `${item.name}:${item.quantity}`)
+      .map(item => {
+        const prefix = item.isCombo ? "Combo:" : "";
+        return `${prefix}${item.name}:${item.quantity}`;
+      })
       .sort()
       .join('|');
     return `${restaurantName}:combined:${itemsKey}`;
@@ -232,7 +244,8 @@ export const CartSummary: React.FC = () => {
       const restaurantName = getActiveRestaurantName();
       
       const itemsList = state.cart.map(item => {
-        const itemDetails = `${item.name} (x${item.quantity})`;
+        const prefix = item.isCombo ? "Combo: " : "";
+        const itemDetails = `${prefix}${item.name} (x${item.quantity})`;
         return item.description ? `${itemDetails} - ${item.description}` : itemDetails;
       }).join("; ");
       
