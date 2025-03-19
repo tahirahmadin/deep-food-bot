@@ -94,13 +94,7 @@ export const CartSummary: React.FC = () => {
       .toFixed(2);
   }, [state.cart]);
 
-  const updateQuantity = (
-    itemId: number,
-    name: string,
-    price: string,
-    description: string,
-    change: number
-  ) => {
+  const updateQuantity = (itemId: number, change: number) => {
     const item = state.cart.find((i) => i.id === itemId);
     if (item) {
       const newQuantity = item.quantity + change;
@@ -109,11 +103,12 @@ export const CartSummary: React.FC = () => {
       } else {
         dispatch({
           type: "UPDATE_CART_ITEM",
-          payload: { id: itemId, name, price, description, quantity: newQuantity },
+          payload: { ...item, quantity: newQuantity },
         });
       }
     }
   };
+  
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -565,36 +560,20 @@ export const CartSummary: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() =>
-                          updateQuantity(item.id, item.name, item.price, item.description, -1)
-                        }
-                        className={`p-1 rounded-full`}
-                        style={{
-                          backgroundColor: theme.modalBg,
-                          ":hover": { backgroundColor: theme.modalBgLight },
-                        }}
+                        onClick={() => updateQuantity(item.id, -1)}
+                        className="p-1 rounded-full"
+                        style={{ backgroundColor: theme.modalBg }}
                       >
-                        <Minus
-                          className="w-4 h-4"
-                          style={{ color: theme.chatBubbleBg }}
-                        />
+                        <Minus className="w-4 h-4" style={{ color: theme.chatBubbleBg }} />
                       </button>
-                      <span
-                        className="text-sm font-medium w-6 text-center"
-                        style={{ color: theme.modalMainText }}
-                      >
+                      <span className="text-sm font-medium w-6 text-center" style={{ color: theme.modalMainText }}>
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() =>
-                          updateQuantity(item.id, item.name, item.price, item.description, 1)
-                        }
+                        onClick={() => updateQuantity(item.id, 1)}
                         className="p-1 hover:bg-gray-100 rounded-full"
                       >
-                        <Plus
-                          className="w-4 h-4"
-                          style={{ color: theme.chatBubbleBg }}
-                        />
+                        <Plus className="w-4 h-4" style={{ color: theme.chatBubbleBg }} />
                       </button>
                     </div>
                   </div>
