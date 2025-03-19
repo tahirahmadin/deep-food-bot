@@ -16,6 +16,18 @@ interface NutritionCacheEntry {
 
 const NUTRITION_CACHE_TTL = 30 * 60 * 1000;
 
+interface CustomizationSelection {
+  name: string;
+  price: number;
+  description?: string;
+}
+
+interface Customization {
+  categoryName: string;
+  selection: CustomizationSelection;
+}
+
+
 export const CartSummary: React.FC = () => {
   const { state, dispatch } = useChatContext();
   const { state: restaurantState } = useRestaurant();
@@ -86,6 +98,7 @@ export const CartSummary: React.FC = () => {
     itemId: number,
     name: string,
     price: string,
+    description: string,
     change: number
   ) => {
     const item = state.cart.find((i) => i.id === itemId);
@@ -96,7 +109,7 @@ export const CartSummary: React.FC = () => {
       } else {
         dispatch({
           type: "UPDATE_CART_ITEM",
-          payload: { id: itemId, name, price, quantity: newQuantity },
+          payload: { id: itemId, name, price, description, quantity: newQuantity },
         });
       }
     }
@@ -244,9 +257,24 @@ export const CartSummary: React.FC = () => {
       const restaurantName = getActiveRestaurantName();
       
       const itemsList = state.cart.map(item => {
-        const prefix = item.isCombo ? "Combo: " : "";
-        const itemDetails = `${prefix}${item.name} (x${item.quantity})`;
-        return item.description ? `${itemDetails} - ${item.description}` : itemDetails;
+        if (item.isCombo) {
+          let comboDescription = "Combo";
+          if (item.customizations && item.customizations.length > 0) {
+            const customizationsDesc = item.customizations.map(customization => {
+              const selection = customization.selection as { name: string; price: number; description?: string };
+              const selectionDesc = selection.description 
+                ? `${selection.name}(x${item.quantity}) - (${selection.description})`
+                : selection.name;
+              return `${customization.categoryName}: ${selectionDesc}`;
+            }).join(', ');
+            comboDescription += ` - ${customizationsDesc}`;
+          }
+          return `${comboDescription}`;
+        } else {
+          return item.description 
+            ? `${item.name} (x${item.quantity}) - ${item.description}` 
+            : `${item.name} (x${item.quantity})`;
+        }
       }).join("; ");
       
       let nutritionContext = "";
@@ -262,7 +290,7 @@ export const CartSummary: React.FC = () => {
   
       Important: The user follows a ${userDailyCalories} calorie diet. Please scale your nutritional assessment accordingly.
   
-      Format the response as a JSON object exactly as follows:
+      Format the response as a valid JSON object exactly as follows, do not include any special character, format before and after the json.:
       {
         "text": "Your Answer",
         "item": "Total Meal",
@@ -456,11 +484,11 @@ export const CartSummary: React.FC = () => {
             </div>
             <div className="max-h-64 overflow-y-auto">
             {state.cart.map((item) => {
+              console.log("Customization data for item:", item.name, item.customizations);
               const isCombo = item.isCombo === true;
               const imageUrl = isCombo && item.mainItemId
                 ? getComboImageUrl(item)
                 : getItemImageUrl(item.id, item.restaurantId);
-              console.log("Computed imageUrl:", imageUrl);
 
                 return (
                   <div
@@ -538,7 +566,7 @@ export const CartSummary: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() =>
-                          updateQuantity(item.id, item.name, item.price, -1)
+                          updateQuantity(item.id, item.name, item.price, item.description, -1)
                         }
                         className={`p-1 rounded-full`}
                         style={{
@@ -559,7 +587,7 @@ export const CartSummary: React.FC = () => {
                       </span>
                       <button
                         onClick={() =>
-                          updateQuantity(item.id, item.name, item.price, 1)
+                          updateQuantity(item.id, item.name, item.price, item.description, 1)
                         }
                         className="p-1 hover:bg-gray-100 rounded-full"
                       >

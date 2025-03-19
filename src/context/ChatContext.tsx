@@ -124,6 +124,7 @@ export interface CartItem {
       price: number;
     };
   }[];
+  comboId?: string;
 }
 
 type ChatAction =
@@ -209,7 +210,11 @@ type ChatAction =
             ...state,
             cart: state.cart.map((item) =>
               item.id === action.payload.id
-                ? { ...item, quantity: item.quantity + 1 }
+                ? { 
+                  ...item, 
+                  quantity: item.quantity + 1,
+                  description: item.description 
+                }
                 : item
             ),
           };
@@ -218,32 +223,56 @@ type ChatAction =
           ...state,
           cart: [...state.cart, { ...action.payload, quantity: 1 }],
         };
-      case "ADD_COMBO_TO_CART":
-        // Create a cart item from the combo
-        const comboCartItem: CartItem = {
-          id: Date.now(), // Generate a unique ID
-          name: action.payload.name,
-          price: action.payload.totalPrice.toFixed(2),
-          description: action.payload.description,
-          quantity: 1,
-          restaurant: action.payload.restaurantName, // You might also want to store restaurantName
-          restaurantId: action.payload.restaurantId,   // Store numeric restaurant ID
-          mainItemId: action.payload.items[0]?.id,       // Pass the first item's ID
-          isCombo: true,
-          customizations: action.payload.items.map(item => ({
-            categoryName: item.category || "Item",
-            selection: {
-              name: item.name,
-              price: item.price || 0
-            }
-          })),
-          // Optionally, you can also pass the full items array:
-          items: action.payload.items,
-        };
-        return {
-          ...state,
-          cart: [...state.cart, comboCartItem],
-        };
+        case "ADD_COMBO_TO_CART": {
+          // Create a cart item from the combo payload
+          const newComboCartItem: CartItem = {
+            id: Date.now(), 
+            comboId: action.payload.id, 
+            name: action.payload.name,
+            price: action.payload.totalPrice.toFixed(2),
+            description: action.payload.description,
+            quantity: 1,
+            restaurant: action.payload.restaurantName,
+            restaurantId: action.payload.restaurantId,
+            mainItemId: action.payload.items[0]?.id,
+            isCombo: true,
+            customizations: action.payload.items.map(item => ({
+              categoryName: item.category || "Item",
+              selection: {
+                name: item.name,
+                price: item.price || 0,
+                description: item.description
+              }
+            })),
+            // Optionally, pass along the full items array:
+            items: action.payload.items,
+          };
+        
+          const existingComboIndex = state.cart.findIndex(item =>
+            item.isCombo &&
+            item.comboId === action.payload.id &&
+            JSON.stringify(item.customizations) === JSON.stringify(newComboCartItem.customizations)
+          );
+        
+          if (existingComboIndex !== -1) {
+            const updatedCart = state.cart.map((item, index) => {
+              if (index === existingComboIndex) {
+                return { ...item, quantity: item.quantity + 1 };
+              }
+              return item;
+            });
+            return {
+              ...state,
+              cart: updatedCart,
+            };
+          } else {
+            return {
+              ...state,
+              cart: [...state.cart, newComboCartItem],
+            };
+          }
+        }
+        
       case "SET_CURRENT_COMBO_MEALS":
         return {
           ...state,
