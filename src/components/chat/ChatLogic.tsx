@@ -488,7 +488,7 @@ export const useChatLogic = ({
         
         Your task is to create complete meal combinations that pair well together based on flavor profiles, cuisine types, and traditional meal structures.
         
-        Return a JSON response in the following format:
+        Only Return a valid JSON response in the following format:
         {
           "text": "",
           "combos": [

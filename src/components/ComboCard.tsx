@@ -6,6 +6,9 @@ import { useRestaurant } from '../context/RestaurantContext';
 import { getRestaurantNameById } from '../utils/menuUtils';
 import { useChatContext } from '../context/ChatContext';
 import { CartChangeModal } from './CartChangeModal';
+import { Bike, MapPin } from "lucide-react";
+import { calculateDistance } from '../utils/distanceUtils';
+import { useAuth } from '../context/AuthContext';
 
 const placeholderImage = "https://i.pinimg.com/originals/da/4f/c2/da4fc2360e1dcc5c85cf5eeaee4b107f.gif";
 
@@ -23,9 +26,44 @@ interface ComboCardProps {
   onToggleExpanded?: () => void;
 }
 
-const ComboCard: React.FC<ComboCardProps> = ({ 
-  combo, 
-  onAddToCart, 
+interface RestaurantBadgesProps {
+  rating: string | null;
+  deliveryTime: string | null;
+  distance: string | null;
+}
+
+const RestaurantBadges: React.FC<RestaurantBadgesProps> = ({
+  rating,
+  deliveryTime,
+  distance,
+}) => (
+  <div className="flex items-center gap-2 mt-1">
+    {rating && (
+      <div className="flex items-center gap-1 bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+        </svg>
+        <span>{rating}</span>
+      </div>
+    )}
+    {deliveryTime && (
+      <div className="flex items-center gap-1 bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+        <Bike className="w-3 h-3" />
+        <span>{deliveryTime} min</span>
+      </div>
+    )}
+    {distance && (
+      <div className="flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+        <MapPin className="w-3 h-3" />
+        <span>{distance} km</span>
+      </div>
+    )}
+  </div>
+);
+
+const ComboCard: React.FC<ComboCardProps> = ({
+  combo,
+  onAddToCart,
   onRegenerateItem,
   onDeleteItem,
   onReplaceItem,
@@ -39,6 +77,9 @@ const ComboCard: React.FC<ComboCardProps> = ({
   const { theme } = useFiltersContext();
   const { state: restaurantState, setActiveRestaurant } = useRestaurant();
   const { state, dispatch } = useChatContext();
+  const { addresses } = useAuth();
+  const selectedAddress = addresses[0];
+
   const [mainImageError, setMainImageError] = useState(false);
   const [itemImageErrors, setItemImageErrors] = useState<Record<number, boolean>>({});
   const [similarItemImageErrors, setSimItemImageErrors] = useState<Record<string, boolean>>({});
@@ -67,11 +108,33 @@ const ComboCard: React.FC<ComboCardProps> = ({
   const mainImageUrl = mainImageError ? placeholderImage : actualMainImageUrl;
 
   const handleItemImageError = (itemIndex: number) => {
-    setItemImageErrors(prev => ({ ...prev, [itemIndex]: true }));
+    setItemImageErrors((prev) => ({ ...prev, [itemIndex]: true }));
   };
 
-  const handleSimilarItemImageError = (itemKey: string) => {
-    setSimItemImageErrors(prev => ({ ...prev, [itemKey]: true }));
+  const getRestaurantDetails = (restroId: number) => {
+    const restaurant = restaurantState.restaurants.find((r) => r.id === restroId);
+    if (
+      !restaurant ||
+      !selectedAddress?.coordinates ||
+      !restaurant.location?.coordinates
+    ) {
+      return { distance: null, deliveryTime: null, rating: null };
+    }
+
+    const distance = calculateDistance(
+      selectedAddress.coordinates.lat,
+      selectedAddress.coordinates.lng,
+      restaurant.location.coordinates[1],
+      restaurant.location.coordinates[0]
+    );
+    const calcTime = Math.ceil(distance * 4);
+    const deliveryTime = calcTime < 20 ? 20 : calcTime;
+
+    return {
+      distance: distance.toFixed(1),
+      deliveryTime: `${deliveryTime}-${deliveryTime + 5}`,
+      rating: restaurant.rating?.toFixed(1) || "4.7",
+    };
   };
 
   const handleRegenerateClick = async (itemIndex: number, e: React.MouseEvent) => {
@@ -190,12 +253,15 @@ const ComboCard: React.FC<ComboCardProps> = ({
         
         <div className="p-4 flex-1 flex flex-col">
           <div className="text-sm mb-3" style={{ color: theme.subText || theme.text }}>
+            {/* Restaurant Name Badge */}
             <span 
               className="inline-block px-2 py-1 rounded-md text-xs mb-2 mr-2"
               style={{ backgroundColor: `${theme.primary}20`, color: theme.primary }}
             >
-              {combo.restaurantName}
+              {getRestaurantNameById(restaurantState.restaurants, combo.restaurantId)}
             </span>
+            {/* Restaurant Details Badges */}
+            <RestaurantBadges {...getRestaurantDetails(combo.restaurantId)} />
             <p>{combo.description}</p>
           </div>
           
@@ -364,7 +430,9 @@ const ComboCard: React.FC<ComboCardProps> = ({
                                               src={simImageUrl} 
                                               alt={similarItem.name}
                                               className="w-full h-full object-cover"
-                                              onError={() => handleSimilarItemImageError(itemKey)}
+                                              onError={() => {
+                                                setSimItemImageErrors((prev) => ({ ...prev, [itemKey]: true }));
+                                              }}
                                             />
                                           ) : (
                                             <img 
