@@ -392,8 +392,12 @@ export const useChatLogic = ({
           : ""
       }
       and return exactly one JSON object:
-        { "restroIds": [] }
+        { "text":"", restroIds": [] }
       where:
+      where:
+        - "text" provides a brief and creative response about the restaurant in ${
+          selectedStyle.name
+        } style.
         - "restroIds" is an array of up to 2 matching restaurant IDs (numeric).
       STRICT FORMAT RULES:
         - Return only a valid JSON object with no extra text, explanations, or markdown.

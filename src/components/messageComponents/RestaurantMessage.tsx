@@ -6,6 +6,7 @@ import { Message } from "../../types";
 import { useFiltersContext } from "../../context/FiltersContext";
 import { useAuth } from "../../context/AuthContext";
 import { calculateDistance } from "../../utils/distanceUtils";
+import * as menuUtils from "../../utils/menuUtils";
 
 interface RestaurantMessageProps {
   message: Message;
@@ -15,20 +16,45 @@ export const RestaurantMessage: React.FC<RestaurantMessageProps> = ({
   message,
 }) => {
   const { dispatch } = useChatContext();
-  const { state: restaurantState } = useRestaurant();
+  const { 
+    state: restaurantState, 
+    setActiveRestaurant
+  } = useRestaurant();
   const { selectedStyle } = useFiltersContext();
   const { theme } = useFiltersContext();
   const { addresses } = useAuth();
   const selectedAddress = addresses[0];
 
   const handleSelectRestro = (restroId: number) => {
-    dispatch({ type: "SET_MODE", payload: "browse" });
+    const restaurant = restaurantState.restaurants.find((r) => r.id === restroId);
+    if (!restaurant) return;
     dispatch({
       type: "SET_SELECTED_RESTAURANT",
-      payload:
-        restaurantState.restaurants.find((r) => r.id === restroId)?.name ||
-        null,
+      payload: restaurant.name || null,
     });
+  };
+  
+  const handleViewMenu = (restroId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const restaurant = restaurantState.restaurants.find((r) => r.id === restroId);
+    if (!restaurant) return;
+    
+    setActiveRestaurant(restroId);
+    
+    const restaurantName = menuUtils.getRestaurantNameById(
+      restaurantState.restaurants,
+      restroId
+    );
+    
+    if (restaurantName !== "Unknown Restaurant") {
+      dispatch({
+        type: "SET_SELECTED_RESTAURANT",
+        payload: restaurantName,
+      });
+    }
+    
+    dispatch({ type: "SET_MODE", payload: "browse" });
   };
 
   const getRestaurantDetails = (restroId: number) => {
@@ -90,15 +116,14 @@ export const RestaurantMessage: React.FC<RestaurantMessageProps> = ({
                 getRestaurantDetails(restroId);
 
               return (
-                <button
+                <div
                   key={restroId}
-                  onClick={() => {
-                    dispatch({ type: "SET_MODE", payload: "browse" });
-                    handleSelectRestro(restroId);
-                  }}
                   className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group"
                 >
-                  <div className="aspect-[16/9] w-full relative">
+                  <div
+                    className="aspect-[16/9] w-full relative"
+                    onClick={() => handleSelectRestro(restroId)}
+                  >
                     <img
                       src={`${import.meta.env.VITE_PUBLIC_AWS_BUCKET_URL}/${
                         restaurant.id
@@ -120,8 +145,11 @@ export const RestaurantMessage: React.FC<RestaurantMessageProps> = ({
                       color: theme.cardText,
                     }}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-[12px] font-medium text-gray-900">
+                    <div 
+                      className="flex items-center justify-between mb-1"
+                      onClick={() => handleSelectRestro(restroId)}
+                    >
+                      <h3 className="text-[12px] text-left font-medium text-gray-900">
                         {restaurant.name}
                       </h3>
                       <div className="flex items-center gap-1 bg-green-50 px-1 py-0.5 rounded-full">
@@ -143,10 +171,14 @@ export const RestaurantMessage: React.FC<RestaurantMessageProps> = ({
                     <p
                       className="text-[10px] line-clamp-2 text-left"
                       style={{ color: `${theme.cardText}99` }}
+                      onClick={() => handleSelectRestro(restroId)}
                     >
                       {restaurant.description}
                     </p>
-                    <div className="flex items-center gap-2 mt-3">
+                    <div 
+                      className="flex items-center gap-2 mt-3"
+                      onClick={() => handleSelectRestro(restroId)}
+                    >
                       {deliveryTime && (
                         <div
                           className="flex items-center gap-1 px-1 py-0.5 rounded-full"
@@ -183,11 +215,12 @@ export const RestaurantMessage: React.FC<RestaurantMessageProps> = ({
                         color: theme.primary,
                         ":hover": { backgroundColor: `${theme.primary}30` },
                       }}
+                      onClick={(e) => handleViewMenu(restroId, e)}
                     >
                       View Menu
                     </button>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
