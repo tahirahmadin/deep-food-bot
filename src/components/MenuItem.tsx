@@ -41,8 +41,10 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   const { theme } = useFiltersContext();
   // Check if item is in cart
   const cartItem = state.cart.find((item) => {
-    // console.log(item);
-    return item.id === id && restaurantName === state.cart[0]?.restaurant;
+    return item.id === id && (
+      restaurantName === item.restaurant || 
+      (item.restaurantId && item.restaurantId === restroId)
+    );
   });
   const isInCart = Boolean(cartItem);
 
@@ -85,11 +87,14 @@ export const MenuItem: React.FC<MenuItemProps> = ({
 
     // Check if cart has items from a different restaurant
     const cartRestaurant = state.cart[0]?.restaurant;
+    const cartRestaurantId = state.cart[0]?.restaurantId;
 
-    console.log(cartRestaurant);
-    console.log(restaurantName);
-    // If cart is not empty and has items from a different restaurant
-    if (cartRestaurant && cartRestaurant !== restaurantName) {
+    if (
+      state.cart.length > 0 && 
+      restaurantName !== "Unknown Restaurant" &&
+      ((cartRestaurantId && cartRestaurantId !== restroId) || 
+       (!cartRestaurantId && cartRestaurant && cartRestaurant !== restaurantName))
+    ) {
       setIsCartChangeModalOpen(true);
       return;
     }
@@ -107,16 +112,25 @@ export const MenuItem: React.FC<MenuItemProps> = ({
             image,
             customisation,
             restaurant: restaurantName,
+            restaurantId: restroId, 
           },
         },
       });
       return;
     }
-
+    
     // Add item to cart
     dispatch({
       type: "ADD_TO_CART",
-      payload: { id, name, price, description, quantity: 1, restaurant: restaurantName },
+      payload: { 
+        id, 
+        name, 
+        price, 
+        description, 
+        quantity: 1, 
+        restaurant: restaurantName,
+        restaurantId: restroId 
+      },
     });
   };
 
@@ -125,7 +139,15 @@ export const MenuItem: React.FC<MenuItemProps> = ({
     dispatch({ type: "SET_SELECTED_RESTAURANT", payload: restaurantName });
     dispatch({
       type: "ADD_TO_CART",
-      payload: { id, name, price, description, quantity: 1, restaurant: restaurantName },
+      payload: { 
+        id, 
+        name, 
+        price, 
+        description, 
+        quantity: 1, 
+        restaurant: restaurantName,
+        restaurantId: restroId 
+      },
     });
     handleSelectRestro(restroId);
     setIsCartChangeModalOpen(false);
@@ -194,7 +216,6 @@ export const MenuItem: React.FC<MenuItemProps> = ({
       <DishDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => {
-          console.log("hitting");
           setIsDetailsModalOpen(false);
           return true;
         }}

@@ -193,7 +193,19 @@ const ComboCard: React.FC<ComboCardProps> = ({
 
   const handleAddComboToCart = () => {
     const cartRestaurant = state.cart[0]?.restaurant;
-    if (cartRestaurant && cartRestaurant !== combo.restaurantName) {
+    const cartRestaurantId = state.cart[0]?.restaurantId;
+
+    if (combo.restaurantName === "Unknown Restaurant" || combo.restaurantName === "Restaurant") {
+      if (restaurantState.activeRestroId !== combo.restaurantId) {
+        setActiveRestaurant(combo.restaurantId);
+      }
+      onAddToCart({ ...combo, isCombo: true, restaurantId: combo.restaurantId });
+      return;
+    }
+
+    if (state.cart.length > 0 && 
+        ((cartRestaurantId && cartRestaurantId !== combo.restaurantId) || 
+         (!cartRestaurantId && cartRestaurant && cartRestaurant !== combo.restaurantName))) {
       setIsCartChangeModalOpen(true);
       return;
     }
@@ -528,6 +540,8 @@ const ComboCard: React.FC<ComboCardProps> = ({
         onConfirm={handleCartChangeConfirm}
         currentRestaurant={state.cart[0]?.restaurant || ""}
         newRestaurant={combo.restaurantName}
+        currentRestaurantId={state.cart[0]?.restaurantId}
+        newRestaurantId={combo.restaurantId}
       />
     </>
   );

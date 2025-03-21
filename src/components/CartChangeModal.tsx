@@ -8,6 +8,8 @@ interface CartChangeModalProps {
   onConfirm: () => void;
   currentRestaurant: string;
   newRestaurant: string;
+  currentRestaurantId?: number;
+  newRestaurantId?: number;
 }
 
 export const CartChangeModal: React.FC<CartChangeModalProps> = ({
@@ -16,8 +18,26 @@ export const CartChangeModal: React.FC<CartChangeModalProps> = ({
   onConfirm,
   currentRestaurant,
   newRestaurant,
+  currentRestaurantId,
+  newRestaurantId,
 }) => {
   if (!isOpen) return null;
+
+  if (newRestaurant === "Unknown Restaurant" || newRestaurant === "Restaurant") {
+    console.log("Skipping cart change modal for unknown restaurant");
+    onClose();
+    return null;
+  }
+
+  if (
+    currentRestaurantId && 
+    newRestaurantId && 
+    currentRestaurantId === newRestaurantId
+  ) {
+    console.log("Skipping cart change modal - same restaurant IDs");
+    onClose();
+    return null;
+  }
 
   const { theme } = useFiltersContext();
 

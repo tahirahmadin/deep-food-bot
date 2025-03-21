@@ -44,7 +44,7 @@ export const getRestaurantNameById = (
   id: number
 ): string => {
   const restaurant = restaurants.find((item) => item.id === id);
-  return restaurant ? restaurant.name : "Restaurant";
+  return restaurant ? restaurant.name : "Unknown Restaurant";
 };
 
 export const getRestaurantRatingById = (

@@ -19,6 +19,7 @@ interface MenuItemProps {
   restaurant?: string;
   isCustomisable?: boolean;
   customisation?: MenuItemFront["customisation"];
+  queryType?: string;
 }
 
 export const ChatMenuItem: React.FC<MenuItemProps> = ({
@@ -42,8 +43,10 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
   const { theme } = useFiltersContext();
   // Check if item is in cart
   const cartItem = state.cart.find((item) => {
-    // console.log(item);
-    return item.id === id && restaurantName === state.cart[0]?.restaurant;
+    return item.id === id && (
+      restaurantName === item.restaurant || 
+      (item.restaurantId && item.restaurantId === restroId)
+    );
   });
   const isInCart = Boolean(cartItem);
 
@@ -86,11 +89,14 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
 
     // Check if cart has items from a different restaurant
     const cartRestaurant = state.cart[0]?.restaurant;
-
-    console.log(cartRestaurant);
-    console.log(restaurantName);
-    // If cart is not empty and has items from a different restaurant
-    if (cartRestaurant && cartRestaurant !== restaurantName) {
+    const cartRestaurantId = state.cart[0]?.restaurantId;
+  
+    if (
+      state.cart.length > 0 && 
+      restaurantName !== "Unknown Restaurant" &&
+      ((cartRestaurantId && cartRestaurantId !== restroId) || 
+       (!cartRestaurantId && cartRestaurant && cartRestaurant !== restaurantName))
+    ) {
       setIsCartChangeModalOpen(true);
       return;
     }
@@ -107,6 +113,7 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
             image,
             customisation,
             restaurant: restaurantName,
+            restaurantId: restroId,
           },
         },
       });
@@ -116,7 +123,15 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
     // Add item to cart
     dispatch({
       type: "ADD_TO_CART",
-      payload: { id, name, price, description, quantity: 1, restaurant: restaurantName },
+      payload: { 
+        id, 
+        name, 
+        price, 
+        description, 
+        quantity: 1, 
+        restaurant: restaurantName,
+        restaurantId: restroId 
+      },
     });
     handleSelectRestro(restroId);
   };
@@ -126,7 +141,15 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
     dispatch({ type: "SET_SELECTED_RESTAURANT", payload: restaurantName });
     dispatch({
       type: "ADD_TO_CART",
-      payload: { id, name, price, description, quantity: 1, restaurant: restaurantName },
+      payload: { 
+        id, 
+        name, 
+        price, 
+        description, 
+        quantity: 1, 
+        restaurant: restaurantName,
+        restaurantId: restroId 
+      },
     });
     handleSelectRestro(restroId);
     setIsCartChangeModalOpen(false);
@@ -193,6 +216,8 @@ export const ChatMenuItem: React.FC<MenuItemProps> = ({
         onConfirm={handleCartChange}
         currentRestaurant={state.cart[0]?.restaurant || ""}
         newRestaurant={restaurantName}
+        currentRestaurantId={state.cart[0]?.restaurantId}
+        newRestaurantId={restroId}
       />
       <DishDetailsModal
         isOpen={isDetailsModalOpen}
